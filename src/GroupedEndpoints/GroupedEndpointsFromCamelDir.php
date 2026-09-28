@@ -1,0 +1,32 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Ipsocode\Scribe\GroupedEndpoints;
+
+use InvalidArgumentException;
+use Ipsocode\Camel\Camel;
+use Ipsocode\Scribe\Tools\PathConfig;
+
+class GroupedEndpointsFromCamelDir implements GroupedEndpointsContract
+{
+    public function __construct(protected PathConfig $paths)
+    {
+    }
+
+    public function get(): array
+    {
+        if (! is_dir(Camel::camelDir($this->paths))) {
+            throw new InvalidArgumentException(
+                "Can't use --no-extraction because there are no endpoints in the " . Camel::camelDir($this->paths) . ' directory.'
+            );
+        }
+
+        return Camel::loadEndpointsIntoGroups(Camel::camelDir($this->paths));
+    }
+
+    public function hasEncounteredErrors(): bool
+    {
+        return false;
+    }
+}

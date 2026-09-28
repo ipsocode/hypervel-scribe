@@ -1,0 +1,26 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Ipsocode\Camel\Extraction;
+
+use Ipsocode\Camel\BaseDTO;
+
+class Metadata extends BaseDTO
+{
+    public ?string $groupName;
+
+    public ?string $groupDescription;
+
+    public ?string $subgroup;
+
+    public ?string $subgroupDescription;
+
+    public ?string $title;
+
+    public ?string $description;
+
+    public bool $authenticated = false;
+
+    public bool|string $deprecated = false;
+}

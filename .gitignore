@@ -1,0 +1,19 @@
+/vendor
+.DS_Store
+
+composer.lock
+
+# What the tools write: the caches of PHPUnit, php-cs-fixer and PHPStan
+# (phpunit.xml, .php-cs-fixer.dist.php, phpstan.neon), and the clover report
+# of `composer test:coverage`.
+/tests/.cache/
+/tests/coverage/
+
+# Scribe's own output, written into the package root when the suite runs the
+# generate command with the package directory as the working directory.
+/.scribe
+/public
+
+# Claude Code's local state. The automated review's skill and brief are
+# imported into .github/claude/.
+/.claude

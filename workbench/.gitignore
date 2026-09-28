@@ -1,0 +1,9 @@
+# The runtime skeleton's storage is generated, but `storage/responses` is not:
+# it holds the `@responseFile` fixtures the Workbench controllers document, and
+# tests/TestCase.php copies them into the skeleton before each test. Ignoring
+# the whole directory left the suite passing only on machines that happened to
+# have the file on disk. Excluding the *contents* is what allows the negation —
+# git will not re-include a path whose parent directory is itself excluded.
+/storage/*
+!/storage/responses/
+.env

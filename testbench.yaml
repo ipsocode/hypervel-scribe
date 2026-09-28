@@ -1,0 +1,87 @@
+# Testbench / Workbench configuration for ipsocode/hypervel-scribe.
+#
+# `workbench/` is the throwaway host application the package is tested against.
+# For a documentation generator that is not incidental: Scribe's whole job is to
+# read an application's routes, controllers, form requests and API resources, so
+# the Workbench app *is* the fixture. Anything the suite documents lives there,
+# in the shape a consuming application would have it.
+
+providers:
+  # The package under test, then the Workbench app that registers its own
+  # migrations.
+  - Ipsocode\Scribe\ScribeServiceProvider
+  - Workbench\App\Providers\WorkbenchServiceProvider
+
+# Applied to the Testbench CLI (`composer test`, testbench artisan, tinker).
+# Testbench does NOT apply these to PHPUnit test methods, so phpunit.xml mirrors
+# them under <php><env> — keep the two in step.
+env:
+  APP_NAME: "Hypervel Scribe Workbench"
+  APP_ENV: testing
+  # `scribe.base_url` defaults to `config('app.url')`, and the generated
+  # OpenAPI/Postman output embeds it, so it is pinned rather than left to
+  # whatever the skeleton's default happens to be.
+  APP_URL: http://localhost
+  # Scribe instantiates example models to render API resource responses, and
+  # falls back to a real database row when a factory cannot produce one. The
+  # CLI and the tests that need no tables use an in-memory database. Tests that
+  # extend tests/DatabaseTestCase.php switch to a SQLite file in the skeleton,
+  # which each process has a copy of, so the schema is migrated once per process
+  # rather than once per test.
+  DB_CONNECTION: sqlite
+  DB_DATABASE: ":memory:"
+
+migrations:
+  - workbench/database/migrations
+
+seeders:
+  - Workbench\Database\Seeders\DatabaseSeeder
+
+workbench:
+  # `scribe.auth` and the `#[Authenticated]` attribute describe authentication
+  # rather than perform it, but the Workbench User model extends the framework's
+  # Authenticatable, so the auth provider has to be present for it to resolve.
+  auth: true
+  # `/up` would match the `api/*` prefix rule about as well as a health route
+  # does — which is to say not at all — and the suite already ships its own
+  # `api/health` route to exercise exclusion. Keeping this off means every route
+  # the matcher sees is one this package put there on purpose.
+  health: false
+  discovers:
+    # `workbench/config` is intentionally empty: the package merges its own
+    # config from its provider. The hook stays on so an app-level `scribe.php`
+    # can be dropped in to reproduce a consumer's configuration without editing
+    # this file again.
+    config: true
+    factories: true
+    # Both route files are the fixture. `api.php` holds the endpoints Scribe is
+    # meant to document; `web.php` holds one that must stay out of the docs, so
+    # that "only matching routes are documented" is asserted against a route
+    # that genuinely exists rather than against an empty router.
+    web: true
+    api: true
+    commands: true
+    components: false
+    views: false
+
+purge:
+  # Paths here are resolved against the runtime *skeleton*, not against
+  # workbench/. package:purge-skeleton already removes the env file, the cached
+  # testbench.yaml, database/database.sqlite, routes/testbench-*.php and the
+  # storage app/session files on its own; these are the extras.
+  files:
+    - .env
+  directories:
+    # Where `scribe.type: hypervel` writes its Blade view and its assets. A
+    # generation test that crashes half way leaves these behind.
+    #
+    # `static.output_path` (public/docs) and the intermediate `.scribe/` are
+    # deliberately absent: both are relative paths that Scribe resolves against
+    # the *working directory*, so they land beside the package, and purge can
+    # only reach the skeleton. They are gitignored and cleaned by the
+    # generation test's own teardown instead.
+    - public/vendor/scribe
+    - resources/views/scribe
+    # Hyperf's AOP proxy cache. Regenerated on the next boot, and stale proxies
+    # survive a config:clear.
+    - storage/framework/aop

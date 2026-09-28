@@ -1,0 +1,35 @@
+<?php
+
+declare(strict_types=1);
+
+namespace DummyNamespace;
+
+use Ipsocode\Camel\Extraction\ExtractedEndpointData;
+use Ipsocode\Scribe\Extracting\ParamHelpers;
+use Ipsocode\Scribe\Extracting\Strategies\Strategy;
+
+class DummyClass extends Strategy
+{
+    /**
+     * Trait containing some helper methods for dealing with "parameters",
+     * such as generating examples and casting values to types.
+     * Useful if your strategy extracts information about parameters or generates examples.
+     */
+    use ParamHelpers;
+
+    /**
+     * Register this strategy under the stage it belongs to in `config/scribe.php`,
+     * in the `strategies` array — `metadata`, `headers`, `urlParameters`,
+     * `queryParameters`, `bodyParameters`, `responses` or `responseFields`.
+     *
+     * @see https://scribe.knuckles.wtf/laravel/advanced/plugins
+     *
+     * @param ExtractedEndpointData $endpointData The endpoint we are currently processing.
+     *   Contains details about httpMethods, controller, method, route, url, etc, as well as already extracted data.
+     * @param array $settings Settings to be applied to this strategy
+     */
+    public function __invoke(ExtractedEndpointData $endpointData, array $settings = []): ?array
+    {
+        return [];
+    }
+}

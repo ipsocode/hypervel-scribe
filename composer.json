@@ -1,0 +1,109 @@
+{
+    "name": "ipsocode/hypervel-scribe",
+    "description": "Generate API documentation for humans from your Hypervel codebase (port of knuckleswtf/scribe)",
+    "license": "MIT",
+    "keywords": [
+        "hypervel",
+        "scribe",
+        "api",
+        "documentation",
+        "openapi",
+        "postman",
+        "coroutine"
+    ],
+    "require": {
+        "php": "^8.4",
+        "ext-json": "*",
+        "fakerphp/faker": "^1.23",
+        "hypervel/console": "^0.4",
+        "hypervel/contracts": "^0.4",
+        "hypervel/database": "^0.4",
+        "hypervel/filesystem": "^0.4",
+        "hypervel/foundation": "^0.4",
+        "hypervel/http": "^0.4",
+        "hypervel/queue": "^0.4",
+        "hypervel/routing": "^0.4",
+        "hypervel/support": "^0.4",
+        "hypervel/validation": "^0.4",
+        "nikic/php-parser": "^5.0",
+        "parsedown/parsedown": "^1.7",
+        "ramsey/uuid": "^4.2.2",
+        "symfony/var-exporter": "^7.0",
+        "symfony/yaml": "^7.0"
+    },
+    "require-dev": {
+        "brianium/paratest": "^7.24",
+        "filp/whoops": "^2.15",
+        "friendsofphp/php-cs-fixer": "^3.57.2",
+        "hypervel/components": "0.4.x-dev",
+        "hypervel/testbench": "^0.4",
+        "league/fractal": "^0.20",
+        "mockery/mockery": "^1.6",
+        "nunomaduro/collision": "^8.0",
+        "phpstan/phpstan": "^2.2.15",
+        "phpunit/phpunit": "^13.0.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ipsocode\\Scribe\\": "src/",
+            "Ipsocode\\Camel\\": "camel/"
+        },
+        "files": [
+            "src/Config/helpers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Ipsocode\\Scribe\\Tests\\": "tests/",
+            "Workbench\\App\\": "workbench/app/",
+            "Workbench\\Database\\Factories\\": "workbench/database/factories/",
+            "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
+        }
+    },
+    "extra": {
+        "hypervel": {
+            "providers": [
+                "Ipsocode\\Scribe\\ScribeServiceProvider"
+            ],
+            "aliases": {
+                "Scribe": "Ipsocode\\Scribe\\Scribe"
+            },
+            "test-state": [
+                "Ipsocode\\Scribe\\Testing\\TestState"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": true,
+            "tbachert/spi": false
+        },
+        "platform": {
+            "ext-swoole": "6.2.3"
+        }
+    },
+    "scripts": {
+        "lint": "@php vendor/bin/php-cs-fixer fix --diff --dry-run",
+        "lint:fix": "@php vendor/bin/php-cs-fixer fix",
+        "analyse": "@php vendor/bin/phpstan analyse --memory-limit 1G -c phpstan.neon",
+        "conventions": "@php .github/scripts/conventions.php",
+        "test": "@php vendor/bin/testbench package:test",
+        "test:phpunit": "@php vendor/bin/phpunit",
+        "test:parallel": "@php vendor/bin/testbench package:test --parallel",
+        "test:coverage": "@php vendor/bin/testbench package:test --parallel --coverage --coverage-clover tests/coverage/clover.xml --min=100",
+        "test:purge": "@php vendor/bin/testbench package:purge-skeleton"
+    },
+    "scripts-descriptions": {
+        "analyse": "Run PHPStan over src/ with the level, settings and extensions hypervel/components uses.",
+        "lint": "Report the coding-standard changes php-cs-fixer would make, without writing them.",
+        "lint:fix": "Apply the coding standard. Risky rules are enabled (see .php-cs-fixer.dist.php) \u2014 run `composer test` afterwards, not just before committing.",
+        "test": "Run the package suite through the Testbench CLI.",
+        "test:phpunit": "Run the package suite through PHPUnit directly, bypassing the Testbench CLI.",
+        "test:parallel": "Run the package suite through ParaTest.",
+        "test:coverage": "Run the package suite through ParaTest with PCOV coverage, failing under 100%. Needs the PCOV extension, which the CI image has.",
+        "test:purge": "Clear cached config, routes, views and runtime SQLite files from the Testbench skeleton."
+    }
+}
