@@ -102,6 +102,32 @@ class DocsRoutesTest extends TestCase
     }
 
     #[Test]
+    public function everyDocsEndpointStillServesFromTheRouteCache(): void
+    {
+        // `route:cache` runs prepareForSerialization() on each route, which
+        // turns a closure handler into a serialized string that the router
+        // unserializes with only its own closure classes allowed. Doing the
+        // same to the live routes reproduces a cached application: anything
+        // else a handler captured comes back incomplete, and the endpoint 500s.
+        $this->writeGeneratedDocs();
+
+        foreach (['scribe', 'scribe.postman', 'scribe.openapi'] as $name) {
+            Route::getRoutes()->getByName($name)->prepareForSerialization();
+        }
+
+        $this->get('/docs')->assertOk()->assertSee('Workbench API');
+
+        $this->assertJsonStringEqualsJsonString(
+            '{"info":{"name":"Workbench API"}}',
+            $this->get('/docs.postman')->assertOk()->streamedContent()
+        );
+        $this->assertStringContainsString(
+            'title: Workbench API',
+            $this->get('/docs.openapi')->assertOk()->streamedContent()
+        );
+    }
+
+    #[Test]
     #[WithConfig('scribe.hypervel.docs_url', '/api-docs')]
     public function theDocsUrlIsConfigurable(): void
     {
