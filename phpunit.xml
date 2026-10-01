@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/13.0/phpunit.xsd"
+    bootstrap="vendor/autoload.php"
+    cacheDirectory="tests/.cache/phpunit"
+    colors="true"
+    backupGlobals="false"
+    backupStaticProperties="false"
+    processIsolation="false"
+    failOnWarning="true"
+    failOnRisky="true"
+>
+    <testsuites>
+        <!-- The package's pure logic, run without booting an application. Every
+             method carries #[UnitTest], so anything that reaches for a facade or
+             the container fails here rather than quietly leaning on a framework
+             the unit under test does not need. -->
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <!-- Everything that needs the Testbench application: the service
+             provider, route matching, extraction from the Workbench
+             controllers, the writers (which resolve generators out of the
+             container), and the console command. -->
+        <testsuite name="Feature">
+            <directory>tests/Feature</directory>
+        </testsuite>
+    </testsuites>
+
+    <source>
+        <include>
+            <!-- The package only. `workbench/` is the throwaway host application
+                 the suite runs against, not shipped code. -->
+            <directory suffix=".php">src</directory>
+        </include>
+        <exclude>
+            <!-- Re-namespaced third-party code (mpociot/reflection-docblock),
+                 vendored rather than written here. See the package README. -->
+            <directory suffix=".php">src/Reflection</directory>
+        </exclude>
+    </source>
+
+    <extensions>
+        <!-- Discovers this package's `extra.hypervel.test-state` registrar and runs
+             its cleanup after every test, plus the framework's own state flush —
+             the same path consuming applications get. Nothing else in the
+             framework invokes AfterEachTestCleanup, so without this Scribe's
+             worker-lifetime caches (the AST cache, the docblock cache, the user
+             hooks set through the Scribe facade) leak between tests in a worker. -->
+        <bootstrap class="Hypervel\Testing\PHPUnit\AfterEachTestExtension"/>
+    </extensions>
+
+    <php>
+        <!-- These five mirror testbench.yaml's `env` block. Testbench applies that
+             block to its own CLI (`composer test`) but explicitly not to PHPUnit
+             test methods, so without these a `vendor/bin/phpunit` run would boot a
+             differently-configured application than `composer test` does.
+             Keep the two lists in step. -->
+        <env name="APP_NAME" value="Hypervel Scribe Workbench"/>
+        <env name="APP_ENV" value="testing"/>
+        <!-- `scribe.base_url` defaults to `config('app.url')`, and the generated
+             OpenAPI/Postman output embeds it. -->
+        <env name="APP_URL" value="http://localhost"/>
+        <env name="DB_CONNECTION" value="sqlite"/>
+        <env name="DB_DATABASE" value=":memory:"/>
+
+        <!-- Pin terminal dimensions so Symfony Console never shells out to `stty`
+             to detect them. The generate command's task and warning output asks
+             for the terminal width, and a test worker's stdout is a pipe, so
+             Symfony falls back to running `stty` for every lookup. Each test runs
+             inside a Swoole coroutine with every hook on, which hooks that
+             subprocess wait; under ParaTest's concurrent workers the wait can
+             lose the child's exit (a SIGCHLD reaping race) and hang one worker
+             for good. The values and `force` match hypervel/components' own
+             phpunit.xml.dist.
+
+             PHPUnit-only, deliberately not in testbench.yaml, which the
+             framework's own testbench.yaml template leaves alone too: a Testbench
+             CLI command already runs with both set, because Symfony's
+             Application::run() exports them before the command starts. The
+             ParaTest workers `composer test` starts do not inherit them, and a
+             test's application is not booted through the console kernel whose
+             ConfigureTerminalDimensions bootstrapper would set them, so without
+             these a worker sees neither. -->
+        <env name="COLUMNS" value="80" force="true"/>
+        <env name="LINES" value="24" force="true"/>
+
+        <ini name="error_reporting" value="-1"/>
+        <ini name="display_errors" value="on"/>
+        <ini name="display_startup_errors" value="on"/>
+        <ini name="memory_limit" value="1024M"/>
+    </php>
+</phpunit>

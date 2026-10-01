@@ -1,0 +1,33 @@
+<?php
+
+declare(strict_types=1);
+
+namespace DummyNamespace;
+
+use Ipsocode\Camel\Extraction\ExtractedEndpointData;
+use Ipsocode\Scribe\Extracting\ParamHelpers;
+use Ipsocode\Scribe\Extracting\Strategies\Strategy;
+
+class DummyClass extends Strategy
+{
+    /**
+     * Helpers for parameters, such as generating examples and casting values to types.
+     */
+    use ParamHelpers;
+
+    /**
+     * Register this strategy under the stage it belongs to in `config/scribe.php`,
+     * in the `strategies` array — `metadata`, `headers`, `urlParameters`,
+     * `queryParameters`, `bodyParameters`, `responses` or `responseFields`.
+     *
+     * @see https://github.com/ipsocode/hypervel-scribe/blob/main/docs/strategies.md
+     *
+     * @param ExtractedEndpointData $endpointData The endpoint being processed: its HTTP methods,
+     *   controller, method, route and URL, plus the data extracted so far.
+     * @param array $settings Settings to be applied to this strategy.
+     */
+    public function __invoke(ExtractedEndpointData $endpointData, array $settings = []): ?array
+    {
+        return [];
+    }
+}

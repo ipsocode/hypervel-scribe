@@ -1,0 +1,274 @@
+<?php
+
+declare(strict_types=1);
+
+use Ipsocode\Scribe\Config\AuthIn;
+use Ipsocode\Scribe\Config\Defaults;
+use Ipsocode\Scribe\Extracting\Strategies;
+
+use function Ipsocode\Scribe\Config\configureStrategy;
+use function Ipsocode\Scribe\Config\removeStrategies;
+
+// Only the most common configs are shown. See https://github.com/ipsocode/hypervel-scribe/blob/main/docs/configuration.md for all.
+
+return [
+    // The HTML <title> for the generated documentation.
+    'title' => config('app.name') . ' API Documentation',
+
+    // A short description of your API, included in the docs webpage, Postman collection and OpenAPI spec.
+    'description' => '',
+
+    // Text to place in the "Introduction" section, right after the `description`. Markdown and HTML are supported.
+    // Keep the closing marker aligned with the text: PHP strips its indentation from each line,
+    // and any spaces left over make Markdown render the block as code.
+    'intro_text' => <<<'INTRO'
+        This documentation aims to provide all the information you need to work with our API.
+
+        <aside>As you scroll, you'll see code examples for working with the API in different programming languages in the dark area to the right (or as part of the content on mobile).
+        You can switch the language used with the tabs at the top right (or from the nav menu at the top left on mobile).</aside>
+        INTRO,
+
+    // The base URL displayed in the docs.
+    // Blade syntax, like '{{ config("app.tenant_url") }}', is rendered into the HTML page when the docs are generated;
+    // the Postman collection and OpenAPI spec get the string as written.
+    'base_url' => config('app.url'),
+
+    // Routes to include in the docs.
+    'routes' => [
+        [
+            'match' => [
+                // Match only routes whose paths match this pattern (use * as a wildcard to match any characters). Example: 'users/*'.
+                'prefixes' => ['api/*'],
+
+                // Match only routes whose domains match this pattern (use * as a wildcard to match any characters). Example: 'api.*'.
+                'domains' => ['*'],
+            ],
+
+            // Include these routes even if they did not match the rules above.
+            'include' => [
+                // 'users.index', 'POST /new', '/auth/*'
+            ],
+
+            // Exclude these routes even if they matched the rules above.
+            'exclude' => [
+                // 'GET /health', 'admin.*'
+            ],
+        ],
+    ],
+
+    // The type of documentation output to generate:
+    // - "static" generates a static HTML page in the `static.output_path` folder (public/docs).
+    // - "hypervel" generates a Blade view, so you can add routing and authentication.
+    // - "external_static" and "external_hypervel" do the same, but the page is a client-side viewer that loads the OpenAPI spec by URL.
+    // Anything else is rejected.
+    'type' => 'hypervel',
+
+    // See https://github.com/ipsocode/hypervel-scribe/blob/main/docs/output.md for supported options.
+    // The bundled themes are "default" and "elements"; the `external_*` types instead take
+    // the name of a client-side viewer: "scalar", "elements" or "rapidoc".
+    'theme' => 'default',
+
+    'static' => [
+        // HTML documentation, assets, Postman collection and OpenAPI spec are written to this folder.
+        // The editable source Markdown (intro.md, auth.md) stays in .scribe/.
+        'output_path' => 'public/docs',
+    ],
+
+    'hypervel' => [
+        // Whether to automatically create a docs route for you to view your generated docs. You can still set up routing manually.
+        'add_routes' => true,
+
+        // URL path to use for the docs endpoint (if `add_routes` is true).
+        // By default, `/docs` opens the HTML page, `/docs.postman` opens the Postman collection, and `/docs.openapi` the OpenAPI spec.
+        'docs_url' => '/docs',
+
+        // Directory within `public` to store the CSS, JS and image assets in.
+        // Defaults to `public/vendor/scribe`; if set, assets go to `public/{assets_directory}`.
+        'assets_directory' => null,
+
+        // Middleware to attach to the docs endpoint (if `add_routes` is true).
+        'middleware' => [],
+    ],
+
+    // Settings for the `external_*` types, whose page is only a shell around a client-side viewer.
+    'external' => [
+        // Attributes to add to the viewer's HTML element (`<elements-api>`, `<rapi-doc>`).
+        // Attributes specified here override the ones the view sets itself.
+        'html_attributes' => [],
+
+        // Configuration specific for the scalar theme: https://scalar.com/products/api-references/configuration
+        'scalar_config' => [],
+    ],
+
+    'try_it_out' => [
+        // Add a Try It Out button to your endpoints so consumers can test endpoints right from their browser.
+        // Don't forget to enable CORS headers for your endpoints.
+        'enabled' => true,
+
+        // The base URL to use in the API tester. Leave as null to be the same as the displayed URL (`scribe.base_url`).
+        'base_url' => null,
+
+        // [Hypervel Sanctum] Fetch a CSRF token before each request, and add it as an X-XSRF-TOKEN header.
+        'use_csrf' => false,
+
+        // The URL to fetch the CSRF token from (if `use_csrf` is true).
+        'csrf_url' => '/sanctum/csrf-cookie',
+    ],
+
+    // How is your API authenticated? This information will be used in the displayed docs, generated examples and response calls.
+    'auth' => [
+        // Set this to true if ANY endpoints in your API use authentication.
+        'enabled' => false,
+
+        // Set this to true if your API should be authenticated by default. If so, you must also set `enabled` (above) to true.
+        // You can then use @unauthenticated or @authenticated on individual endpoints to change their status from the default.
+        'default' => false,
+
+        // Where is the auth value meant to be sent in a request?
+        'in' => AuthIn::BEARER->value,
+
+        // The name of the auth parameter (e.g. token, key, apiKey) or header (e.g. Authorization, Api-Key).
+        'name' => 'key',
+
+        // The value of the parameter to be used by Scribe to authenticate response calls.
+        // This will NOT be included in the generated documentation. If empty, Scribe will use a random value.
+        'use_value' => env('SCRIBE_AUTH_KEY'),
+
+        // Placeholder your users will see for the auth parameter in the example requests.
+        // Set this to null if you want Scribe to use a random value as placeholder instead.
+        'placeholder' => '{YOUR_AUTH_KEY}',
+
+        // Any extra authentication-related info for your users. Markdown and HTML are supported.
+        'extra_info' => 'You can retrieve your token by visiting your dashboard and clicking <b>Generate API token</b>.',
+    ],
+
+    // Example requests for each endpoint will be shown in each of these languages.
+    // Supported options are: bash, javascript, php, python.
+    // To add a language of your own, see https://github.com/ipsocode/hypervel-scribe/blob/main/docs/output.md
+    // Not used by the `external_*` types.
+    'example_languages' => [
+        'bash',
+        'javascript',
+    ],
+
+    // Generate a Postman collection (v2.1.0) in addition to HTML docs.
+    // For 'static' docs, the collection is written to public/docs/collection.json.
+    // For 'hypervel' docs, it is written to scribe/collection.json on the 'local' disk.
+    // Setting `hypervel.add_routes` to true (above) also adds a route for the collection.
+    'postman' => [
+        'enabled' => true,
+
+        'overrides' => [
+            // 'info.version' => '2.0.0',
+        ],
+    ],
+
+    // Generate an OpenAPI spec in addition to the docs webpage. The `external_*` types always generate it.
+    // For 'static' docs, the spec is written to public/docs/openapi.yaml.
+    // For 'hypervel' docs, it is written to scribe/openapi.yaml on the 'local' disk.
+    // Setting `hypervel.add_routes` to true (above) also adds a route for the spec.
+    'openapi' => [
+        'enabled' => true,
+
+        // The OpenAPI spec version to generate. Supported versions: '3.0.3', '3.1.0'.
+        // 3.1 aligns with JSON Schema; see https://spec.openapis.org/oas/v3.1.0.
+        'version' => '3.0.3',
+
+        'overrides' => [
+            // 'info.version' => '2.0.0',
+        ],
+
+        // Additional generators to use when generating the OpenAPI spec.
+        // Should extend `Ipsocode\Scribe\Writing\OpenApiSpecGenerators\OpenApiGenerator`.
+        'generators' => [],
+    ],
+
+    'groups' => [
+        // Endpoints which don't have a @group will be placed in this default group.
+        'default' => 'Endpoints',
+
+        // By default, Scribe sorts groups alphabetically, and endpoints in the order their routes are defined.
+        // You can override this by listing the groups, subgroups and endpoints here in the order you want them.
+        // See https://github.com/ipsocode/hypervel-scribe/blob/main/docs/configuration.md for details.
+        // The `external_*` types get this order only through the OpenAPI spec.
+        'order' => [],
+    ],
+
+    // Custom logo path. This will be used as the value of the src attribute for the <img> tag,
+    // so make sure it points to an accessible URL or path. Set to false to not use a logo.
+    // For example, if your logo is in public/img:
+    // - 'logo' => '../img/logo.png' // for `static` type (output folder is public/docs)
+    // - 'logo' => 'img/logo.png' // for `hypervel` type
+    'logo' => false,
+
+    // Customize the "Last updated" value displayed in the docs by specifying tokens and formats.
+    // Examples:
+    // - {date:F j, Y} => March 28, 2022
+    // - {git:short} => Short hash of the last Git commit
+    // Available tokens are `{date:<format>}` and `{git:<format>}`.
+    // The format you pass to `date` will be passed to PHP's `date()` function.
+    // The format you pass to `git` can be either "short" or "long".
+    // Not used by the `external_*` types.
+    'last_updated' => 'Last updated: {date:F j, Y}',
+
+    'examples' => [
+        // Set this to any number to generate the same example values for parameters on each run.
+        // null or 0 leaves the values random.
+        'faker_seed' => 1234,
+
+        // With API resources and transformers, Scribe tries to generate example models to use in your API responses.
+        // Scribe tries each source in order: the model's factory (create, then make), then the first row in the database.
+        // You can reorder or remove sources here; 'factoryCreateQuietly' is also available.
+        'models_source' => ['factoryCreate', 'factoryMake', 'databaseFirst'],
+    ],
+
+    // The strategies Scribe will use to extract information about your routes at each stage.
+    // Use configureStrategy() to specify settings for a strategy in the list.
+    // Use removeStrategies() to remove an included strategy.
+    'strategies' => [
+        'metadata' => [
+            ...Defaults::METADATA_STRATEGIES,
+        ],
+        'headers' => [
+            ...Defaults::HEADERS_STRATEGIES,
+            Strategies\StaticData::withSettings(data: [
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+            ]),
+        ],
+        'urlParameters' => [
+            ...Defaults::URL_PARAMETERS_STRATEGIES,
+        ],
+        'queryParameters' => [
+            ...Defaults::QUERY_PARAMETERS_STRATEGIES,
+        ],
+        'bodyParameters' => [
+            ...Defaults::BODY_PARAMETERS_STRATEGIES,
+        ],
+        'responses' => configureStrategy(
+            Defaults::RESPONSES_STRATEGIES,
+            Strategies\Responses\ResponseCalls::withSettings(
+                only: ['GET *'],
+                // Recommended: disable debug mode in response calls to avoid error stack traces in responses.
+                config: [
+                    'app.debug' => false,
+                ]
+            )
+        ),
+        'responseFields' => [
+            ...Defaults::RESPONSE_FIELDS_STRATEGIES,
+        ],
+    ],
+
+    // For response calls, API resource responses and transformer responses,
+    // Scribe begins a database transaction on each of these connections and rolls it back afterwards.
+    // A response call runs in a coroutine of its own and can use another pooled connection, outside the
+    // transaction, so keep response calls to routes that only read.
+    // If you only use one database connection, you can leave this as is.
+    'database_connections_to_transact' => [config('database.default')],
+
+    'fractal' => [
+        // If you are using a custom serializer with league/fractal, you can specify it here.
+        'serializer' => null,
+    ],
+];

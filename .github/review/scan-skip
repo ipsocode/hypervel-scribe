@@ -1,0 +1,3 @@
+# REVIEW_SCAN_SKIP: the review scan leaves src/Reflection/, re-namespaced
+# third-party code, alone.
+^src/Reflection/
