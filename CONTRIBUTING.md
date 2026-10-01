@@ -173,7 +173,6 @@ generated from the pull requests merged since the previous tag. A `v*` tag
 pushed by hand goes through the same suite and gets the same Release.
 
 Composer installs a release as GitHub's archive of its tag, which leaves out
-every path `.gitattributes` marks `export-ignore`: `.github/`, `docs/`, the
-tests, the workbench and the development configs. A new top-level file or
-directory ships unless it is added there; `git archive HEAD | tar -t` lists
-what would.
+every path `.gitattributes` marks `export-ignore`: `.github/`, the tests,
+the workbench and the development configs. A new top-level file or directory
+ships unless it is added there; `git archive HEAD | tar -t` lists what would.
