@@ -24,13 +24,19 @@ Route::middleware($middleware)->group(function () use ($paths, $prefix) {
         ->name($paths->outputPath());
 
     // The collection and spec live on the 'local' disk, out of the browser's
-    // reach, so they are served rather than linked.
+    // reach, so they are served rather than linked. The handlers capture the
+    // paths as strings, not $paths: `route:cache` stores them as serialized
+    // closures, which the router unserializes with only its own closure
+    // classes allowed, so a captured PathConfig would come back incomplete.
+    $collection = $paths->outputPath('collection.json');
+    $spec = $paths->outputPath('openapi.yaml');
+
     Route::get("{$prefix}.postman", fn () => response()->file(
-        Storage::disk('local')->path($paths->outputPath('collection.json')),
+        Storage::disk('local')->path($collection),
         ['Content-Type' => 'application/json'],
     ))->name($paths->outputPath('postman', '.'));
 
     Route::get("{$prefix}.openapi", fn () => response()->file(
-        Storage::disk('local')->path($paths->outputPath('openapi.yaml')),
+        Storage::disk('local')->path($spec),
     ))->name($paths->outputPath('openapi', '.'));
 });
