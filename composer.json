@@ -25,7 +25,7 @@
         "security": "https://github.com/ipsocode/hypervel-scribe/security/policy"
     },
     "require": {
-        "fakerphp/faker": "^1.23",
+        "fakerphp/faker": "^1.24",
         "hypervel/components": "0.4.x-dev",
         "nikic/php-parser": "^5.0",
         "parsedown/parsedown": "^1.7",
