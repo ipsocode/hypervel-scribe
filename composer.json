@@ -12,7 +12,6 @@
         "coroutine"
     ],
     "require": {
-        "php": "^8.4",
         "ext-json": "*",
         "fakerphp/faker": "^1.23",
         "hypervel/components": "0.4.x-dev",
