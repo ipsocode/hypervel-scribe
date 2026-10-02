@@ -1,6 +1,7 @@
 {
     "name": "ipsocode/hypervel-scribe",
     "description": "Generate API documentation for humans from your Hypervel codebase",
+    "type": "library",
     "license": "MIT",
     "keywords": [
         "hypervel",
@@ -11,6 +12,18 @@
         "postman",
         "coroutine"
     ],
+    "homepage": "https://github.com/ipsocode/hypervel-scribe",
+    "authors": [
+        {
+            "name": "Ipsocode",
+            "homepage": "https://github.com/ipsocode"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/ipsocode/hypervel-scribe/issues",
+        "source": "https://github.com/ipsocode/hypervel-scribe",
+        "security": "https://github.com/ipsocode/hypervel-scribe/security/policy"
+    },
     "require": {
         "fakerphp/faker": "^1.23",
         "hypervel/components": "0.4.x-dev",
