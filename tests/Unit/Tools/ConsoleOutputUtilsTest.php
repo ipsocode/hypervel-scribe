@@ -9,6 +9,7 @@ use Ipsocode\Scribe\Tests\Unit\TestCase;
 use Ipsocode\Scribe\Tools\ConsoleOutputUtils;
 use Ipsocode\Scribe\Tools\Globals;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionMethod;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
@@ -132,7 +133,7 @@ class ConsoleOutputUtilsTest extends TestCase
         ConsoleOutputUtils::useFallbackOutput(null);
 
         // A real console is only built here, never written to.
-        $method = new \ReflectionMethod(ConsoleOutputUtils::class, 'newFallbackOutput');
+        $method = new ReflectionMethod(ConsoleOutputUtils::class, 'newFallbackOutput');
 
         $this->assertInstanceOf(ConsoleOutput::class, $method->invoke(null));
     }

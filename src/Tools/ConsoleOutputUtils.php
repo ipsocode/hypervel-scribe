@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ipsocode\Scribe\Tools;
 
+use Closure;
 use Hypervel\Routing\Route;
 use Ipsocode\Scribe\Commands\GenerateDocumentation;
 use Symfony\Component\Console\Output\ConsoleOutput;
@@ -19,8 +20,8 @@ class ConsoleOutputUtils
 
     private static bool $isBufferingWarnings = false;
 
-    /** @var (\Closure(): OutputInterface)|null */
-    private static ?\Closure $fallbackOutputFactory = null;
+    /** @var null|(Closure(): OutputInterface) */
+    private static ?Closure $fallbackOutputFactory = null;
 
     /**
      * The output the running command bootstrapped, if any.
@@ -43,9 +44,9 @@ class ConsoleOutputUtils
      * Replace the console opened when nothing was bootstrapped, which writes to
      * STDOUT. Lets a test exercise that standalone path without printing.
      *
-     * @param (\Closure(): OutputInterface)|null $factory
+     * @param null|(Closure(): OutputInterface) $factory
      */
-    public static function useFallbackOutput(?\Closure $factory): void
+    public static function useFallbackOutput(?Closure $factory): void
     {
         self::$fallbackOutputFactory = $factory;
     }
