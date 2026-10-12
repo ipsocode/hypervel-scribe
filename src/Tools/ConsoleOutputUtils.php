@@ -19,6 +19,9 @@ class ConsoleOutputUtils
 
     private static bool $isBufferingWarnings = false;
 
+    /** @var (\Closure(): OutputInterface)|null */
+    private static ?\Closure $fallbackOutputFactory = null;
+
     /**
      * The output the running command bootstrapped, if any.
      *
@@ -34,6 +37,17 @@ class ConsoleOutputUtils
     public static function bootstrapOutput(OutputInterface $outputInterface): void
     {
         self::$output = $outputInterface;
+    }
+
+    /**
+     * Replace the console opened when nothing was bootstrapped, which writes to
+     * STDOUT. Lets a test exercise that standalone path without printing.
+     *
+     * @param (\Closure(): OutputInterface)|null $factory
+     */
+    public static function useFallbackOutput(?\Closure $factory): void
+    {
+        self::$fallbackOutputFactory = $factory;
     }
 
     public static function setCommand(?GenerateDocumentation $command): void
@@ -94,7 +108,7 @@ class ConsoleOutputUtils
         }
 
         if (! self::$output) {
-            self::bootstrapOutput(new ConsoleOutput);
+            self::bootstrapOutput(self::newFallbackOutput());
         }
         self::$output->writeln("<fg=yellow>  ⚠ {$message}</>");
     }
@@ -108,7 +122,7 @@ class ConsoleOutputUtils
         }
 
         if (! self::$output) {
-            self::bootstrapOutput(new ConsoleOutput);
+            self::bootstrapOutput(self::newFallbackOutput());
         }
         self::$output->writeln("<fg=gray>  ℹ {$message}</>");
     }
@@ -120,7 +134,7 @@ class ConsoleOutputUtils
         }
 
         if (! self::$output) {
-            self::bootstrapOutput(new ConsoleOutput);
+            self::bootstrapOutput(self::newFallbackOutput());
         }
         self::$output->writeln("<fg=gray>  🐛 {$message}</>");
     }
@@ -128,7 +142,7 @@ class ConsoleOutputUtils
     public static function success(string $message): void
     {
         if (! self::$output) {
-            self::bootstrapOutput(new ConsoleOutput);
+            self::bootstrapOutput(self::newFallbackOutput());
         }
         self::$output->writeln("<fg=green>  ✔ {$message}</>");
     }
@@ -142,7 +156,7 @@ class ConsoleOutputUtils
         }
 
         if (! self::$output) {
-            self::bootstrapOutput(new ConsoleOutput);
+            self::bootstrapOutput(self::newFallbackOutput());
         }
         self::$output->writeln("<fg=red>  ✖ {$message}</>");
     }
@@ -163,8 +177,14 @@ class ConsoleOutputUtils
         return "[<fg=cyan>{$routeMethods}</>] {$routePath}";
     }
 
+    private static function newFallbackOutput(): OutputInterface
+    {
+        return (self::$fallbackOutputFactory ?? static fn (): OutputInterface => new ConsoleOutput)();
+    }
+
     public static function flushState(): void
     {
+        self::$fallbackOutputFactory = null;
         self::$output = null;
         self::$command = null;
         self::$warningBuffer = [];
