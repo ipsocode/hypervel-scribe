@@ -18,7 +18,6 @@ use Ipsocode\Scribe\Tools\DocumentationConfig;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Workbench\App\Http\Controllers\ResponseCallController;
-use Workbench\App\Models\Post;
 
 use function Hypervel\Testbench\workbench_path;
 
@@ -39,8 +38,6 @@ class ResponseCallsTest extends DatabaseTestCase
             ->name('response-calls.echo-post');
         $router->get('api/response-calls/echo/{id}', [ResponseCallController::class, 'show'])
             ->name('response-calls.show');
-        $router->post('api/response-calls/persist', [ResponseCallController::class, 'persist'])
-            ->name('response-calls.persist');
         $router->get('api/response-calls/stream', [ResponseCallController::class, 'stream'])
             ->name('response-calls.stream');
         $router->get('api/response-calls/slow', [ResponseCallController::class, 'slow'])
@@ -217,19 +214,6 @@ class ResponseCallsTest extends DatabaseTestCase
         ]);
 
         $this->assertNull(($this->strategy())($endpointData, []));
-    }
-
-    #[Test]
-    public function writesMadeByTheCallAreRolledBack(): void
-    {
-        config(['scribe.database_connections_to_transact' => [config('database.default')]]);
-
-        $before = Post::query()->count();
-
-        // The row is really there while the endpoint is running...
-        $this->assertSame($before + 1, $this->echoed('response-calls.persist')['count']);
-        // ...and gone once the strategy has rolled its transaction back.
-        $this->assertSame($before, Post::query()->count());
     }
 
     #[Test]

@@ -128,12 +128,11 @@ when an earlier strategy already found a `2xx` response.
 
 Each call runs in a coroutine of its own, so the authenticated user and session
 it leaves behind end with it. A transaction is begun on each connection in
-`database_connections_to_transact` before the call and rolled back after it, in
-the strategy's own coroutine. Hypervel does not copy database connections into a
-child coroutine, so the call can run its queries on another pooled connection,
-outside that transaction: do not count on the rollback to undo what the call
-writes, and keep response calls to routes that only read (the published config
-limits them to `GET`). With `auth.enabled`, authenticated endpoints get
+`database_connections_to_transact` inside that coroutine, before the hooks run,
+and rolled back after the call, so what the hooks and the endpoint write through
+those connections is undone. Writes through any other connection, and side
+effects outside the database such as mail, are kept; the published config limits
+response calls to `GET`. With `auth.enabled`, authenticated endpoints get
 `auth.use_value` as their credential, or a random one. An exception in the endpoint is rendered by the
 application's exception handler and recorded like any other response; a call
 that throws past the kernel or runs out of time prints a warning and records

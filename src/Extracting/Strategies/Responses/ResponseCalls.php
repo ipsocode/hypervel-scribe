@@ -15,6 +15,8 @@ use Hypervel\Support\Facades\Config;
 use Hypervel\Support\Str;
 use InvalidArgumentException;
 use Ipsocode\Camel\Extraction\ExtractedEndpointData;
+use Ipsocode\Scribe\Exceptions\CouldntStartDatabaseTransaction;
+use Ipsocode\Scribe\Exceptions\DatabaseTransactionsNotSupported;
 use Ipsocode\Scribe\Extracting\DatabaseTransactionHelpers;
 use Ipsocode\Scribe\Extracting\Strategies\Strategy;
 use Ipsocode\Scribe\Tools\ConsoleOutputUtils as c;
@@ -38,7 +40,7 @@ class ResponseCalls extends Strategy
     /**
      * Seconds to give one response call before the coroutine running it is cancelled.
      *
-     * The call runs in its own coroutine ({@see self::callHypervelRoute()}), and
+     * The call runs in its own coroutine ({@see self::makeIsolatedCall()}), and
      * one that never returns would hang the whole generate. Raise it with the
      * `timeout` setting for an endpoint that legitimately takes longer.
      */
@@ -77,11 +79,9 @@ class ResponseCalls extends Strategy
             };
         }
 
-        // The environment is configured only after the auth match, so an unknown
-        // auth location throws before any transaction opens or config override
-        // applies. The `try`/`finally` below covers every throw from here on,
-        // including one out of `configureEnvironment()` itself (e.g. a later
-        // connection in `database_connections_to_transact` failing to start).
+        // The config is overridden only after the auth match, so an unknown auth
+        // location throws before anything changes, and the `finally` puts it
+        // back after every throw from here on.
         try {
             $this->configureEnvironment($settings);
 
@@ -106,20 +106,12 @@ class ResponseCalls extends Strategy
                 $headers
             );
 
-            $this->runPreRequestHook($request, $endpointData);
-
             try {
-                $response = $this->makeApiCall($request, $endpointData->route);
-
-                $this->runPostRequestHook($request, $endpointData, $response);
-
-                $response = [
-                    [
-                        'status' => $response->getStatusCode(),
-                        'content' => $this->getContentFromResponse($response),
-                        'headers' => $this->getResponseHeaders($response),
-                    ],
-                ];
+                $response = $this->makeIsolatedCall($request, $endpointData);
+            } catch (CouldntStartDatabaseTransaction|DatabaseTransactionsNotSupported $e) {
+                // A connection that cannot be transacted is a configuration
+                // error, not a failed call: the run stops rather than write.
+                throw $e;
             } catch (Exception $e) {
                 c::warn('Exception thrown during response call for ' . $endpointData->name());
                 e::dumpExceptionIfVerbose($e);
@@ -127,7 +119,7 @@ class ResponseCalls extends Strategy
                 $response = null;
             }
         } finally {
-            $this->finish();
+            $this->rollbackConfigChanges();
         }
 
         return $response;
@@ -241,6 +233,44 @@ class ResponseCalls extends Strategy
     }
 
     /**
+     * Make the call in a coroutine of its own, inside the
+     * `database_connections_to_transact` transactions, and record the response.
+     *
+     * The child starts from a copy of the parent's context, so the request, user
+     * and session the call leaves in context end with it. Borrowed database
+     * connections are left out of the copy and the child borrows its own, so the
+     * transactions are begun and rolled back here, on the connections the hooks,
+     * the call and a streamed body write through.
+     * See docs/design/response-calls.md.
+     *
+     * @throws Exception
+     */
+    protected function makeIsolatedCall(Request $request, ExtractedEndpointData $endpointData): array
+    {
+        return (new Waiter)->wait(function () use ($request, $endpointData) {
+            try {
+                $this->startDbTransaction();
+
+                $this->runPreRequestHook($request, $endpointData);
+
+                $response = $this->makeApiCall($request, $endpointData->route);
+
+                $this->runPostRequestHook($request, $endpointData, $response);
+
+                return [
+                    [
+                        'status' => $response->getStatusCode(),
+                        'content' => $this->getContentFromResponse($response),
+                        'headers' => $this->getResponseHeaders($response),
+                    ],
+                ];
+            } finally {
+                $this->endDbTransaction();
+            }
+        }, $this->timeout, copyContext: true);
+    }
+
+    /**
      * @throws Exception
      */
     protected function makeApiCall(Request $request, Route $route): Response
@@ -249,28 +279,21 @@ class ResponseCalls extends Strategy
     }
 
     /**
-     * Dispatches the request through the application's HTTP kernel in a
-     * coroutine of its own, so the request, user and session it leaves in
-     * context end with it. The child starts from a copy of the parent's context
-     * without its database connections, so it resolves its own and its queries
-     * can run outside the `database_connections_to_transact` transactions.
-     * See docs/design/response-calls.md.
+     * Dispatch the request through the application's HTTP kernel.
      */
     protected function callHypervelRoute(Request $request): Response
     {
         /** @var Kernel $kernel */
         $kernel = app(Kernel::class);
 
-        return (new Waiter)->wait(function () use ($kernel, $request) {
-            // The kernel sets this itself when it reaches the router, but the
-            // global middleware runs first and `request()` has to work there too.
-            RequestContext::set($request);
+        // The kernel sets this itself when it reaches the router, but the
+        // global middleware runs first and `request()` has to work there too.
+        RequestContext::set($request);
 
-            $response = $kernel->handle($request);
-            $kernel->terminate($request, $response);
+        $response = $kernel->handle($request);
+        $kernel->terminate($request, $response);
 
-            return $response;
-        }, $this->timeout, copyContext: true);
+        return $response;
     }
 
     /**
@@ -337,7 +360,6 @@ class ResponseCalls extends Strategy
     {
         $this->timeout = (float) ($settings['timeout'] ?? self::DEFAULT_TIMEOUT);
 
-        $this->startDbTransaction();
         $this->setConfigs($settings['config'] ?? []);
     }
 
@@ -358,12 +380,6 @@ class ResponseCalls extends Strategy
         foreach ($this->previousConfigs as $name => $value) {
             Config::set([$name => $value]);
         }
-    }
-
-    private function finish(): void
-    {
-        $this->endDbTransaction();
-        $this->rollbackConfigChanges();
     }
 
     private function addHeaders(Request $request, Route $route, ?array $headers): void

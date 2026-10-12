@@ -261,9 +261,8 @@ return [
     ],
 
     // For response calls, API resource responses and transformer responses,
-    // Scribe begins a database transaction on each of these connections and rolls it back afterwards.
-    // A response call runs in a coroutine of its own and can use another pooled connection, outside the
-    // transaction, so keep response calls to routes that only read.
+    // Scribe begins a database transaction on each of these connections and rolls it back afterwards,
+    // so nothing written through them is kept. Writes through any other connection are.
     // If you only use one database connection, you can leave this as is.
     'database_connections_to_transact' => [config('database.default')],
 

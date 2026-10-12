@@ -153,7 +153,7 @@ See [strategies](strategies.md).
 
 | Key | Default | What it does |
 |---|---|---|
-| `database_connections_to_transact` | `[config('database.default')]` | Connections on which a transaction is begun before, and rolled back after, building API resource and transformer responses and making response calls. Every connection listed must support transactions. A response call runs in a coroutine of its own and may not use the same connection; see [response calls](strategies.md#response-calls). |
+| `database_connections_to_transact` | `[config('database.default')]` | Connections on which a transaction is begun before, and rolled back after, building API resource and transformer responses and making response calls. Every connection listed must support transactions. A response call's transactions are begun in the call's own coroutine and cover its hooks too; see [response calls](strategies.md#response-calls). |
 | `fractal.serializer` | `null` | A `league/fractal` serializer class for transformer responses. |
 
 ## Keys not in the published file
