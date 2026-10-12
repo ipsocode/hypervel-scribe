@@ -9,8 +9,10 @@ use Ipsocode\Camel\Extraction\ExtractedEndpointData;
 use Ipsocode\Scribe\Extracting\Extractor;
 use Ipsocode\Scribe\Extracting\Shared\ApiResourceResponseTools;
 use Ipsocode\Scribe\Tests\DatabaseTestCase;
+use Ipsocode\Scribe\Tools\ConsoleOutputUtils;
 use Ipsocode\Scribe\Tools\DocumentationConfig;
 use PHPUnit\Framework\Attributes\Test;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Workbench\App\Http\Controllers\PostController;
 use Workbench\App\Http\Resources\PostResource;
 use Workbench\App\Models\Post;
@@ -163,6 +165,9 @@ class ApiResourceResponsesTest extends DatabaseTestCase
         // The whole way through, rather than at the tools: the endpoint names
         // no `@apiResourceModel` and the resource names no `@mixin`, so nothing
         // is instantiated and the resource renders whatever it does without one.
+        // The warning that says so goes to a buffer rather than the test run.
+        ConsoleOutputUtils::bootstrapOutput(new BufferedOutput);
+
         $this->assertSame(['status' => 'accepted'], $this->body('posts.emptyResource')['data']);
     }
 

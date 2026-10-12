@@ -9,6 +9,7 @@ use Ipsocode\Scribe\Tests\Unit\TestCase;
 use Ipsocode\Scribe\Tools\ConsoleOutputUtils;
 use Ipsocode\Scribe\Tools\Globals;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionMethod;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
@@ -107,15 +108,33 @@ class ConsoleOutputUtilsTest extends TestCase
     public function withNoOutputBootstrappedItOpensAConsoleOfItsOwn(): void
     {
         // Scribe is usable as a library, not just behind `scribe:generate`, so
-        // every level has to work with nothing bootstrapped at all. The writes
-        // below land on the real STDOUT — that is the branch under test.
+        // every level has to work with nothing bootstrapped at all. The console
+        // it opens would write to STDOUT, so its factory is swapped for one that
+        // hands back a buffer, keeping the lines out of the PHPUnit progress.
         Globals::$shouldBeVerbose = true;
 
         foreach (['info', 'success', 'warn', 'error', 'debug'] as $level) {
             ConsoleOutputUtils::flushState();
-            ConsoleOutputUtils::{$level}('');
+            ConsoleOutputUtils::useFallbackOutput(fn () => new BufferedOutput);
+            ConsoleOutputUtils::{$level}('written');
 
-            $this->assertInstanceOf(ConsoleOutput::class, ConsoleOutputUtils::getOutput());
+            $buffer = ConsoleOutputUtils::getOutput();
+
+            $this->assertInstanceOf(BufferedOutput::class, $buffer);
+            $this->assertStringContainsString('written', $buffer->fetch());
         }
+    }
+
+    #[UnitTest]
+    #[Test]
+    public function withNoFactoryTheFallbackIsARealConsole(): void
+    {
+        ConsoleOutputUtils::flushState();
+        ConsoleOutputUtils::useFallbackOutput(null);
+
+        // A real console is only built here, never written to.
+        $method = new ReflectionMethod(ConsoleOutputUtils::class, 'newFallbackOutput');
+
+        $this->assertInstanceOf(ConsoleOutput::class, $method->invoke(null));
     }
 }
