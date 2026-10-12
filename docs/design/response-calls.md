@@ -59,31 +59,38 @@ Nothing the strategy sets up is left open when something throws:
 
 1. Merge the parameters and place the auth value. An unknown auth location
    throws here, before any transaction or config override exists.
-2. In a `try`: configure the environment (the timeout, the database
-   transactions, the config overrides), build the request, run the before hook,
-   and dispatch.
-3. In the `finally`: roll the transactions back and restore the config.
+2. In a `try`: set the timeout and the config overrides, build the request,
+   and make the call in a coroutine of its own (below).
+3. In the `finally`: restore the config.
 
-The `finally` covers every throw after step 1, including one from configuring
-the environment itself, such as a later connection in
-`database_connections_to_transact` failing to start its transaction.
+The call's coroutine has a `try` of its own: begin the database transactions,
+run the before hook, dispatch, run the after hook, and record the response.
+Its `finally` rolls the transactions back, including when a later connection in
+`database_connections_to_transact` fails to start its transaction.
 
-An `Exception` thrown by the dispatch or the after hook is caught: the strategy
-warns `Exception thrown during response call for ...` and documents no response.
-Anything thrown earlier in step 2 propagates once the cleanup has run.
+`DatabaseTransactionsNotSupported` and `CouldntStartDatabaseTransaction`
+propagate once the cleanup has run: a connection that cannot be transacted
+stops the run rather than let the call write to it. Any other `Exception` from
+the call's coroutine, the hooks included, or the timeout is caught: the
+strategy warns `Exception thrown during response call for ...` and documents no
+response. Anything thrown while building the request propagates.
 
 ## One coroutine per call
 
-The dispatch runs in a coroutine of its own:
+The call runs in a coroutine of its own:
 
 ```php
-return (new Waiter)->wait(function () use ($kernel, $request) {
-    RequestContext::set($request);
+return (new Waiter)->wait(function () use ($request, $endpointData) {
+    try {
+        $this->startDbTransaction();
+        $this->runPreRequestHook($request, $endpointData);
+        $response = $this->makeApiCall($request, $endpointData->route);
+        $this->runPostRequestHook($request, $endpointData, $response);
 
-    $response = $kernel->handle($request);
-    $kernel->terminate($request, $response);
-
-    return $response;
+        return [[/* status, content, headers */]];
+    } finally {
+        $this->endDbTransaction();
+    }
 }, $this->timeout, copyContext: true);
 ```
 
@@ -95,11 +102,13 @@ call would hand all of that to the next endpoint and to the rest of the run.
 `copyContext: true` starts the child from a copy of the parent's context
 rather than an empty one. What the call adds to its context stays in the child.
 Values that implement `Hypervel\Context\NonCopyableContext` are left out of the
-copy, and `Hypervel\Database\Connection` is one of them, so the call resolves
-its own database connection rather than using the parent's.
+copy, and `Hypervel\Database\Connection` is one of them, so the call borrows its
+own database connections rather than using the parent's. That is why the
+transactions are begun in the child (see [database transactions](#database-transactions)).
 
-`RequestContext::set()` comes first because the global middleware runs before
-the kernel reaches the router, and `request()` has to work there too.
+`callHypervelRoute()` puts the request in `RequestContext` before it hands it to
+the kernel, because the global middleware runs before the kernel reaches the
+router, and `request()` has to work there too.
 
 The parent waits for each call to finish. This is isolation and a timeout, not
 concurrency; extraction stays sequential, as
@@ -111,7 +120,9 @@ concurrency; extraction stays sequential, as
 lowers it per strategy configuration. When a call outlives it, the waiter
 cancels the child coroutine and throws, and the call is treated like any other
 failed call: a warning and no response. A call that never returned would
-otherwise hang the whole run.
+otherwise hang the whole run. The child's `finally` rolls its transactions back
+as it unwinds, and a connection that still holds one when the child ends is
+rolled back by the pool as it is returned.
 
 ## Config overrides
 
@@ -127,10 +138,14 @@ reasons routes are not extracted in parallel.
 
 [`DatabaseTransactionHelpers`](../../src/Extracting/DatabaseTransactionHelpers.php)
 begins a transaction on each connection in `database_connections_to_transact`
-(by default `[config('database.default')]`) before the call, in the strategy's
-own coroutine, and rolls each one back in the `finally`. Because the call
-resolves its own connection (see [one coroutine per call](#one-coroutine-per-call)),
-its queries can run outside these transactions.
+(by default `[config('database.default')]`) inside the call's coroutine, and
+rolls each one back in that coroutine's `finally`. They have to be begun there:
+the call borrows its own connections (see [one coroutine per call](#one-coroutine-per-call)),
+and a transaction begun on the parent's would leave every write the call makes
+outside it. Begun in the child, they cover everything that can write during the
+call: the before hook, the endpoint, the after hook and a streamed body. A row
+the before hook writes, such as a user whose token the call sends, is visible
+to the call and rolled back with it.
 
 - A connection without `beginTransaction()` and `rollback()` throws
   `DatabaseTransactionsNotSupported`.
@@ -138,8 +153,18 @@ its queries can run outside these transactions.
 - The rollback skips connections that do not support transactions and ignores
   errors from `rollback()` itself.
 
+Only the listed connections are rolled back. Writes through any other
+connection, and side effects outside the database such as mail, are kept.
+
 The example-model strategies (`UseApiResourceTags`, `UseResponseAttributes`,
-`UseTransformerTags`) use the same helpers.
+`UseTransformerTags`) use the same helpers in the strategy's own coroutine,
+where they build the models.
+
+The testing connection resolver hands every coroutine one shared connection
+unless the connection's `pool.testing_enabled` is set, so with the default test
+configuration a call's writes are rolled back whichever coroutine begins the
+transaction. `ResponseCallsRollbackTest` sets it, so the call borrows a
+connection of its own, as it does under `scribe:generate`.
 
 ## Streamed responses
 

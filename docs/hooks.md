@@ -120,9 +120,12 @@ Scribe::beforeResponseCall(function (Request $request, ExtractedEndpointData $en
 });
 ```
 
-Runs after the transaction has started and the strategy's `config` overrides
-are applied, just before the request is dispatched. Changes to `$request` are
-sent. The return value is ignored.
+Runs in the call's own coroutine, inside the `database_connections_to_transact`
+transactions and after the strategy's `config` overrides are applied, just
+before the request is dispatched. Changes to `$request` are sent. Rows it writes
+through those connections, such as a user whose token it adds to `$request`,
+are visible to the call and rolled back with it. An exception it throws fails
+the call, as one from the endpoint would. The return value is ignored.
 
 ## afterResponseCall
 
@@ -134,9 +137,9 @@ Scribe::afterResponseCall(function (Request $request, ExtractedEndpointData $end
 });
 ```
 
-Runs once the response is back, before its status, content and headers are
-recorded, so changes to `$response` are what gets documented. The return value
-is ignored.
+Runs once the response is back, still in the call's coroutine and inside its
+transactions, before its status, content and headers are recorded, so changes
+to `$response` are what gets documented. The return value is ignored.
 
 ## afterExtracting
 

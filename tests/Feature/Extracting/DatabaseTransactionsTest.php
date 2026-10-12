@@ -18,8 +18,8 @@ use Workbench\App\Http\Controllers\ResponseCallController;
 /**
  * How `database_connections_to_transact` fails, with stand-in connections: one
  * that cannot transact or will not begin throws rather than persist changes,
- * and a failed rollback keeps the captured response. The working case is
- * {@see ResponseCallsTest::writesMadeByTheCallAreRolledBack()}.
+ * and a failed rollback keeps the captured response. The working cases are in
+ * {@see ResponseCallsRollbackTest}.
  */
 class DatabaseTransactionsTest extends TestCase
 {
@@ -160,10 +160,9 @@ class DatabaseTransactionsTest extends TestCase
             $this->assertStringContainsString('for the connection second', $e->getMessage());
         }
 
-        // The `try`/`finally` around configureEnvironment() in ResponseCalls
-        // calls finish() — and so endDbTransaction() — even though
-        // configureEnvironment() itself threw, so `first`'s already-open
-        // transaction does not leak past this call.
+        // The `finally` in ResponseCalls::makeIsolatedCall() calls
+        // endDbTransaction() even though startDbTransaction() itself threw, so
+        // `first`'s already-open transaction does not leak past this call.
         $this->assertTrue($first->rolledBack);
     }
 }
