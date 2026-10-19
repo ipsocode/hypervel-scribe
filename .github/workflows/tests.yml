@@ -30,7 +30,7 @@ jobs:
     name: PHP 8.4
     needs: initial
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
 
     outputs:
       components_ref: ${{ steps.components.outputs.ref }}
@@ -106,7 +106,7 @@ jobs:
           MIN_COVERAGE: '100'
         run: |
           vendor/bin/testbench package:test --parallel \
-            --coverage --coverage-clover tests/coverage/clover.xml --min="${MIN_COVERAGE}"
+            --coverage --min="${MIN_COVERAGE}" --coverage-clover tests/coverage/clover.xml
 
       - name: Upload the coverage report
         if: ${{ always() && (github.event_name != 'pull_request' || steps.gate.outcome == 'failure') }}
@@ -121,7 +121,7 @@ jobs:
     name: PHP 8.5
     needs: php84
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 7
 
     concurrency:
       group: tests-${{ github.event.pull_request.number || github.ref }}-8.5
