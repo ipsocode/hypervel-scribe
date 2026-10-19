@@ -18,6 +18,9 @@ class ResponseFromFile
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray()
     {
         return [

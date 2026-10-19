@@ -36,6 +36,9 @@ class GenericParam
         ];
     }
 
+    /**
+     * @return array<int|string, mixed>
+     */
     protected function getEnumValues(): array
     {
         if (! $this->enum) {

@@ -1,11 +1,11 @@
-# Static analysis for this package, aligned with `hypervel/components`' own
-# phpstan.neon.dist on the 0.4 branch: the same level, the same two analysis settings and
-# the same framework extensions. Matching them means a finding here is a finding there, and
-# that a fix carried over to the framework lands clean.
+# Static analysis for this package, using `hypervel/components`' two analysis settings and
+# framework extensions (its phpstan.neon.dist on the 0.4 branch), at a stricter level: the
+# package goes beyond the level components runs on its own source, one level at a time.
 #
 # Components also sets parallelism and scans stub files, for a monorepo whose source uses
 # BASE_PATH and Swoole's IDE helpers. src/ here uses neither, so neither is copied.
 includes:
+    - phpstan-baseline.neon
     # PHPStan support for Eloquent's forwarded builder and model methods, named scopes and
     # the framework's helper functions. The split hypervel/database and hypervel/foundation
     # packages register these through `extra.phpstan`, but development here installs the
@@ -15,7 +15,7 @@ includes:
     - vendor/hypervel/components/src/foundation/extension.neon
 
 parameters:
-    level: 5
+    level: 6
     inferPrivatePropertyTypeFromConstructor: true
     treatPhpDocTypesAsCertain: false
 

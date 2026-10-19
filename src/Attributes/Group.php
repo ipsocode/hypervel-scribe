@@ -18,6 +18,9 @@ class Group
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray()
     {
         $data = [

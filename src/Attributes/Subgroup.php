@@ -16,6 +16,9 @@ class Subgroup
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray()
     {
         return [

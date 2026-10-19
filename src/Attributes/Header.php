@@ -15,6 +15,9 @@ class Header
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray()
     {
         return [

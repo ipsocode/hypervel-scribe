@@ -14,6 +14,9 @@ class Deprecated
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray()
     {
         return ['deprecated' => $this->deprecated];

@@ -17,6 +17,9 @@ class Endpoint
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray()
     {
         $data = [
