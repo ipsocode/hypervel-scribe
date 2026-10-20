@@ -13,7 +13,7 @@ use ReflectionNamedType;
 trait FindsFormRequestForMethod
 {
     /**
-     * @return ReflectionClass<FormRequest>|null
+     * @return null|ReflectionClass<FormRequest>
      */
     protected function getFormRequestReflectionClass(ReflectionFunctionAbstract $method): ?ReflectionClass
     {

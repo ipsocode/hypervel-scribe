@@ -248,8 +248,8 @@ trait ParamHelpers
     }
 
     /**
-     * @param int|float|string $min
-     * @param int|float|string $max
+     * @param float|int|string $min
+     * @param float|int|string $max
      */
     private function getDummyDataGeneratorBetween(string $type, $min, $max = 90, ?string $fieldName = null): Closure
     {
