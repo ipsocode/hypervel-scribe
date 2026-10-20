@@ -156,7 +156,7 @@ trait InstantiatesExampleModels
      */
     protected function getExampleModelFromDatabaseFirst(string $type, array $relations = [], array $withCount = [])
     {
-        if (is_callable(Globals::$__resolveExampleModelUsing)) {
+        if (Globals::$__resolveExampleModelUsing !== null) {
             return call_user_func(Globals::$__resolveExampleModelUsing, $type, $relations, $withCount);
         }
 

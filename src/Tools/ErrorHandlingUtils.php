@@ -25,7 +25,7 @@ class ErrorHandlingUtils
 
         try {
             ['file' => $file, 'line' => $line] = $firstFrame;
-        } catch (Exception $_) {
+        } catch (Exception $_) { // @phpstan-ignore catch.neverThrown (a trace frame without a file raises a warning that the host may turn into an exception)
             ['file' => $file, 'line' => $line] = $secondFrame;
         }
         $exceptionType = get_class($e);

@@ -23,9 +23,9 @@ class Scribe
      *
      * @param callable(Request, ExtractedEndpointData): mixed $callable
      */
-    public static function beforeResponseCall(callable $callable)
+    public static function beforeResponseCall(callable $callable): void
     {
-        Globals::$__beforeResponseCall = $callable;
+        Globals::$__beforeResponseCall = Closure::fromCallable($callable);
     }
 
     /**
@@ -33,9 +33,9 @@ class Scribe
      *
      * @param callable(Request, ExtractedEndpointData, mixed): mixed $callable
      */
-    public static function afterResponseCall(callable $callable)
+    public static function afterResponseCall(callable $callable): void
     {
-        Globals::$__afterResponseCall = $callable;
+        Globals::$__afterResponseCall = Closure::fromCallable($callable);
     }
 
     /**
@@ -43,9 +43,9 @@ class Scribe
      *
      * @param callable(GenerateDocumentation): mixed $callable
      */
-    public static function bootstrap(callable $callable)
+    public static function bootstrap(callable $callable): void
     {
-        Globals::$__bootstrap = $callable;
+        Globals::$__bootstrap = Closure::fromCallable($callable);
     }
 
     /**
@@ -53,11 +53,11 @@ class Scribe
      * paths, keyed `postman`, `openapi`, `html`, `blade` and `assets` (`js`, `css`,
      * `images`); an output that was not written is null. See docs/hooks.md.
      *
-     * @param callable(array): mixed $callable
+     * @param callable(array<string, mixed>): mixed $callable
      */
-    public static function afterGenerating(callable $callable)
+    public static function afterGenerating(callable $callable): void
     {
-        Globals::$__afterGenerating = $callable;
+        Globals::$__afterGenerating = Closure::fromCallable($callable);
     }
 
     /**
@@ -67,9 +67,9 @@ class Scribe
      *
      * @param ?callable(string,Route,ReflectionFunctionAbstract): mixed $callable
      */
-    public static function instantiateFormRequestUsing(?callable $callable)
+    public static function instantiateFormRequestUsing(?callable $callable): void
     {
-        Globals::$__instantiateFormRequestUsing = $callable;
+        Globals::$__instantiateFormRequestUsing = $callable === null ? null : Closure::fromCallable($callable);
     }
 
     /**
@@ -77,11 +77,11 @@ class Scribe
      * into `users/{user_id}/projects/{id}`. The callback receives the route's URI, the route, the
      * method and class reflections (either may be null) and the default normalizer.
      *
-     * @param ?callable(string,Route,?ReflectionFunctionAbstract,?ReflectionClass,Closure): string $callable
+     * @param ?callable(string,Route,?ReflectionFunctionAbstract,?ReflectionClass<object>,Closure): string $callable
      */
-    public static function normalizeEndpointUrlUsing(?callable $callable)
+    public static function normalizeEndpointUrlUsing(?callable $callable): void
     {
-        Globals::$__normalizeEndpointUrlUsing = $callable;
+        Globals::$__normalizeEndpointUrlUsing = $callable === null ? null : Closure::fromCallable($callable);
     }
 
     /**
@@ -90,9 +90,9 @@ class Scribe
      *
      * @param callable(ExtractedEndpointData): void $callable
      */
-    public static function afterExtracting(callable $callable)
+    public static function afterExtracting(callable $callable): void
     {
-        Globals::$__afterExtracting = $callable;
+        Globals::$__afterExtracting = Closure::fromCallable($callable);
     }
 
     /**
@@ -104,8 +104,8 @@ class Scribe
      *
      * @param ?callable(class-string, string[], string[]): ?object $callable
      */
-    public static function resolveExampleModelUsing(?callable $callable)
+    public static function resolveExampleModelUsing(?callable $callable): void
     {
-        Globals::$__resolveExampleModelUsing = $callable;
+        Globals::$__resolveExampleModelUsing = $callable === null ? null : Closure::fromCallable($callable);
     }
 }
