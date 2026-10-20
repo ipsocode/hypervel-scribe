@@ -137,7 +137,7 @@ class GenerateDocumentation extends Command
 
     protected function runBootstrapHook()
     {
-        if (is_callable(Globals::$__bootstrap)) {
+        if (Globals::$__bootstrap !== null) {
             call_user_func_array(Globals::$__bootstrap, [$this]);
         }
     }

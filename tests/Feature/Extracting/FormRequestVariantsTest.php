@@ -39,6 +39,8 @@ class FormRequestVariantsTest extends DatabaseTestCase
             ->name('formRequests.open');
         $router->post('api/form-requests/annotated', [FormRequestVariantsController::class, 'annotated'])
             ->name('formRequests.annotated');
+        $router->post('api/form-requests/intersected', [FormRequestVariantsController::class, 'intersected'])
+            ->name('formRequests.intersected');
         $router->post('api/form-requests/undocumented', [FormRequestVariantsController::class, 'undocumented'])
             ->name('formRequests.undocumented');
     }
@@ -61,6 +63,14 @@ class FormRequestVariantsTest extends DatabaseTestCase
 
         $this->assertSame('The title.', $endpoint->bodyParameters['title']->description);
         $this->assertSame('Hello', $endpoint->bodyParameters['title']->example);
+    }
+
+    #[Test]
+    public function anIntersectionTypedParameterIsSkippedAndTheRequestStillFound(): void
+    {
+        $endpoint = $this->extract('formRequests.intersected');
+
+        $this->assertSame('What to search for.', $endpoint->queryParameters['q']->description);
     }
 
     #[Test]

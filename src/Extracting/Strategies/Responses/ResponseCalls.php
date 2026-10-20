@@ -242,14 +242,14 @@ class ResponseCalls extends Strategy
 
     protected function runPreRequestHook(Request $request, ExtractedEndpointData $endpointData): void
     {
-        if (is_callable(Globals::$__beforeResponseCall)) {
+        if (Globals::$__beforeResponseCall !== null) {
             call_user_func_array(Globals::$__beforeResponseCall, [$request, $endpointData]);
         }
     }
 
     protected function runPostRequestHook(Request $request, ExtractedEndpointData $endpointData, mixed $response): void
     {
-        if (is_callable(Globals::$__afterResponseCall)) {
+        if (Globals::$__afterResponseCall !== null) {
             call_user_func_array(Globals::$__afterResponseCall, [$request, $endpointData, $response]);
         }
     }
