@@ -21,7 +21,7 @@ class Group
     /**
      * @return array<string, mixed>
      */
-    public function toArray()
+    public function toArray(): array
     {
         $data = [
             'groupName' => $this->getName(),

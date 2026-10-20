@@ -20,7 +20,7 @@ class Endpoint
     /**
      * @return array<string, mixed>
      */
-    public function toArray()
+    public function toArray(): array
     {
         $data = [
             'title' => $this->title,

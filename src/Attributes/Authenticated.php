@@ -17,7 +17,7 @@ class Authenticated
     /**
      * @return array<string, mixed>
      */
-    public function toArray()
+    public function toArray(): array
     {
         return ['authenticated' => $this->authenticated];
     }

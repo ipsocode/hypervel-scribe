@@ -21,7 +21,7 @@ class ResponseFromFile
     /**
      * @return array<string, mixed>
      */
-    public function toArray()
+    public function toArray(): array
     {
         return [
             'status' => $this->status,
