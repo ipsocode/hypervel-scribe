@@ -17,7 +17,10 @@ class Endpoint
     ) {
     }
 
-    public function toArray()
+    /**
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
     {
         $data = [
             'title' => $this->title,

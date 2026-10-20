@@ -16,7 +16,10 @@ class Subgroup
     ) {
     }
 
-    public function toArray()
+    /**
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
     {
         return [
             'subgroup' => $this->getName(),

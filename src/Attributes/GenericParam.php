@@ -22,7 +22,10 @@ class GenericParam
     ) {
     }
 
-    public function toArray()
+    /**
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
     {
         return [
             'name' => $this->name,
@@ -36,6 +39,9 @@ class GenericParam
         ];
     }
 
+    /**
+     * @return array<int|string, mixed>
+     */
     protected function getEnumValues(): array
     {
         if (! $this->enum) {
