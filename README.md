@@ -40,11 +40,7 @@ php artisan scribe:generate   # then open /docs
 
 ## Installation
 
-The package is not on Packagist, so add this repository to your application's
-Composer repositories first:
-
 ```sh
-composer config repositories.hypervel-scribe vcs https://github.com/ipsocode/hypervel-scribe
 composer require ipsocode/hypervel-scribe
 php artisan vendor:publish --tag=scribe-config
 ```

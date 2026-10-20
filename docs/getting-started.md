@@ -6,11 +6,9 @@ collection.
 
 ## Install
 
-The package is not on Packagist. Add its repository to the application's
-Composer repositories, then require it and publish the config:
+Require the package from Packagist and publish the config:
 
 ```sh
-composer config repositories.hypervel-scribe vcs https://github.com/ipsocode/hypervel-scribe
 composer require ipsocode/hypervel-scribe
 php artisan vendor:publish --tag=scribe-config
 ```
