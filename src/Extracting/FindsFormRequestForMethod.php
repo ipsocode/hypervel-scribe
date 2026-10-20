@@ -8,7 +8,7 @@ use Hypervel\Foundation\Http\FormRequest;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionFunctionAbstract;
-use ReflectionUnionType;
+use ReflectionNamedType;
 
 trait FindsFormRequestForMethod
 {
@@ -16,7 +16,7 @@ trait FindsFormRequestForMethod
     {
         foreach ($method->getParameters() as $argument) {
             $argType = $argument->getType();
-            if ($argType === null || $argType instanceof ReflectionUnionType) {
+            if (! $argType instanceof ReflectionNamedType) {
                 continue;
             }
 
@@ -31,7 +31,7 @@ trait FindsFormRequestForMethod
                 // @codeCoverageIgnoreStart
                 // class_exists() has already loaded the class, so reflecting it
                 // cannot fail.
-            } catch (ReflectionException $e) {
+            } catch (ReflectionException $e) { // @phpstan-ignore catch.neverThrown (class_exists() has loaded the class; kept in case that call site changes)
                 continue;
             }
             // @codeCoverageIgnoreEnd

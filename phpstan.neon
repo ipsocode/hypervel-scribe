@@ -53,18 +53,6 @@ parameters:
     reportIgnoresWithoutComments: true
 
     ignoreErrors:
-        # ReflectionType::getName() exists on ReflectionNamedType, not on the ReflectionType base.
-        # Union types are skipped before the call, but an intersection-typed parameter would reach
-        # it and fatal. The fix is an instanceof ReflectionNamedType guard; until it is made, the
-        # error is suppressed here.
-        - identifier: method.notFound
-          path: src/Extracting/FindsFormRequestForMethod.php
-
-        # Defensive catches around reflection and extraction that PHPStan proves cannot fire on
-        # the current call graph. They guard against future throws from the same call sites; the
-        # cost is a dead branch, and removing them would make the next change unsafe.
-        - identifier: catch.neverThrown
-
         # preg_match_all() returning truthy already implies a non-empty $matches[1], so the extra
         # `!== []` reads as always-true. It is belt-and-braces around a regex whose group is only
         # non-empty when the pattern matched; harmless and clearer than relying on that coupling.
