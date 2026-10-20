@@ -94,7 +94,7 @@ class Extractor
             $this->fetchResponseFields($endpointData);
             $this->mergeInheritedMethodsData('responseFields', $endpointData, $inheritedDocsOverrides);
 
-            if (is_callable(Globals::$__afterExtracting)) {
+            if (Globals::$__afterExtracting !== null) {
                 call_user_func_array(Globals::$__afterExtracting, [$endpointData]);
             }
 

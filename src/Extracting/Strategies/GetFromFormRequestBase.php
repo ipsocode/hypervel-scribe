@@ -39,7 +39,7 @@ class GetFromFormRequestBase extends Strategy
 
         $className = $formRequestReflectionClass->getName();
 
-        if (Globals::$__instantiateFormRequestUsing) {
+        if (Globals::$__instantiateFormRequestUsing !== null) {
             $formRequest = call_user_func_array(Globals::$__instantiateFormRequestUsing, [$className, $route, $method]);
         } else {
             $formRequest = new $className;
