@@ -19,6 +19,10 @@ class GetFromInlineValidatorBase extends Strategy
 {
     use ParsesValidationRules;
 
+    /**
+     * @param array<string, mixed> $routeRules
+     * @return array<string, array<string, mixed>>
+     */
     public function __invoke(ExtractedEndpointData $endpointData, array $routeRules = []): ?array
     {
         if (! $endpointData->method instanceof ReflectionMethod) {
@@ -33,6 +37,9 @@ class GetFromInlineValidatorBase extends Strategy
         return $this->normaliseArrayAndObjectParameters($bodyParametersFromValidationRules);
     }
 
+    /**
+     * @return array{array<string, mixed>, array<string, array<string, mixed>>}
+     */
     public function lookForInlineValidationRules(ClassMethod $methodAst): array
     {
         // Validation usually comes early, so only the first 10 statements are searched.
@@ -175,12 +182,12 @@ class GetFromInlineValidatorBase extends Strategy
         return null;
     }
 
-    protected function getMissingCustomDataMessage($parameterName)
+    protected function getMissingCustomDataMessage(string $parameterName): string
     {
         return "No extra data found for parameter '{$parameterName}' from your inline validator. You can add a comment above '{$parameterName}' with a description and example.";
     }
 
-    protected function shouldCastUserExample()
+    protected function shouldCastUserExample(): bool
     {
         return true;
     }
@@ -190,7 +197,11 @@ class GetFromInlineValidatorBase extends Strategy
         return true;
     }
 
-    protected function findValidationExpression($statements): ?array
+    /**
+     * @param array<int, Node> $statements
+     * @return array{int|string|null, Node|null, mixed}
+     */
+    protected function findValidationExpression(array $statements): ?array
     {
         $strategies = [
             RequestValidate::class, // $request->validate(...);

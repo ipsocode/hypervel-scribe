@@ -12,6 +12,9 @@ use ReflectionUnionType;
 
 trait FindsFormRequestForMethod
 {
+    /**
+     * @return ReflectionClass<FormRequest>|null
+     */
     protected function getFormRequestReflectionClass(ReflectionFunctionAbstract $method): ?ReflectionClass
     {
         foreach ($method->getParameters() as $argument) {

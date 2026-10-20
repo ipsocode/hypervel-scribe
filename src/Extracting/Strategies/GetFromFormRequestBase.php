@@ -22,11 +22,18 @@ class GetFromFormRequestBase extends Strategy
 
     protected string $customParameterDataMethodName = '';
 
+    /**
+     * @param array<string, mixed> $routeRules
+     * @return array<string, array<string, mixed>>
+     */
     public function __invoke(ExtractedEndpointData $endpointData, array $routeRules = []): ?array
     {
         return $this->getParametersFromFormRequest($endpointData->method, $endpointData->route);
     }
 
+    /**
+     * @return array<string, array<string, mixed>>
+     */
     public function getParametersFromFormRequest(ReflectionFunctionAbstract $method, Route $route): array
     {
         if (! $formRequestReflectionClass = $this->getFormRequestReflectionClass($method)) {
@@ -60,7 +67,10 @@ class GetFromFormRequestBase extends Strategy
         return $this->normaliseArrayAndObjectParameters($parametersFromFormRequest);
     }
 
-    protected function getRouteValidationRules(FormRequest $formRequest)
+    /**
+     * @return array<string, mixed>
+     */
+    protected function getRouteValidationRules(FormRequest $formRequest): array
     {
         if (method_exists($formRequest, 'validator')) {
             $validationFactory = app(ValidationFactory::class);
@@ -76,7 +86,10 @@ class GetFromFormRequestBase extends Strategy
         return [];
     }
 
-    protected function getCustomParameterData(FormRequest $formRequest)
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    protected function getCustomParameterData(FormRequest $formRequest): array
     {
         if (method_exists($formRequest, $this->customParameterDataMethodName)) {
             return call_user_func_array([$formRequest, $this->customParameterDataMethodName], []);
@@ -87,11 +100,14 @@ class GetFromFormRequestBase extends Strategy
         return [];
     }
 
-    protected function getMissingCustomDataMessage($parameterName)
+    protected function getMissingCustomDataMessage(string $parameterName): string
     {
         return "No data found for parameter '{$parameterName}' in your {$this->customParameterDataMethodName}() method. Add an entry for '{$parameterName}' so you can add a description and example.";
     }
 
+    /**
+     * @param ReflectionClass<FormRequest> $formRequestReflectionClass
+     */
     protected function isFormRequestMeantForThisStrategy(ReflectionClass $formRequestReflectionClass): bool
     {
         return $formRequestReflectionClass->hasMethod($this->customParameterDataMethodName);
