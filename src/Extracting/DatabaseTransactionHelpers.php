@@ -14,12 +14,15 @@ trait DatabaseTransactionHelpers
 {
     abstract public function getConfig(): DocumentationConfig;
 
-    private function connectionsToTransact()
+    /**
+     * @return array<int, string>
+     */
+    private function connectionsToTransact(): array
     {
         return $this->getConfig()->get('database_connections_to_transact', []);
     }
 
-    private function startDbTransaction()
+    private function startDbTransaction(): void
     {
         foreach ($this->connectionsToTransact() as $connection) {
             $database ??= app(ConnectionResolverInterface::class);
@@ -40,7 +43,7 @@ trait DatabaseTransactionHelpers
         }
     }
 
-    private function endDbTransaction()
+    private function endDbTransaction(): void
     {
         foreach ($this->connectionsToTransact() as $connection) {
             $database ??= app(ConnectionResolverInterface::class);
@@ -64,7 +67,7 @@ trait DatabaseTransactionHelpers
         }
     }
 
-    private static function driverSupportsTransactions($driver): bool
+    private static function driverSupportsTransactions(object $driver): bool
     {
         $methods = ['beginTransaction', 'rollback'];
 

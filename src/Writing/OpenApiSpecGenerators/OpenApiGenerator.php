@@ -29,6 +29,8 @@ abstract class OpenApiGenerator
      * The root of the OpenAPI document: general info about the API.
      *
      * @param array<int, array{description: string, name: string, endpoints: OutputEndpointData[]}> $groupedEndpoints
+     * @param array<string, mixed> $root
+     * @return array<string, mixed>
      *
      * @see https://spec.openapis.org/oas/v3.1.1.html#openapi-object
      */
@@ -42,6 +44,8 @@ abstract class OpenApiGenerator
      * per endpoint (the GET, the POST, ...).
      *
      * @param array<int, array{description: string, name: string, endpoints: OutputEndpointData[]}> $groupedEndpoints
+     * @param array<string, mixed> $pathItem
+     * @return array<string, mixed>
      *
      * @see https://spec.openapis.org/oas/v3.1.1.html#path-item-object
      */
@@ -57,6 +61,8 @@ abstract class OpenApiGenerator
      *
      * @param OutputEndpointData[] $endpoints
      * @param Parameter[] $urlParameters
+     * @param array<int, array<string, mixed>> $parameters
+     * @return array<int, array<string, mixed>>
      *
      * @see https://spec.openapis.org/oas/v3.1.1.html#parameter-object
      */
