@@ -151,61 +151,13 @@ parameters:
 			path: src/Extracting/ApiDetails.php
 
 		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Extractor\:\:castToType\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Extractor.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Extractor\:\:castToType\(\) has parameter \$value with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Extractor.php
-
-		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Extractor\:\:cleanParams\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/Extracting/Extractor.php
 
 		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Extractor\:\:generateDummyValue\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Extractor.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Extractor\:\:generateDummyValue\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Extractor.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Extractor\:\:getDummyDataGeneratorBetween\(\) has parameter \$max with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Extractor.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Extractor\:\:getDummyDataGeneratorBetween\(\) has parameter \$min with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Extractor.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Extractor\:\:getDummyValueGenerator\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Extractor.php
-
-		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Extractor\:\:mergeInheritedMethodsData\(\) has parameter \$inheritedDocsOverrides with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Extractor.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Extractor\:\:parseExampleFromParamDescription\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/Extracting/Extractor.php
@@ -379,55 +331,7 @@ parameters:
 			path: src/Extracting/Shared/ApiResourceResponseTools.php
 
 		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Shared\\ResponseFieldTools\:\:castToType\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Shared/ResponseFieldTools.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Shared\\ResponseFieldTools\:\:castToType\(\) has parameter \$value with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Shared/ResponseFieldTools.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Shared\\ResponseFieldTools\:\:generateDummyValue\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Shared/ResponseFieldTools.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Shared\\ResponseFieldTools\:\:generateDummyValue\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Shared/ResponseFieldTools.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Shared\\ResponseFieldTools\:\:getDummyDataGeneratorBetween\(\) has parameter \$max with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Shared/ResponseFieldTools.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Shared\\ResponseFieldTools\:\:getDummyDataGeneratorBetween\(\) has parameter \$min with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Shared/ResponseFieldTools.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Shared\\ResponseFieldTools\:\:getDummyValueGenerator\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Shared/ResponseFieldTools.php
-
-		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Shared\\ResponseFieldTools\:\:inferTypeOfResponseField\(\) has parameter \$data with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Shared/ResponseFieldTools.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Shared\\ResponseFieldTools\:\:parseExampleFromParamDescription\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/Extracting/Shared/ResponseFieldTools.php
@@ -511,67 +415,13 @@ parameters:
 			path: src/Extracting/Strategies/BodyParameters/GetFromBodyParamTag.php
 
 		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\BodyParameters\\GetFromFormRequest\:\:isFormRequestMeantForThisStrategy\(\) has parameter \$formRequestReflectionClass with generic class ReflectionClass but does not specify its types\: T$#'
-			identifier: missingType.generics
-			count: 1
-			path: src/Extracting/Strategies/BodyParameters/GetFromFormRequest.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFieldsFromTagStrategy\:\:castToType\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/GetFieldsFromTagStrategy.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFieldsFromTagStrategy\:\:castToType\(\) has parameter \$value with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/GetFieldsFromTagStrategy.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFieldsFromTagStrategy\:\:generateDummyValue\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/GetFieldsFromTagStrategy.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFieldsFromTagStrategy\:\:generateDummyValue\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFieldsFromTagStrategy.php
-
-		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFieldsFromTagStrategy\:\:getDescriptionAndExample\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/Extracting/Strategies/GetFieldsFromTagStrategy.php
 
 		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFieldsFromTagStrategy\:\:getDummyDataGeneratorBetween\(\) has parameter \$max with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/GetFieldsFromTagStrategy.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFieldsFromTagStrategy\:\:getDummyDataGeneratorBetween\(\) has parameter \$min with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/GetFieldsFromTagStrategy.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFieldsFromTagStrategy\:\:getDummyValueGenerator\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFieldsFromTagStrategy.php
-
-		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFieldsFromTagStrategy\:\:getFromTags\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFieldsFromTagStrategy.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFieldsFromTagStrategy\:\:parseExampleFromParamDescription\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/Extracting/Strategies/GetFieldsFromTagStrategy.php
@@ -589,594 +439,6 @@ parameters:
 			path: src/Extracting/Strategies/GetFieldsFromTagStrategy.php
 
 		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:__invoke\(\) has parameter \$routeRules with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:__invoke\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:addMissingParentFields\(\) has parameter \$parameters with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:addMissingParentFields\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:castToType\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:castToType\(\) has parameter \$value with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:convertArraySubfields\(\) has parameter \$parameters with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:convertArraySubfields\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:convertGenericArrayType\(\) has parameter \$parameters with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:convertGenericArrayType\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:examplePresent\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:examplePresent\(\) has parameter \$parameterData with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:generateDummyValue\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:generateDummyValue\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:getCustomParameterData\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:getDescription\(\) has parameter \$arguments with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:getDescription\(\) has parameter \$baseType with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:getDummyDataGeneratorBetween\(\) has parameter \$max with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:getDummyDataGeneratorBetween\(\) has parameter \$min with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:getDummyValueGenerator\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:getFormRequestReflectionClass\(\) return type with generic class ReflectionClass does not specify its types\: T$#'
-			identifier: missingType.generics
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:getMissingCustomDataMessage\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:getMissingCustomDataMessage\(\) has parameter \$parameterName with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:getParameterExample\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:getParameterExample\(\) has parameter \$parameterData with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:getParametersFromFormRequest\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:getParametersFromValidationRules\(\) has parameter \$customParameterData with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:getParametersFromValidationRules\(\) has parameter \$validationRulesByParameters with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:getParametersFromValidationRules\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:getRouteValidationRules\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:isFormRequestMeantForThisStrategy\(\) has parameter \$formRequestReflectionClass with generic class ReflectionClass but does not specify its types\: T$#'
-			identifier: missingType.generics
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:normaliseArrayAndObjectParameters\(\) has parameter \$parametersFromValidationRules with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:normaliseArrayAndObjectParameters\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:normaliseRules\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:parseExampleFromParamDescription\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:parseStringRuleIntoRuleAndArguments\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:processClosureRule\(\) has parameter \$parameterData with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:processEnumValidationRule\(\) has parameter \$allParameters with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:processEnumValidationRule\(\) has parameter \$parameterData with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:processEnumValidationRule\(\) has parameter \$rule with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:processRule\(\) has parameter \$allParameters with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:processRule\(\) has parameter \$parameterData with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:processRuleObject\(\) has parameter \$parameterData with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:processRuleObject\(\) has parameter \$rule with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:setExamples\(\) has parameter \$parameters with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:setExamples\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:shouldCastUserExample\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:warnAboutMissingCustomParameterData\(\) has parameter \$customParameterData with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:warnAboutMissingCustomParameterData\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromFormRequestBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:__invoke\(\) has parameter \$routeRules with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:__invoke\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:addMissingParentFields\(\) has parameter \$parameters with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:addMissingParentFields\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:castToType\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:castToType\(\) has parameter \$value with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:convertArraySubfields\(\) has parameter \$parameters with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:convertArraySubfields\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:convertGenericArrayType\(\) has parameter \$parameters with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:convertGenericArrayType\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:examplePresent\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:examplePresent\(\) has parameter \$parameterData with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:findValidationExpression\(\) has parameter \$statements with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:findValidationExpression\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:generateDummyValue\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:generateDummyValue\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:getDescription\(\) has parameter \$arguments with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:getDescription\(\) has parameter \$baseType with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:getDummyDataGeneratorBetween\(\) has parameter \$max with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:getDummyDataGeneratorBetween\(\) has parameter \$min with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:getDummyValueGenerator\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:getMissingCustomDataMessage\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:getMissingCustomDataMessage\(\) has parameter \$parameterName with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:getParameterExample\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:getParameterExample\(\) has parameter \$parameterData with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:getParametersFromValidationRules\(\) has parameter \$customParameterData with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:getParametersFromValidationRules\(\) has parameter \$validationRulesByParameters with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:getParametersFromValidationRules\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:lookForInlineValidationRules\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:normaliseArrayAndObjectParameters\(\) has parameter \$parametersFromValidationRules with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:normaliseArrayAndObjectParameters\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:normaliseRules\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:parseExampleFromParamDescription\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:parseStringRuleIntoRuleAndArguments\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:processClosureRule\(\) has parameter \$parameterData with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:processEnumValidationRule\(\) has parameter \$allParameters with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:processEnumValidationRule\(\) has parameter \$parameterData with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:processEnumValidationRule\(\) has parameter \$rule with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:processRule\(\) has parameter \$allParameters with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:processRule\(\) has parameter \$parameterData with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:processRuleObject\(\) has parameter \$parameterData with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:processRuleObject\(\) has parameter \$rule with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:setExamples\(\) has parameter \$parameters with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:setExamples\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:shouldCastUserExample\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:warnAboutMissingCustomParameterData\(\) has parameter \$customParameterData with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:warnAboutMissingCustomParameterData\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetParamsFromAttributeStrategy\:\:castToType\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/GetParamsFromAttributeStrategy.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetParamsFromAttributeStrategy\:\:castToType\(\) has parameter \$value with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/GetParamsFromAttributeStrategy.php
-
-		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetParamsFromAttributeStrategy\:\:extractFromAttributes\(\) has parameter \$attributesOnFormRequest with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -1184,36 +446,6 @@ parameters:
 
 		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetParamsFromAttributeStrategy\:\:extractFromAttributes\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetParamsFromAttributeStrategy.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetParamsFromAttributeStrategy\:\:generateDummyValue\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/GetParamsFromAttributeStrategy.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetParamsFromAttributeStrategy\:\:generateDummyValue\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetParamsFromAttributeStrategy.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetParamsFromAttributeStrategy\:\:getDummyDataGeneratorBetween\(\) has parameter \$max with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/GetParamsFromAttributeStrategy.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetParamsFromAttributeStrategy\:\:getDummyDataGeneratorBetween\(\) has parameter \$min with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/GetParamsFromAttributeStrategy.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetParamsFromAttributeStrategy\:\:getDummyValueGenerator\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/Extracting/Strategies/GetParamsFromAttributeStrategy.php
@@ -1231,12 +463,6 @@ parameters:
 			path: src/Extracting/Strategies/GetParamsFromAttributeStrategy.php
 
 		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetParamsFromAttributeStrategy\:\:parseExampleFromParamDescription\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/GetParamsFromAttributeStrategy.php
-
-		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Headers\\GetFromHeaderAttribute\:\:extractFromAttributes\(\) has parameter \$attributesOnFormRequest with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -1249,55 +475,7 @@ parameters:
 			path: src/Extracting/Strategies/Headers/GetFromHeaderAttribute.php
 
 		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Headers\\GetFromHeaderTag\:\:castToType\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/Headers/GetFromHeaderTag.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Headers\\GetFromHeaderTag\:\:castToType\(\) has parameter \$value with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/Headers/GetFromHeaderTag.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Headers\\GetFromHeaderTag\:\:generateDummyValue\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/Headers/GetFromHeaderTag.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Headers\\GetFromHeaderTag\:\:generateDummyValue\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/Headers/GetFromHeaderTag.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Headers\\GetFromHeaderTag\:\:getDummyDataGeneratorBetween\(\) has parameter \$max with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/Headers/GetFromHeaderTag.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Headers\\GetFromHeaderTag\:\:getDummyDataGeneratorBetween\(\) has parameter \$min with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/Headers/GetFromHeaderTag.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Headers\\GetFromHeaderTag\:\:getDummyValueGenerator\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/Headers/GetFromHeaderTag.php
-
-		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Headers\\GetFromHeaderTag\:\:getFromTags\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/Headers/GetFromHeaderTag.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Headers\\GetFromHeaderTag\:\:parseExampleFromParamDescription\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/Extracting/Strategies/Headers/GetFromHeaderTag.php
@@ -1327,18 +505,6 @@ parameters:
 			path: src/Extracting/Strategies/Metadata/GetFromDocBlocks.php
 
 		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Metadata\\GetFromMetadataAttributes\:\:castToType\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/Metadata/GetFromMetadataAttributes.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Metadata\\GetFromMetadataAttributes\:\:castToType\(\) has parameter \$value with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/Metadata/GetFromMetadataAttributes.php
-
-		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Metadata\\GetFromMetadataAttributes\:\:extractFromAttributes\(\) has parameter \$attributesOnFormRequest with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -1346,42 +512,6 @@ parameters:
 
 		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Metadata\\GetFromMetadataAttributes\:\:extractFromAttributes\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/Metadata/GetFromMetadataAttributes.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Metadata\\GetFromMetadataAttributes\:\:generateDummyValue\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/Metadata/GetFromMetadataAttributes.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Metadata\\GetFromMetadataAttributes\:\:generateDummyValue\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/Metadata/GetFromMetadataAttributes.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Metadata\\GetFromMetadataAttributes\:\:getDummyDataGeneratorBetween\(\) has parameter \$max with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/Metadata/GetFromMetadataAttributes.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Metadata\\GetFromMetadataAttributes\:\:getDummyDataGeneratorBetween\(\) has parameter \$min with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/Metadata/GetFromMetadataAttributes.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Metadata\\GetFromMetadataAttributes\:\:getDummyValueGenerator\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/Metadata/GetFromMetadataAttributes.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Metadata\\GetFromMetadataAttributes\:\:parseExampleFromParamDescription\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/Extracting/Strategies/Metadata/GetFromMetadataAttributes.php
@@ -1399,18 +529,6 @@ parameters:
 			path: src/Extracting/Strategies/PhpAttributeStrategy.php
 
 		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\PhpAttributeStrategy\:\:castToType\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/PhpAttributeStrategy.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\PhpAttributeStrategy\:\:castToType\(\) has parameter \$value with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/PhpAttributeStrategy.php
-
-		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\PhpAttributeStrategy\:\:extractFromAttributes\(\) has parameter \$attributesOnFormRequest with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -1423,58 +541,10 @@ parameters:
 			path: src/Extracting/Strategies/PhpAttributeStrategy.php
 
 		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\PhpAttributeStrategy\:\:generateDummyValue\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/PhpAttributeStrategy.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\PhpAttributeStrategy\:\:generateDummyValue\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/PhpAttributeStrategy.php
-
-		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\PhpAttributeStrategy\:\:getAttributes\(\) has parameter \$class with generic class ReflectionClass but does not specify its types\: T$#'
 			identifier: missingType.generics
 			count: 1
 			path: src/Extracting/Strategies/PhpAttributeStrategy.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\PhpAttributeStrategy\:\:getDummyDataGeneratorBetween\(\) has parameter \$max with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/PhpAttributeStrategy.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\PhpAttributeStrategy\:\:getDummyDataGeneratorBetween\(\) has parameter \$min with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/PhpAttributeStrategy.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\PhpAttributeStrategy\:\:getDummyValueGenerator\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/PhpAttributeStrategy.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\PhpAttributeStrategy\:\:getFormRequestReflectionClass\(\) return type with generic class ReflectionClass does not specify its types\: T$#'
-			identifier: missingType.generics
-			count: 1
-			path: src/Extracting/Strategies/PhpAttributeStrategy.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\PhpAttributeStrategy\:\:parseExampleFromParamDescription\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/PhpAttributeStrategy.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\QueryParameters\\GetFromFormRequest\:\:isFormRequestMeantForThisStrategy\(\) has parameter \$formRequestReflectionClass with generic class ReflectionClass but does not specify its types\: T$#'
-			identifier: missingType.generics
-			count: 1
-			path: src/Extracting/Strategies/QueryParameters/GetFromFormRequest.php
 
 		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\QueryParameters\\GetFromQueryParamTag\:\:parseTag\(\) return type has no value type specified in iterable type array\.$#'
@@ -1903,18 +973,6 @@ parameters:
 			path: src/Extracting/Strategies/Responses/UseApiResourceTags.php
 
 		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Responses\\UseResponseAttributes\:\:castToType\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/Responses/UseResponseAttributes.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Responses\\UseResponseAttributes\:\:castToType\(\) has parameter \$value with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/Responses/UseResponseAttributes.php
-
-		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Responses\\UseResponseAttributes\:\:connectionsToTransact\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
@@ -1945,38 +1003,8 @@ parameters:
 			path: src/Extracting/Strategies/Responses/UseResponseAttributes.php
 
 		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Responses\\UseResponseAttributes\:\:generateDummyValue\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/Responses/UseResponseAttributes.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Responses\\UseResponseAttributes\:\:generateDummyValue\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/Responses/UseResponseAttributes.php
-
-		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Responses\\UseResponseAttributes\:\:getApiResourceResponse\(\) has no return type specified\.$#'
 			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/Responses/UseResponseAttributes.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Responses\\UseResponseAttributes\:\:getDummyDataGeneratorBetween\(\) has parameter \$max with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/Responses/UseResponseAttributes.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Responses\\UseResponseAttributes\:\:getDummyDataGeneratorBetween\(\) has parameter \$min with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/Responses/UseResponseAttributes.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Responses\\UseResponseAttributes\:\:getDummyValueGenerator\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
 			count: 1
 			path: src/Extracting/Strategies/Responses/UseResponseAttributes.php
 
@@ -1994,12 +1022,6 @@ parameters:
 
 		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Responses\\UseResponseAttributes\:\:instantiateExampleModel\(\) has parameter \$withCount with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/Responses/UseResponseAttributes.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Responses\\UseResponseAttributes\:\:parseExampleFromParamDescription\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/Extracting/Strategies/Responses/UseResponseAttributes.php
@@ -2227,12 +1249,6 @@ parameters:
 			path: src/Extracting/Strategies/TagStrategyWithFormRequestFallback.php
 
 		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\TagStrategyWithFormRequestFallback\:\:getFormRequestReflectionClass\(\) return type with generic class ReflectionClass does not specify its types\: T$#'
-			identifier: missingType.generics
-			count: 1
-			path: src/Extracting/Strategies/TagStrategyWithFormRequestFallback.php
-
-		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\TagStrategyWithFormRequestFallback\:\:getFromTags\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -2257,48 +1273,6 @@ parameters:
 			path: src/Extracting/Strategies/UrlParameters/GetFromLaravelAPI.php
 
 		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\UrlParameters\\GetFromLaravelAPI\:\:castToType\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/UrlParameters/GetFromLaravelAPI.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\UrlParameters\\GetFromLaravelAPI\:\:castToType\(\) has parameter \$value with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/UrlParameters/GetFromLaravelAPI.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\UrlParameters\\GetFromLaravelAPI\:\:generateDummyValue\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Extracting/Strategies/UrlParameters/GetFromLaravelAPI.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\UrlParameters\\GetFromLaravelAPI\:\:generateDummyValue\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/UrlParameters/GetFromLaravelAPI.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\UrlParameters\\GetFromLaravelAPI\:\:getDummyDataGeneratorBetween\(\) has parameter \$max with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/UrlParameters/GetFromLaravelAPI.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\UrlParameters\\GetFromLaravelAPI\:\:getDummyDataGeneratorBetween\(\) has parameter \$min with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Extracting/Strategies/UrlParameters/GetFromLaravelAPI.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\UrlParameters\\GetFromLaravelAPI\:\:getDummyValueGenerator\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/UrlParameters/GetFromLaravelAPI.php
-
-		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\UrlParameters\\GetFromLaravelAPI\:\:inferBetterTypesAndExamplesForEloquentUrlParameters\(\) has parameter \$parameters with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -2318,12 +1292,6 @@ parameters:
 
 		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\UrlParameters\\GetFromLaravelAPI\:\:inferBetterTypesAndExamplesForEnumUrlParameters\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Extracting/Strategies/UrlParameters/GetFromLaravelAPI.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\UrlParameters\\GetFromLaravelAPI\:\:parseExampleFromParamDescription\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/Extracting/Strategies/UrlParameters/GetFromLaravelAPI.php
@@ -2893,30 +1861,6 @@ parameters:
 			path: src/Writing/HtmlWriter.php
 
 		-
-			message: '#^Method Ipsocode\\Scribe\\Writing\\OpenAPISpecWriter\:\:castToType\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Writing/OpenAPISpecWriter.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Writing\\OpenAPISpecWriter\:\:castToType\(\) has parameter \$value with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Writing/OpenAPISpecWriter.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Writing\\OpenAPISpecWriter\:\:generateDummyValue\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Writing/OpenAPISpecWriter.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Writing\\OpenAPISpecWriter\:\:generateDummyValue\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Writing/OpenAPISpecWriter.php
-
-		-
 			message: '#^Method Ipsocode\\Scribe\\Writing\\OpenAPISpecWriter\:\:generatePathsSpec\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -2924,30 +1868,6 @@ parameters:
 
 		-
 			message: '#^Method Ipsocode\\Scribe\\Writing\\OpenAPISpecWriter\:\:generateSpecContent\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Writing/OpenAPISpecWriter.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Writing\\OpenAPISpecWriter\:\:getDummyDataGeneratorBetween\(\) has parameter \$max with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Writing/OpenAPISpecWriter.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Writing\\OpenAPISpecWriter\:\:getDummyDataGeneratorBetween\(\) has parameter \$min with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Writing/OpenAPISpecWriter.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Writing\\OpenAPISpecWriter\:\:getDummyValueGenerator\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Writing/OpenAPISpecWriter.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Writing\\OpenAPISpecWriter\:\:parseExampleFromParamDescription\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/Writing/OpenAPISpecWriter.php
@@ -3191,54 +2111,6 @@ parameters:
 			identifier: argument.templateType
 			count: 3
 			path: src/Writing/OpenApiSpecGenerators/BaseGenerator.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Writing\\OpenApiSpecGenerators\\OpenApiGenerator\:\:castToType\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Writing/OpenApiSpecGenerators/OpenApiGenerator.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Writing\\OpenApiSpecGenerators\\OpenApiGenerator\:\:castToType\(\) has parameter \$value with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Writing/OpenApiSpecGenerators/OpenApiGenerator.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Writing\\OpenApiSpecGenerators\\OpenApiGenerator\:\:generateDummyValue\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: src/Writing/OpenApiSpecGenerators/OpenApiGenerator.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Writing\\OpenApiSpecGenerators\\OpenApiGenerator\:\:generateDummyValue\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Writing/OpenApiSpecGenerators/OpenApiGenerator.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Writing\\OpenApiSpecGenerators\\OpenApiGenerator\:\:getDummyDataGeneratorBetween\(\) has parameter \$max with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Writing/OpenApiSpecGenerators/OpenApiGenerator.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Writing\\OpenApiSpecGenerators\\OpenApiGenerator\:\:getDummyDataGeneratorBetween\(\) has parameter \$min with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: src/Writing/OpenApiSpecGenerators/OpenApiGenerator.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Writing\\OpenApiSpecGenerators\\OpenApiGenerator\:\:getDummyValueGenerator\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Writing/OpenApiSpecGenerators/OpenApiGenerator.php
-
-		-
-			message: '#^Method Ipsocode\\Scribe\\Writing\\OpenApiSpecGenerators\\OpenApiGenerator\:\:parseExampleFromParamDescription\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/Writing/OpenApiSpecGenerators/OpenApiGenerator.php
 
 		-
 			message: '#^Method Ipsocode\\Scribe\\Writing\\OpenApiSpecGenerators\\OpenApiGenerator\:\:pathItem\(\) has parameter \$pathItem with no value type specified in iterable type array\.$#'

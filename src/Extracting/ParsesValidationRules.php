@@ -40,6 +40,11 @@ trait ParsesValidationRules
         self::$MISSING_VALUE = new stdClass;
     }
 
+    /**
+     * @param array<string, mixed> $validationRulesByParameters
+     * @param array<string, array<string, mixed>> $customParameterData
+     * @return array<string, array<string, mixed>>
+     */
     public function getParametersFromValidationRules(array $validationRulesByParameters, array $customParameterData = []): array
     {
         // Write-once: the sentinel is compared by identity (below, and in
@@ -169,7 +174,8 @@ trait ParsesValidationRules
      *
      * A subfield declared without its parent also gets a parameter for the parent.
      *
-     * @param array[] $parametersFromValidationRules
+     * @param array<string, array<string, mixed>> $parametersFromValidationRules
+     * @return array<string, array<string, mixed>>
      */
     public function normaliseArrayAndObjectParameters(array $parametersFromValidationRules): array
     {
@@ -184,6 +190,10 @@ trait ParsesValidationRules
         return $this->setExamples($parameters);
     }
 
+    /**
+     * @param array<string, array<string, mixed>> $parameters
+     * @return array<string, array<string, mixed>>
+     */
     public function convertGenericArrayType(array $parameters): array
     {
         $converted = [];
@@ -220,6 +230,10 @@ trait ParsesValidationRules
         return $parameters;
     }
 
+    /**
+     * @param array<string, array<string, mixed>> $parameters
+     * @return array<string, array<string, mixed>>
+     */
     public function convertArraySubfields(array $parameters): array
     {
         $results = [];
@@ -248,6 +262,10 @@ trait ParsesValidationRules
         return $results;
     }
 
+    /**
+     * @param array<string, array<string, mixed>> $parameters
+     * @return array<string, array<string, mixed>>
+     */
     public function setExamples(array $parameters): array
     {
         $examples = [];
@@ -283,6 +301,7 @@ trait ParsesValidationRules
      * such as 'ids.*' rather than the validator's expanded 'ids.0'.
      *
      * @param array<string,string|string[]> $rules
+     * @return array<string, array<mixed>>
      */
     protected function normaliseRules(array $rules): array
     {
@@ -330,6 +349,7 @@ trait ParsesValidationRules
      * `function ($attribute, $value, $fail) { ... }` in a rules array.
      *
      * @param Closure|ClosureValidationRule $rule
+     * @param array<string, mixed> $parameterData
      */
     protected function processClosureRule($rule, array &$parameterData): void
     {
@@ -353,7 +373,11 @@ trait ParsesValidationRules
         }
     }
 
-    protected function processEnumValidationRule($rule, array &$parameterData, array $allParameters = []): void
+    /**
+     * @param array<string, mixed> $parameterData
+     * @param array<string, mixed> $allParameters
+     */
+    protected function processEnumValidationRule(Enum $rule, array &$parameterData, array $allParameters = []): void
     {
         $property = (new ReflectionClass($rule))->getProperty('type');
         $property->setAccessible(true);
@@ -371,6 +395,10 @@ trait ParsesValidationRules
         }
     }
 
+    /**
+     * @param object $rule
+     * @param array<string, mixed> $parameterData
+     */
     protected function processRuleObject($rule, array &$parameterData): void
     {
         if (method_exists($rule, 'invokable')) {
@@ -380,6 +408,7 @@ trait ParsesValidationRules
 
         // Users can define a custom "docs" method on a rule to give Scribe more info.
         if (method_exists($rule, 'docs')) {
+            /** @var array<string, mixed> $customData */
             $customData = call_user_func_array([$rule, 'docs'], []) ?: [];
 
             if (isset($customData['description'])) {
@@ -391,9 +420,11 @@ trait ParsesValidationRules
                 $parameterData['setter'] = $customData['setter'];
             }
 
-            $parameterData = array_merge($parameterData, Arr::except($customData, [
+            /** @var array<string, mixed> $extraData */
+            $extraData = Arr::except($customData, [
                 'description', 'example', 'setter',
-            ]));
+            ]);
+            $parameterData = array_merge($parameterData, $extraData);
         }
     }
 
@@ -403,8 +434,9 @@ trait ParsesValidationRules
      *
      * @param mixed $rule the lowercased rule name, eg `max`
      * @param mixed $ruleArguments the rule's arguments, eg `['3']` for `max:3`
-     * @param array $allParameters all parameters, to tell whether a date rule's argument (eg `before:some_date`)
-     *                             names another parameter
+     * @param array<string, mixed> $parameterData
+     * @param array<string, mixed> $allParameters all parameters, to tell whether a date rule's argument (eg `before:some_date`)
+     *                                            names another parameter
      */
     protected function processRule($rule, $ruleArguments, array &$parameterData, array $allParameters = []): bool
     {
@@ -767,6 +799,7 @@ trait ParsesValidationRules
      * and comma-separated arguments, eg "in:1,2" becomes ["in", ["1", "2"]].
      *
      * @param Rule|string $rule
+     * @return array{string, array<int, string>}
      */
     protected function parseStringRuleIntoRuleAndArguments($rule): array
     {
@@ -786,7 +819,10 @@ trait ParsesValidationRules
         return [mb_strtolower(mb_trim($rule)), $ruleArguments];
     }
 
-    protected function getParameterExample(array $parameterData)
+    /**
+     * @param array<string, mixed> $parameterData
+     */
+    protected function getParameterExample(array $parameterData): mixed
     {
         // No example was given: use the setter the last processed rule left, or
         // a generated value if the parameter is required.
@@ -811,6 +847,10 @@ trait ParsesValidationRules
         return $parameterData['example'] === self::$MISSING_VALUE ? null : $parameterData['example'];
     }
 
+    /**
+     * @param array<string, array<string, mixed>> $parameters
+     * @return array<string, array<string, mixed>>
+     */
     protected function addMissingParentFields(array $parameters): array
     {
         $results = [];
@@ -861,7 +901,10 @@ trait ParsesValidationRules
         return $results;
     }
 
-    protected function getDescription(string $rule, array $arguments = [], $baseType = 'string'): string
+    /**
+     * @param array<string, string> $arguments
+     */
+    protected function getDescription(string $rule, array $arguments = [], string $baseType = 'string'): string
     {
         if ($rule === 'regex') {
             return "Must match the regex {$arguments[':regex']}.";
@@ -905,16 +948,20 @@ trait ParsesValidationRules
         );
     }
 
-    protected function getMissingCustomDataMessage($parameterName)
+    protected function getMissingCustomDataMessage(string $parameterName): string
     {
         return '';
     }
 
-    protected function shouldCastUserExample()
+    protected function shouldCastUserExample(): bool
     {
         return false;
     }
 
+    /**
+     * @param array<string, array<string, mixed>> $customParameterData
+     * @return array<string, array<string, mixed>>
+     */
     protected function warnAboutMissingCustomParameterData(string $parameter, array $customParameterData): array
     {
         $parameterPlusDot = $parameter . '.';
@@ -927,7 +974,10 @@ trait ParsesValidationRules
         return $customParameterData;
     }
 
-    private function examplePresent(array $parameterData)
+    /**
+     * @param array<string, mixed> $parameterData
+     */
+    private function examplePresent(array $parameterData): bool
     {
         return isset($parameterData['example']) && $parameterData['example'] !== self::$MISSING_VALUE;
     }
