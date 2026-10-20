@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Workbench\App\Http\Controllers;
 
+use Countable;
 use Hypervel\Routing\Controller;
+use Traversable;
 use Workbench\App\Http\Requests\AnnotatedRequest;
 use Workbench\App\Http\Requests\NoRulesRequest;
 use Workbench\App\Http\Requests\PartialDataRequest;
@@ -85,6 +87,17 @@ class FormRequestVariantsController extends Controller
      * @queryParam limit integer How many to return. Example: 10
      */
     public function annotated(AnnotatedRequest $request): array
+    {
+        return [];
+    }
+
+    /**
+     * Take an intersection-typed parameter next to a request.
+     *
+     * An intersection type has no single class name to look a request up by,
+     * so it has to be passed over rather than asked for one.
+     */
+    public function intersected(Countable&Traversable $items, SearchPostsRequest $request): array
     {
         return [];
     }
