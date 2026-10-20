@@ -34,7 +34,7 @@
         "symfony/yaml": "^8.1"
     },
     "require-dev": {
-        "brianium/paratest": "^7.24",
+        "brianium/paratest": "^7.27.2",
         "filp/whoops": "^2.15",
         "friendsofphp/php-cs-fixer": "^3.57.2",
         "hypervel/testbench": "^0.4",
@@ -42,7 +42,7 @@
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.0",
         "phpstan/phpstan": "^2.2.15",
-        "phpunit/phpunit": "13.3.*"
+        "phpunit/phpunit": "~13.4.3"
     },
     "autoload": {
         "psr-4": {
