@@ -21,11 +21,22 @@ use ReflectionClass;
  */
 class ScribeTest extends TestCase
 {
+    /** @var list<string> */
+    public static array $calls = [];
+
+    public static function recordStatically(): string
+    {
+        self::$calls[] = 'static';
+
+        return 'static';
+    }
+
     protected function tearDown(): void
     {
         // These are worker-lifetime statics, and a `#[UnitTest]` method runs
         // without the application whose teardown would otherwise flush them.
         Globals::flushState();
+        self::$calls = [];
 
         parent::tearDown();
     }
@@ -78,5 +89,27 @@ class ScribeTest extends TestCase
         $this->assertNull(Globals::$__instantiateFormRequestUsing);
         $this->assertNull(Globals::$__normalizeEndpointUrlUsing);
         $this->assertNull(Globals::$__resolveExampleModelUsing);
+    }
+
+    #[UnitTest]
+    #[Test]
+    public function aHookCanBeAnInvokableObjectOrAClassMethodString(): void
+    {
+        $invokable = new class {
+            public function __invoke(): string
+            {
+                ScribeTest::$calls[] = 'invokable';
+
+                return 'invokable';
+            }
+        };
+
+        Scribe::beforeResponseCall($invokable);
+        $this->assertSame('invokable', (Globals::$__beforeResponseCall)());
+
+        Scribe::beforeResponseCall(self::class . '::recordStatically');
+        $this->assertSame('static', (Globals::$__beforeResponseCall)());
+
+        $this->assertSame(['invokable', 'static'], self::$calls);
     }
 }

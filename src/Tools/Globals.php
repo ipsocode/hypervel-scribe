@@ -4,27 +4,29 @@ declare(strict_types=1);
 
 namespace Ipsocode\Scribe\Tools;
 
+use Closure;
+
 class Globals
 {
     public static bool $shouldBeVerbose = false;
 
     // Hooks an application registers through the Scribe class.
 
-    public static $__beforeResponseCall;
+    public static ?Closure $__beforeResponseCall = null;
 
-    public static $__afterResponseCall;
+    public static ?Closure $__afterResponseCall = null;
 
-    public static $__bootstrap;
+    public static ?Closure $__bootstrap = null;
 
-    public static $__afterGenerating;
+    public static ?Closure $__afterGenerating = null;
 
-    public static $__instantiateFormRequestUsing;
+    public static ?Closure $__instantiateFormRequestUsing = null;
 
-    public static $__normalizeEndpointUrlUsing;
+    public static ?Closure $__normalizeEndpointUrlUsing = null;
 
-    public static $__afterExtracting;
+    public static ?Closure $__afterExtracting = null;
 
-    public static $__resolveExampleModelUsing;
+    public static ?Closure $__resolveExampleModelUsing = null;
 
     public static function flushState(): void
     {

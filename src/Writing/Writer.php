@@ -299,7 +299,7 @@ class Writer
 
     protected function runAfterGeneratingHook()
     {
-        if (is_callable(Globals::$__afterGenerating)) {
+        if (Globals::$__afterGenerating !== null) {
             c::info('Running `afterGenerating()` hook...');
             call_user_func_array(Globals::$__afterGenerating, [$this->generatedFiles]);
         }
