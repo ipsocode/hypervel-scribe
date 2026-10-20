@@ -21,6 +21,8 @@ class BaseGenerator extends OpenApiGenerator
 {
     /**
      * The grouped endpoints {@see self::$groupNameByEndpointId} was built from.
+     *
+     * @var null|array<int, array<string, mixed>>
      */
     private ?array $groupNameIndexSource = null;
 
@@ -110,7 +112,8 @@ class BaseGenerator extends OpenApiGenerator
     }
 
     /**
-     * @param array|Parameter $field
+     * @param array<string, mixed>|Parameter $field
+     * @return array<string, mixed>
      */
     public function generateFieldData($field): array
     {
@@ -209,6 +212,8 @@ class BaseGenerator extends OpenApiGenerator
      * Given a value, generate the schema for it. The schema consists of: {type:, example:, properties: (if value is an
      * object)}, and possibly a description for each property. The $endpoint and $path are used for looking up response
      * field descriptions.
+     *
+     * @return array<string, mixed>
      */
     public function generateSchemaForResponseValue(mixed $value, OutputEndpointData $endpoint, string $path): array
     {
@@ -253,7 +258,7 @@ class BaseGenerator extends OpenApiGenerator
             $schema['items']['type'] = $typeOfEachItem;
 
             if ($typeOfEachItem === 'object') {
-                $schema['items']['properties'] = collect($sample)->mapWithKeys(function ($v, $k) use ($endpoint, $path) {
+                $schema['items']['properties'] = collect((array) $sample)->mapWithKeys(function ($v, $k) use ($endpoint, $path) {
                     return [$k => $this->generateSchemaForResponseValue($v, $endpoint, "{$path}.{$k}")];
                 })->toArray();
 
@@ -273,6 +278,9 @@ class BaseGenerator extends OpenApiGenerator
 
     /**
      * Given an endpoint and a set of object keys at a path, return the properties that are specified as required.
+     *
+     * @param array<int|string, mixed> $properties
+     * @return array<int, string>
      */
     public function filterRequiredResponseFields(OutputEndpointData $endpoint, array $properties, string $path = ''): array
     {
@@ -324,6 +332,9 @@ class BaseGenerator extends OpenApiGenerator
         return $this->generateHeaders($endpoint, $parameters);
     }
 
+    /**
+     * @return array<string, mixed>|stdClass
+     */
     protected function generateEndpointRequestBodySpec(OutputEndpointData $endpoint): array|stdClass
     {
         $body = [];
@@ -384,6 +395,9 @@ class BaseGenerator extends OpenApiGenerator
         return $this->objectIfEmpty($body);
     }
 
+    /**
+     * @return array<string, mixed>|stdClass
+     */
     protected function generateEndpointResponsesSpec(OutputEndpointData $endpoint)
     {
         // See https://swagger.io/docs/specification/describing-responses/
@@ -448,6 +462,9 @@ class BaseGenerator extends OpenApiGenerator
         return $description;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function generateResponseContentSpec(?string $responseContent, OutputEndpointData $endpoint)
     {
         if (Str::startsWith($responseContent, '<<binary>>')) {
@@ -522,7 +539,7 @@ class BaseGenerator extends OpenApiGenerator
                 // Non-empty array
                 if (is_object($decoded[0])) {
                     // The first item stands in for every item.
-                    $properties = collect($decoded[0])->mapWithKeys(function ($value, $key) use ($endpoint) {
+                    $properties = collect((array) $decoded[0])->mapWithKeys(function ($value, $key) use ($endpoint) {
                         return [$key => $this->generateSchemaForResponseValue($value, $endpoint, $key)];
                     })->toArray();
 
@@ -561,7 +578,7 @@ class BaseGenerator extends OpenApiGenerator
                 ];
 
             case 'object':
-                $properties = collect($decoded)->mapWithKeys(function ($value, $key) use ($endpoint) {
+                $properties = collect((array) $decoded)->mapWithKeys(function ($value, $key) use ($endpoint) {
                     return [$key => $this->generateSchemaForResponseValue($value, $endpoint, $key)];
                 })->toArray();
                 $required = $this->filterRequiredResponseFields($endpoint, array_keys($properties));
@@ -592,13 +609,16 @@ class BaseGenerator extends OpenApiGenerator
     /**
      * Turn an empty array into an object, for fields the spec requires to be
      * objects: an empty array would serialise as [].
+     *
+     * @param array<string, mixed> $field
+     * @return array<string, mixed>|stdClass
      */
     protected function objectIfEmpty(array $field): array|stdClass
     {
         return count($field) > 0 ? $field : new stdClass;
     }
 
-    protected function convertScribeOrPHPTypeToOpenAPIType($type)
+    protected function convertScribeOrPHPTypeToOpenAPIType(mixed $type): mixed
     {
         return match ($type) {
             'float', 'double' => 'number',
@@ -610,6 +630,8 @@ class BaseGenerator extends OpenApiGenerator
     /**
      * Mark a schema nullable the OpenAPI 3.0 way, with `nullable: true`.
      * Base31Generator overrides this with 3.1's type array.
+     *
+     * @param array<string, mixed> $schema
      */
     protected function applyNullable(array &$schema, bool $nullable): void
     {
@@ -622,6 +644,8 @@ class BaseGenerator extends OpenApiGenerator
 
     /**
      * Copy the response field's description, if it has one, onto the schema.
+     *
+     * @param array<string, mixed> $schema
      */
     private function setDescription(array &$schema, OutputEndpointData $endpoint, string $path): void
     {
@@ -633,6 +657,8 @@ class BaseGenerator extends OpenApiGenerator
     /**
      * Mark the schema nullable when the response field says so or, with no
      * explicit setting, when the example is null.
+     *
+     * @param array<string, mixed> $schema
      */
     private function setNullable(array &$schema, OutputEndpointData $endpoint, string $path, mixed $value): void
     {
@@ -655,6 +681,10 @@ class BaseGenerator extends OpenApiGenerator
         }
     }
 
+    /**
+     * @param array<string, Parameter> $parameters
+     * @return array<int, array<string, mixed>>
+     */
     protected function generateQueryParams(OutputEndpointData $endpoint, array $parameters): array
     {
         if (count($endpoint->queryParameters)) {
@@ -688,6 +718,9 @@ class BaseGenerator extends OpenApiGenerator
         return $parameters;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function headerToOpenApiParameterObject(string $name, string $value): array
     {
         return [
@@ -701,6 +734,9 @@ class BaseGenerator extends OpenApiGenerator
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function queryParamToOpenApiParameterObject(string $name, Parameter $details): array
     {
         $parameterData = [
@@ -718,6 +754,9 @@ class BaseGenerator extends OpenApiGenerator
         return $parameterData;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function urlParamToOpenApiParameterObject(string $name, Parameter $details): array
     {
         return [

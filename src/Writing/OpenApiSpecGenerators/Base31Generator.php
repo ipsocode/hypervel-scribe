@@ -12,6 +12,9 @@ use Ipsocode\Camel\Output\Parameter;
  */
 class Base31Generator extends BaseGenerator
 {
+    /**
+     * @param array<string, mixed> $schema
+     */
     protected function applyNullable(array &$schema, bool $nullable): void
     {
         if (! $nullable) {
@@ -27,6 +30,10 @@ class Base31Generator extends BaseGenerator
         }
     }
 
+    /**
+     * @param array<string, mixed>|Parameter $field
+     * @return array<string, mixed>
+     */
     public function generateFieldData($field): array
     {
         $fieldData = parent::generateFieldData($field);
@@ -35,6 +42,9 @@ class Base31Generator extends BaseGenerator
         return $fieldData;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function generateSchemaForResponseValue(mixed $value, \Ipsocode\Camel\Output\OutputEndpointData $endpoint, string $path): array
     {
         $schema = parent::generateSchemaForResponseValue($value, $endpoint, $path);
@@ -43,6 +53,9 @@ class Base31Generator extends BaseGenerator
         return $schema;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function generateResponseContentSpec(?string $responseContent, \Ipsocode\Camel\Output\OutputEndpointData $endpoint): array
     {
         $contentSpec = parent::generateResponseContentSpec($responseContent, $endpoint);
@@ -59,6 +72,8 @@ class Base31Generator extends BaseGenerator
     /**
      * Replace a schema's 'example' with an 'examples' array, recursing into
      * properties and items. An existing 'examples' wins.
+     *
+     * @param array<string, mixed> $schema
      */
     protected function convertExampleInSchemaToExamples(array &$schema): void
     {
@@ -83,6 +98,8 @@ class Base31Generator extends BaseGenerator
     /**
      * Move a parameter object's 'example' into its schema's 'examples' (unless
      * the schema already has some), and convert the schema's properties and items.
+     *
+     * @param array<string, mixed> $data
      */
     protected function convertExampleOutsideSchemaToExamples(array &$data): void
     {
@@ -104,6 +121,9 @@ class Base31Generator extends BaseGenerator
         }
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function headerToOpenApiParameterObject(string $name, string $value): array
     {
         $data = parent::headerToOpenApiParameterObject($name, $value);
@@ -112,6 +132,9 @@ class Base31Generator extends BaseGenerator
         return $data;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function queryParamToOpenApiParameterObject(string $name, Parameter $details): array
     {
         $data = parent::queryParamToOpenApiParameterObject($name, $details);
@@ -120,6 +143,9 @@ class Base31Generator extends BaseGenerator
         return $data;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function urlParamToOpenApiParameterObject(string $name, Parameter $details): array
     {
         $data = parent::urlParamToOpenApiParameterObject($name, $details);

@@ -69,7 +69,10 @@ trait ParamHelpers
         return SeededFaker::get($this->config->get('examples.faker_seed'));
     }
 
-    protected function generateDummyValue(string $type, array $hints = [])
+    /**
+     * @param array<array-key, mixed> $hints
+     */
+    protected function generateDummyValue(string $type, array $hints = []): mixed
     {
         if (! empty($hints['enumValues'])) {
             return Arr::random($hints['enumValues']);
@@ -80,6 +83,9 @@ trait ParamHelpers
         return $fakeFactory();
     }
 
+    /**
+     * @param array<array-key, mixed> $hints
+     */
     protected function getDummyValueGenerator(string $type, array $hints = []): Closure
     {
         $baseType = $type;
@@ -152,7 +158,7 @@ trait ParamHelpers
         return in_array(str_replace('[]', '', $type), $types);
     }
 
-    protected function castToType($value, string $type)
+    protected function castToType(mixed $value, string $type): mixed
     {
         if ($value === null) {
             return null;
@@ -209,7 +215,7 @@ trait ParamHelpers
      * casting the values to the parameter type.
      *
      * @param string $type the parameter type, which the example and enum values are cast to
-     * @return array the description, the example, the enum values, and whether an example was given
+     * @return array{string, mixed, array<int, mixed>, bool} the description, the example, the enum values, and whether an example was given
      */
     protected function parseExampleFromParamDescription(string $description, string $type): array
     {
@@ -241,6 +247,10 @@ trait ParamHelpers
         return [$description, $example, $enumValues, $exampleWasSpecified];
     }
 
+    /**
+     * @param float|int|string $min
+     * @param float|int|string $max
+     */
     private function getDummyDataGeneratorBetween(string $type, $min, $max = 90, ?string $fieldName = null): Closure
     {
         $hints = [
