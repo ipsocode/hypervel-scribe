@@ -30,7 +30,7 @@
         "nikic/php-parser": "^5.0",
         "parsedown/parsedown": "^1.7",
         "ramsey/uuid": "^4.2.2",
-        "symfony/var-exporter": "^7.0 || ^8.0",
+        "symfony/var-exporter": "^8.1",
         "symfony/yaml": "^8.1"
     },
     "require-dev": {
