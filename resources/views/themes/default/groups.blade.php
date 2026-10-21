@@ -1,5 +1,5 @@
 @foreach($groupedEndpoints as $group)
-    <h1 id="{!! Str::slug($group['name']) !!}">{!! $group['name'] !!}</h1>
+    <h1 id="{!! Str::slug($group['name']) !!}">{{ $group['name'] }}</h1>
 
     {!! Parsedown::instance()->text($group['description']) !!}
 

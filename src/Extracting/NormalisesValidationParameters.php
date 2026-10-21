@@ -24,7 +24,8 @@ trait NormalisesValidationParameters
      *
      * A subfield declared without its parent also gets a parameter for the parent.
      *
-     * @param array[] $parametersFromValidationRules
+     * @param array<string, array<string, mixed>> $parametersFromValidationRules
+     * @return array<string, array<string, mixed>>
      */
     public function normaliseArrayAndObjectParameters(array $parametersFromValidationRules): array
     {
@@ -39,6 +40,10 @@ trait NormalisesValidationParameters
         return $this->setExamples($parameters);
     }
 
+    /**
+     * @param array<string, array<string, mixed>> $parameters
+     * @return array<string, array<string, mixed>>
+     */
     public function convertGenericArrayType(array $parameters): array
     {
         $converted = [];
@@ -75,6 +80,10 @@ trait NormalisesValidationParameters
         return $parameters;
     }
 
+    /**
+     * @param array<string, array<string, mixed>> $parameters
+     * @return array<string, array<string, mixed>>
+     */
     public function convertArraySubfields(array $parameters): array
     {
         $results = [];
@@ -103,6 +112,10 @@ trait NormalisesValidationParameters
         return $results;
     }
 
+    /**
+     * @param array<string, array<string, mixed>> $parameters
+     * @return array<string, array<string, mixed>>
+     */
     public function setExamples(array $parameters): array
     {
         $examples = [];
@@ -132,7 +145,10 @@ trait NormalisesValidationParameters
         return $parameters;
     }
 
-    protected function getParameterExample(array $parameterData)
+    /**
+     * @param array<string, mixed> $parameterData
+     */
+    protected function getParameterExample(array $parameterData): mixed
     {
         // No example was given: use the setter the last processed rule left, or
         // a generated value if the parameter is required.
@@ -157,6 +173,10 @@ trait NormalisesValidationParameters
         return $parameterData['example'] === self::$MISSING_VALUE ? null : $parameterData['example'];
     }
 
+    /**
+     * @param array<string, array<string, mixed>> $parameters
+     * @return array<string, array<string, mixed>>
+     */
     protected function addMissingParentFields(array $parameters): array
     {
         $results = [];
@@ -207,7 +227,10 @@ trait NormalisesValidationParameters
         return $results;
     }
 
-    private function examplePresent(array $parameterData)
+    /**
+     * @param array<string, mixed> $parameterData
+     */
+    private function examplePresent(array $parameterData): bool
     {
         return isset($parameterData['example']) && $parameterData['example'] !== self::$MISSING_VALUE;
     }

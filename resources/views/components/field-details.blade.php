@@ -55,7 +55,7 @@
                @if($inputType === 'number')step="any"@endif
                name="{{ $fullName }}" @if($class)class="{{ $class }}"@endif
                data-endpoint="{{ $endpointId }}"
-               value="{!! (isset($example) && (is_string($example) || is_numeric($example))) ? $example : '' !!}"
+               value="{{ (isset($example) && (is_string($example) || is_numeric($example))) ? $example : '' }}"
                data-component="{{ $component }}">
     @endif
 @endif
@@ -72,5 +72,5 @@
 {!! Parsedown::instance()->text(trim((string) $description)) !!}
 @if(!empty($enumValues))
 Must be one of:
-<ul style="list-style-type: square;">{!! implode(" ", array_map(fn($val) => "<li><code>$val</code></li>", $enumValues)) !!}</ul>
+<ul style="list-style-type: square;">{!! implode(" ", array_map(fn($val) => "<li><code>" . e((string) $val) . "</code></li>", $enumValues)) !!}</ul>
 @endif

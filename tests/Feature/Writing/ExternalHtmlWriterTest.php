@@ -85,23 +85,6 @@ class ExternalHtmlWriterTest extends TestCase
         );
     }
 
-    /**
-     * Each viewer, the call or element that mounts it, and how its view spells
-     * the spec's URL.
-     *
-     * Those spellings are also what `Writer` rewrites into a `route()` call for
-     * the hypervel types, so they are a contract between the two rather than a
-     * detail of the markup.
-     */
-    public static function themes(): array
-    {
-        return [
-            'scalar' => ['scalar', 'Scalar.createApiReference', '{"url":"..\/docs\/openapi.yaml"}'],
-            'elements' => ['elements', '<elements-api', 'apiDescriptionUrl="../docs/openapi.yaml"'],
-            'rapidoc' => ['rapidoc', '<rapi-doc', 'spec-url="../docs/openapi.yaml"'],
-        ];
-    }
-
     #[Test]
     public function scalarIsHandedItsConfiguredOptionsAlongsideTheSpecUrl(): void
     {
@@ -122,6 +105,53 @@ class ExternalHtmlWriterTest extends TestCase
             'hideDownloadButton' => true,
             'url' => '../docs/openapi.yaml',
         ], json_decode($matches[1], true));
+    }
+
+    #[Test]
+    #[DataProvider('themes')]
+    public function printsTheConfiguredValuesAsTextRatherThanMarkup(string $theme, string $marker, string $specUrl): void
+    {
+        // The title, logo and viewer options are config, but a quote in an
+        // attribute or `</script>` in Scalar's JSON must not break out of it.
+        $tag = '<img src=x onerror=alert(1)>';
+        $html = $this->generate([
+            'theme' => $theme,
+            'title' => "Docs {$tag}",
+            'logo' => 'img/logo.png" onerror="alert(1)',
+            'external' => [
+                'html_attributes' => ['theme' => '" onload="alert(1)'],
+                'scalar_config' => ['customCss' => '</script><script>alert(1)</script>'],
+            ],
+        ]);
+
+        $this->assertStringContainsString($marker, $html);
+        // Scalar's options now come first in its JSON, so match the URL alone.
+        $this->assertStringContainsString(
+            preg_replace('/^\{"url":"(.+)"}$/', '$1', $specUrl),
+            $html,
+            "The {$theme} viewer still reads the spec.",
+        );
+        $this->assertStringNotContainsString($tag, $html);
+        $this->assertStringNotContainsString('" onerror="alert(1)', $html);
+        $this->assertStringNotContainsString('" onload="alert(1)', $html);
+        $this->assertStringNotContainsString('</script><script>alert(1)', $html);
+    }
+
+    /**
+     * Each viewer, the call or element that mounts it, and how its view spells
+     * the spec's URL.
+     *
+     * Those spellings are also what `Writer` rewrites into a `route()` call for
+     * the hypervel types, so they are a contract between the two rather than a
+     * detail of the markup.
+     */
+    public static function themes(): array
+    {
+        return [
+            'scalar' => ['scalar', 'Scalar.createApiReference', '{"url":"..\/docs\/openapi.yaml"}'],
+            'elements' => ['elements', '<elements-api', 'apiDescriptionUrl="../docs/openapi.yaml"'],
+            'rapidoc' => ['rapidoc', '<rapi-doc', 'spec-url="../docs/openapi.yaml"'],
+        ];
     }
 
     #[Test]

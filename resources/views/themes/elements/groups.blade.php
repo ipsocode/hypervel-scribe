@@ -2,7 +2,7 @@
     <h1 id="{!! Str::slug($group['name']) !!}"
         class="sl-text-5xl sl-leading-tight sl-font-prose sl-text-heading"
     >
-        {!! $group['name'] !!}
+        {{ $group['name'] }}
     </h1>
 
     {!! Parsedown::instance()->text($group['description']) !!}

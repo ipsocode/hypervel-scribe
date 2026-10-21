@@ -22,8 +22,9 @@ trait ConvertsValidationRules
      *
      * @param mixed $rule the lowercased rule name, eg `max`
      * @param mixed $ruleArguments the rule's arguments, eg `['3']` for `max:3`
-     * @param array $allParameters all parameters, to tell whether a date rule's argument (eg `before:some_date`)
-     *                             names another parameter
+     * @param array<string, mixed> $parameterData
+     * @param array<string, mixed> $allParameters all parameters, to tell whether a date rule's argument (eg `before:some_date`)
+     *                                            names another parameter
      */
     protected function processRule($rule, $ruleArguments, array &$parameterData, array $allParameters = []): bool
     {

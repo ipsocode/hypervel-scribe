@@ -46,10 +46,15 @@ class ResponseCalls extends Strategy
      */
     public const float DEFAULT_TIMEOUT = 60.0;
 
+    /** @var array<string, mixed> */
     protected array $previousConfigs = [];
 
     protected float $timeout = self::DEFAULT_TIMEOUT;
 
+    /**
+     * @param array<string, mixed> $settings
+     * @return null|array<int, array<string, mixed>>
+     */
     public function __invoke(ExtractedEndpointData $endpointData, array $settings = []): ?array
     {
         // No call when a success response is already documented.
@@ -60,6 +65,10 @@ class ResponseCalls extends Strategy
         return $this->makeResponseCall($endpointData, $settings);
     }
 
+    /**
+     * @param array<string, mixed> $settings
+     * @return null|array<int, array<string, mixed>>
+     */
     public function makeResponseCall(ExtractedEndpointData $endpointData, array $settings): ?array
     {
         // Parameters from the settings override the extracted ones.
@@ -85,7 +94,9 @@ class ResponseCalls extends Strategy
         try {
             $this->configureEnvironment($settings);
 
-            $hardcodedFileParams = collect($settings['fileParams'] ?? [])
+            /** @var array<string, string> $fileParams */
+            $fileParams = $settings['fileParams'] ?? [];
+            $hardcodedFileParams = collect($fileParams)
                 ->map(fn (string $filePath) => new UploadedFile(
                     $filePath,
                     basename($filePath),
@@ -131,6 +142,8 @@ class ResponseCalls extends Strategy
      * Delegates to `ExtractedEndpointData::getMethods()`, which strips the
      * automatic HEAD but keeps it when it is the only method the route answers,
      * so a HEAD-only route still has a method to call.
+     *
+     * @return array<int, string>
      */
     public function getMethods(Route $route): array
     {
@@ -138,16 +151,17 @@ class ResponseCalls extends Strategy
     }
 
     /**
-     * @param array $only The routes to apply this strategy to, and no others.
-     *                    Specify route names ("users.index", "users.*"), or method and path ("GET *", "POST /safe/*").
-     * @param array $except The routes not to apply this strategy to. A route matching both $only and $except is skipped.
-     *                      Specify route names ("users.index", "users.*"), or method and path ("GET *", "POST /safe/*").
-     * @param array $config Config values to set for the call. They are restored afterwards.
-     * @param array $queryParams Query params to always send with the response call. Key-value array.
-     * @param array $bodyParams Body params to always send with the response call. Key-value array.
-     * @param array $fileParams File params to always send with the response call. Key-value array. Key is param name, value is file path.
-     * @param array $cookies Cookies to always send with the response call. Key-value array.
+     * @param array<int, string> $only The routes to apply this strategy to, and no others.
+     *                                 Specify route names ("users.index", "users.*"), or method and path ("GET *", "POST /safe/*").
+     * @param array<int, string> $except The routes not to apply this strategy to. A route matching both $only and $except is skipped.
+     *                                   Specify route names ("users.index", "users.*"), or method and path ("GET *", "POST /safe/*").
+     * @param array<string, mixed> $config Config values to set for the call. They are restored afterwards.
+     * @param array<string, mixed> $queryParams Query params to always send with the response call. Key-value array.
+     * @param array<string, mixed> $bodyParams Body params to always send with the response call. Key-value array.
+     * @param array<string, string> $fileParams File params to always send with the response call. Key-value array. Key is param name, value is file path.
+     * @param array<string, mixed> $cookies Cookies to always send with the response call. Key-value array.
      * @param float $timeout Seconds to allow the call before giving up on it. See self::DEFAULT_TIMEOUT.
+     * @return array{string, array<string, mixed>} tuple of strategy class FQN and specified settings
      */
     public static function withSettings(
         array $only = [],
@@ -175,6 +189,14 @@ class ResponseCalls extends Strategy
         );
     }
 
+    /**
+     * @param array<string, mixed> $settings
+     * @param array<string, mixed> $urlParams
+     * @param array<string, mixed> $bodyParams
+     * @param array<string, mixed> $queryParams
+     * @param array<string, mixed> $fileParameters
+     * @param array<string, mixed> $headers
+     */
     protected function prepareRequest(
         Route $route,
         string $url,
@@ -243,6 +265,8 @@ class ResponseCalls extends Strategy
      * the call and a streamed body write through.
      * See docs/design/response-calls.md.
      *
+     * @return array<int, array<string, mixed>>
+     *
      * @throws Exception
      */
     protected function makeIsolatedCall(Request $request, ExtractedEndpointData $endpointData): array
@@ -298,6 +322,9 @@ class ResponseCalls extends Strategy
 
     /**
      * Transform headers array to array of $_SERVER vars with HTTP_* format.
+     *
+     * @param array<string, mixed> $headers
+     * @return array<string, mixed>
      */
     protected function transformHeadersToServerVars(array $headers): array
     {
@@ -314,6 +341,9 @@ class ResponseCalls extends Strategy
         return $server;
     }
 
+    /**
+     * @return array<string, string>
+     */
     protected function getResponseHeaders(Response $response): array
     {
         $headers = $response->headers->all();
@@ -356,6 +386,9 @@ class ResponseCalls extends Strategy
         return $content;
     }
 
+    /**
+     * @param array<string, mixed> $settings
+     */
     private function configureEnvironment(array $settings): void
     {
         $this->timeout = (float) ($settings['timeout'] ?? self::DEFAULT_TIMEOUT);
@@ -363,6 +396,9 @@ class ResponseCalls extends Strategy
         $this->setConfigs($settings['config'] ?? []);
     }
 
+    /**
+     * @param array<string, mixed> $config
+     */
     private function setConfigs(array $config): void
     {
         if (empty($config)) {
@@ -382,6 +418,9 @@ class ResponseCalls extends Strategy
         }
     }
 
+    /**
+     * @param null|array<string, mixed> $headers
+     */
     private function addHeaders(Request $request, Route $route, ?array $headers): void
     {
         // A route bound to a domain is called on that domain.
@@ -402,12 +441,18 @@ class ResponseCalls extends Strategy
         }
     }
 
+    /**
+     * @param array<string, mixed> $query
+     */
     private function addQueryParameters(Request $request, array $query): void
     {
         $request->query->add($query);
         $request->server->add(['QUERY_STRING' => http_build_query($query)]);
     }
 
+    /**
+     * @param array<string, mixed> $body
+     */
     private function addBodyParameters(Request $request, array $body): void
     {
         $request->request->add($body);

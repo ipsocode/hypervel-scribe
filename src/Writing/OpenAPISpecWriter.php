@@ -89,6 +89,7 @@ class OpenAPISpecWriter
                 return [mb_strtolower($endpoint->httpMethods[0]) => $spec];
             });
 
+            /** @var Collection<string, mixed> $pathItem */
             $pathItem = $operations;
 
             // URL parameters go at the path level, since every operation shares the path.
