@@ -49,7 +49,9 @@ class ExternalHtmlWriter extends HtmlWriter
             'baseUrl' => $this->baseUrl,
             'tryItOut' => $this->config->get('try_it_out'),
             'htmlAttributes' => $this->config->get('external.html_attributes', []),
-            'scalarConfig' => json_encode($scalarConfig),
+            // Printed inside a <script>, so `<` and `&` are escaped: a `</script>`
+            // in the config would otherwise end the script there.
+            'scalarConfig' => json_encode($scalarConfig, JSON_HEX_TAG | JSON_HEX_AMP),
         ])->render();
 
         if (! is_dir($destinationFolder)) {

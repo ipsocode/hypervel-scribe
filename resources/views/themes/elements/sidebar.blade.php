@@ -17,10 +17,10 @@
             <div class="sl-my-3">
                 @foreach($headings as $h1)
                     <div class="expandable">
-                        <div title="{!! $h1['name'] !!}" id="toc-item-{!! $h1['slug'] !!}"
+                        <div title="{{ $h1['name'] }}" id="toc-item-{!! $h1['slug'] !!}"
                              class="sl-flex sl-items-center sl-h-md sl-pr-4 sl-pl-4 sl-bg-canvas-100 hover:sl-bg-canvas-200 sl-cursor-pointer sl-select-none">
                             <a href="#{!! $h1['slug'] !!}"
-                               class="sl-flex-1 sl-items-center sl-truncate sl-mr-1.5 sl-p-0">{!! $h1['name'] !!}</a>
+                               class="sl-flex-1 sl-items-center sl-truncate sl-mr-1.5 sl-p-0">{{ $h1['name'] }}</a>
                             @if(count($h1['subheadings']) > 0)
                                 <div class="sl-flex sl-items-center sl-text-xs expansion-chevrons">
                                     <svg aria-hidden="true" focusable="false" data-prefix="fas"
@@ -40,10 +40,10 @@
                                     <div class="expandable">
                                         <div class="sl-flex sl-items-center sl-h-md sl-pr-4 sl-pl-8 sl-bg-canvas-100 hover:sl-bg-canvas-200 sl-cursor-pointer sl-select-none"
                                              id="toc-item-{!! $h2['slug'] !!}">
-                                            <div class="sl-flex-1 sl-items-center sl-truncate sl-mr-1.5 sl-p-0" title="{!! $h2['name'] !!}">
+                                            <div class="sl-flex-1 sl-items-center sl-truncate sl-mr-1.5 sl-p-0" title="{{ $h2['name'] }}">
                                                 <a class="ElementsTableOfContentsItem sl-block sl-no-underline"
                                                    href="#{!! $h2['slug'] !!}">
-                                                    {!! $h2['name'] !!}
+                                                    {{ $h2['name'] }}
                                                 </a>
                                             </div>
                                             @if(count($h2['subheadings']) > 0)
@@ -64,9 +64,9 @@
                                                 @foreach($h2['subheadings'] as $h3)
                                                     <a class="ElementsTableOfContentsItem sl-block sl-no-underline"
                                                        href="#{!! $h3['slug'] !!}">
-                                                        <div title="{!! $h3['name'] !!}" id="toc-item-{!! $h3['slug'] !!}"
+                                                        <div title="{{ $h3['name'] }}" id="toc-item-{!! $h3['slug'] !!}"
                                                              class="sl-flex sl-items-center sl-h-md sl-pr-4 sl-pl-12 sl-bg-canvas-100 hover:sl-bg-canvas-200 sl-cursor-pointer sl-select-none">
-                                                            {!! $h3['name'] !!}
+                                                            {{ $h3['name'] }}
                                                         </div>
                                                     </a>
                                                 @endforeach

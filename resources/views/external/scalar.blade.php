@@ -3,7 +3,7 @@
 <head>
     {{-- Scalar takes its configuration as one JSON object: `scribe.external.scalar_config`,
          plus the spec's URL. See https://scalar.com/products/api-references/configuration --}}
-    <title>{!! $metadata['title'] !!}</title>
+    <title>{{ $metadata['title'] }}</title>
     <meta charset="utf-8"/>
     <meta
         name="viewport"

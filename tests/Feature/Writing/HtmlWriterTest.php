@@ -10,6 +10,7 @@ use Ipsocode\Scribe\Tests\TestCase;
 use Ipsocode\Scribe\Tools\DocumentationConfig;
 use Ipsocode\Scribe\Tools\WritingUtils;
 use Ipsocode\Scribe\Writing\HtmlWriter;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
@@ -84,6 +85,68 @@ class HtmlWriterTest extends TestCase
         // Nothing may reach the output still holding Blade syntax.
         $this->assertStringNotContainsString('@foreach', $html);
         $this->assertStringNotContainsString('{{', $html);
+    }
+
+    #[Test]
+    #[DataProvider('themes')]
+    public function printsTheDocumentedValuesAsTextRatherThanMarkup(string $theme): void
+    {
+        // Endpoint and group names, examples, enum values and the title come
+        // from docblocks, validation rules, config and the `.scribe` YAML. Any
+        // markup in them has to reach the page as text, not as elements.
+        $tag = '<img src=x onerror=alert(1)>';
+        $html = $this->generate(['theme' => $theme, 'title' => "Docs {$tag}"], [
+            $this->createGroup([
+                $this->createMockEndpointData([
+                    'metadata.title' => "List {$tag}",
+                    'queryParameters' => ['sort' => [
+                        'name' => 'sort',
+                        'type' => 'string',
+                        'example' => '" onfocus="alert(1)',
+                        'enumValues' => [$tag],
+                    ]],
+                ]),
+            ], "Users {$tag}"),
+        ]);
+
+        $this->assertStringNotContainsString($tag, $html);
+        $this->assertStringContainsString(e($tag), $html);
+        // A quote in text is harmless; in the try-it-out input's value it would
+        // end the attribute and start another.
+        $this->assertStringNotContainsString('="" onfocus="alert(1)"', $html);
+    }
+
+    public static function themes(): array
+    {
+        return ['default' => ['default'], 'elements' => ['elements']];
+    }
+
+    #[Test]
+    public function wiresUpTheTryItOutClientWithItsConfigurationAsJavascriptStrings(): void
+    {
+        // A quote or `</script>` in the configured URLs must not end the script's
+        // string, or the script itself.
+        $html = $this->generate(['try_it_out' => [
+            'enabled' => true,
+            'base_url' => 'http://sandbox.test/";alert(1);"',
+            'csrf_url' => '/csrf</script><script>alert(1)</script>',
+        ]]);
+
+        $this->assertStringNotContainsString('";alert(1);"', $html);
+        $this->assertStringNotContainsString('</script><script>alert(1)', $html);
+    }
+
+    #[Test]
+    public function theTryItOutScriptNeverRendersAResponseAsMarkupInThePage(): void
+    {
+        // A live response is the API's data, not the docs' markup. A `dd()` dump
+        // (Symfony VarDumper's "Sfdump" HTML) is shown in a sandboxed frame
+        // instead, where no script in it runs and it cannot reach the page.
+        $script = (string) file_get_contents(__DIR__ . '/../../../resources/js/tryitout.js');
+
+        $this->assertDoesNotMatchRegularExpression('/\.innerHTML\s*=/', $script);
+        $this->assertStringContainsString("setAttribute('sandbox', '')", $script);
+        $this->assertStringContainsString('.srcdoc = response', $script);
     }
 
     #[Test]
@@ -231,8 +294,9 @@ class HtmlWriterTest extends TestCase
             ],
         ]);
 
-        $this->assertStringContainsString('var tryItOutBaseUrl = "http://sandbox.test";', $html);
-        $this->assertStringContainsString('var csrfUrl = "/csrf";', $html);
+        $this->assertStringContainsString("var tryItOutBaseUrl = 'http:\\/\\/sandbox.test';", $html);
+        $this->assertStringContainsString('var useCsrf = true;', $html);
+        $this->assertStringContainsString("var csrfUrl = '\\/csrf';", $html);
         $this->assertStringContainsString('js/tryitout-', $html);
         $this->assertStringContainsString('Try it out', $html);
     }
