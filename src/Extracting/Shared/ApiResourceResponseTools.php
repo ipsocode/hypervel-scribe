@@ -98,8 +98,8 @@ class ApiResourceResponseTools
             // [15] : ::paginate(15)
             // [15, 'simple'] : ::simplePaginate(15)
             // [15, 'cursor'] : ::cursorPaginate(15)
+            $perPage = (int) ($paginationStrategy[0] ?? 0);
             if (count($paginationStrategy) === 1) {
-                $perPage = $paginationStrategy[0];
                 $paginator = new LengthAwarePaginator(
                     // LengthAwarePaginator expects only the current page's items
                     collect($models)->slice(0, $perPage),
@@ -108,11 +108,9 @@ class ApiResourceResponseTools
                 );
                 $list = $paginator;
             } elseif (count($paginationStrategy) === 2 && $paginationStrategy[1] === 'simple') {
-                $perPage = $paginationStrategy[0];
                 $paginator = new Paginator($models, $perPage);
                 $list = $paginator;
             } elseif (count($paginationStrategy) === 2 && $paginationStrategy[1] === 'cursor') {
-                $perPage = $paginationStrategy[0];
                 $paginator = new CursorPaginator($models, $perPage);
                 $list = $paginator;
             } else {
