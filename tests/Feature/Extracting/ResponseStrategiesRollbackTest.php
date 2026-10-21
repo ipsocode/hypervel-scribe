@@ -39,19 +39,6 @@ class ResponseStrategiesRollbackTest extends DatabaseTestCase
         }
     }
 
-    /**
-     * @return array<string, array{string}>
-     */
-    public static function throwingEndpoints(): array
-    {
-        return [
-            'API resource tag' => ['throwing.resourceTag'],
-            'API resource attribute' => ['throwing.resourceAttribute'],
-            'transformer tag' => ['throwing.transformerTag'],
-            'transformer attribute' => ['throwing.transformerAttribute'],
-        ];
-    }
-
     #[Test]
     #[DataProvider('throwingEndpoints')]
     public function aResponseThatCannotBeBuiltLeavesNoTransactionOpen(string $routeName): void
@@ -68,5 +55,18 @@ class ResponseStrategiesRollbackTest extends DatabaseTestCase
 
         $this->assertTrue($threw, 'Building the response was expected to throw.');
         $this->assertSame($level, DB::transactionLevel());
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function throwingEndpoints(): array
+    {
+        return [
+            'API resource tag' => ['throwing.resourceTag'],
+            'API resource attribute' => ['throwing.resourceAttribute'],
+            'transformer tag' => ['throwing.transformerTag'],
+            'transformer attribute' => ['throwing.transformerAttribute'],
+        ];
     }
 }

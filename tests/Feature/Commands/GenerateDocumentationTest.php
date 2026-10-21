@@ -792,7 +792,7 @@ class GenerateDocumentationTest extends DatabaseTestCase
     #[Test]
     public function aRouteToAMissingControllerClassIsSkippedWithAWarning(): void
     {
-        RouteFacade::get('api/undocumentable/missing-class', ['Workbench\\App\\Http\\Controllers\\NoSuchController', 'index'])
+        RouteFacade::get('api/undocumentable/missing-class', ['Workbench\App\Http\Controllers\NoSuchController', 'index'])
             ->name('undocumentable.missingClass');
 
         $this->assertSame(GenerateDocumentation::SUCCESS, $this->generate());
