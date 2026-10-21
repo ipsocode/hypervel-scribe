@@ -30,6 +30,10 @@ class GetFromInlineValidatorBase extends Strategy
         }
 
         $methodAst = MethodAstParser::getMethodAst($endpointData->method);
+        if ($methodAst === null) {
+            return [];
+        }
+
         [$validationRules, $customParameterData] = $this->lookForInlineValidationRules($methodAst);
 
         $bodyParametersFromValidationRules = $this->getParametersFromValidationRules($validationRules, $customParameterData);

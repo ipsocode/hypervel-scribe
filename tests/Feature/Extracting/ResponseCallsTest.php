@@ -40,6 +40,10 @@ class ResponseCallsTest extends DatabaseTestCase
             ->name('response-calls.show');
         $router->get('api/response-calls/stream', [ResponseCallController::class, 'stream'])
             ->name('response-calls.stream');
+        $router->get('api/response-calls/download', [ResponseCallController::class, 'download'])
+            ->name('response-calls.download');
+        $router->get('api/response-calls/file', [ResponseCallController::class, 'file'])
+            ->name('response-calls.file');
         $router->get('api/response-calls/slow', [ResponseCallController::class, 'slow'])
             ->name('response-calls.slow');
         $router->get('api/response-calls/failing', [ResponseCallController::class, 'failing'])
@@ -222,6 +226,18 @@ class ResponseCallsTest extends DatabaseTestCase
         // A streamed response has no content until something sends it, and it
         // echoes rather than returns — including a chunk flushed part-way.
         $this->assertSame('first-chunk;second-chunk', $this->response('response-calls.stream')['content']);
+    }
+
+    #[Test]
+    public function aDownloadedFileIsDocumentedAsBinary(): void
+    {
+        $this->assertSame('<<binary>> ResponseCallController.php', $this->response('response-calls.download')['content']);
+    }
+
+    #[Test]
+    public function aFileResponseIsDocumentedAsBinary(): void
+    {
+        $this->assertSame('<<binary>> ResponseCallController.php', $this->response('response-calls.file')['content']);
     }
 
     #[Test]
