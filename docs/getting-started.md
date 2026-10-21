@@ -131,9 +131,12 @@ routes, defined in [`routes/hypervel.php`](../routes/hypervel.php):
 as auth) in front of them. With `hypervel.add_routes` set to `false` nothing is
 registered, and you route the view and the two files yourself.
 
-The generated page links the collection and the spec with
-`{{ route("scribe.postman") }}` and `{{ route("scribe.openapi") }}` when those
-routes exist at generation time, and keeps relative links otherwise. For
+The generated page links the collection and the spec through
+`route('scribe.postman')` and `route('scribe.openapi')`, resolved when the view
+renders, if those routes exist at generation time, and keeps relative links
+otherwise. Its assets go through `asset()` the same way. Those helpers are the
+only code in the view: the page itself is printed as written, so nothing in it
+is compiled as Blade. For
 `external_hypervel` without the routes, `scribe:generate` warns that the viewer
 has no spec to load.
 

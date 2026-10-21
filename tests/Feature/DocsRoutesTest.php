@@ -14,7 +14,7 @@ use PHPUnit\Framework\Attributes\Test;
 /**
  * The docs endpoints registered for the routed output types. The generated page
  * names these routes (`Writer` rewrites `../docs/collection.json` into
- * `{{ route("scribe.postman") }}`), so the names are a contract. The served
+ * `route('scribe.postman')`), so the names are a contract. The served
  * files are written by hand here; `GenerateDocumentationTest` covers generation.
  */
 class DocsRoutesTest extends TestCase
