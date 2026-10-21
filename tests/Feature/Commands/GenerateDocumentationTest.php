@@ -87,6 +87,34 @@ class GenerateDocumentationTest extends DatabaseTestCase
         return (string) $this->get('/docs')->assertOk()->getContent();
     }
 
+    #[Test]
+    #[WithConfig('scribe.examples.faker_seed', 1234)]
+    public function aSeededRunLeavesTheWorkerARandomGeneratorRatherThanTheSeededOne(): void
+    {
+        // Faker seeds PHP's process-wide Mersenne Twister, so after an
+        // in-process run the worker's mt_rand(), shuffle() and the like would
+        // otherwise carry on from a seed anyone can read in the config.
+        $this->generate();
+
+        $after = [mt_rand(), mt_rand()];
+
+        mt_srand(1234);
+        $seededStream = [];
+        for ($i = 0; $i < 20000; ++$i) {
+            $seededStream[] = mt_rand();
+        }
+        mt_srand();
+
+        $continuesTheSeededStream = false;
+        for ($i = 0; $i < count($seededStream) - 1; ++$i) {
+            if ($seededStream[$i] === $after[0] && $seededStream[$i + 1] === $after[1]) {
+                $continuesTheSeededStream = true;
+                break;
+            }
+        }
+        $this->assertFalse($continuesTheSeededStream, 'mt_rand() continued the sequence of seed 1234 after the run.');
+    }
+
     private function openApiSpec(): array
     {
         return Yaml::parse(Storage::disk('local')->get('scribe/openapi.yaml'));

@@ -28,6 +28,15 @@ class DiffConfig extends Command
     ];
 
     /**
+     * Paths whose values are reported as changed but never printed: the output
+     * is pasted into public bug reports. ConfigDiffer also redacts any
+     * credential-looking key, such as a header in a strategy's settings.
+     */
+    protected const array REDACT_PATHS = [
+        'auth.use_value',
+    ];
+
+    /**
      * Paths compared as unordered lists, because their membership is the
      * configuration; diffing by index would report every entry after an
      * insertion as changed.
@@ -59,6 +68,7 @@ class DiffConfig extends Command
             changed: $usersConfig,
             ignorePaths: self::IGNORE_PATHS,
             asList: self::AS_LIST,
+            redactPaths: self::REDACT_PATHS,
         );
 
         $diff = $differ->getDiff();
