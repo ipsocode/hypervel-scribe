@@ -38,7 +38,10 @@ trait ParamHelpers
         };
     }
 
-    protected function getFakeFactoryByName(string $name): ?Closure
+    /**
+     * @param array<array-key, mixed> $hints
+     */
+    protected function getFakeFactoryByName(string $name, array $hints = []): ?Closure
     {
         $faker = $this->getFaker();
 
@@ -51,6 +54,20 @@ trait ParamHelpers
             Str::endsWith($name, ['timezone']) => 'timezone',
             default => $name,
         };
+
+        $min = $hints['min'] ?? null;
+        $max = $hints['max'] ?? null;
+        if (! is_null($min) || ! is_null($max)) {
+            // Only a password can honour length bounds; the other fakers would ignore them.
+            if ($normalizedName !== 'password' && $normalizedName !== 'pwd') {
+                return null;
+            }
+
+            $minLength = max((int) ($min ?? 1), 1);
+            $maxLength = max((int) ($max ?? $minLength + 10), $minLength);
+
+            return fn () => $faker->password($minLength, $maxLength);
+        }
 
         return match ($normalizedName) {
             'email' => fn () => $faker->safeEmail(),
@@ -105,7 +122,7 @@ trait ParamHelpers
         }
 
         if (($hints['name'] ?? false) && $baseType !== 'file') {
-            $fakeFactoryByName = $this->getFakeFactoryByName($hints['name']);
+            $fakeFactoryByName = $this->getFakeFactoryByName($hints['name'], $hints);
             if ($fakeFactoryByName) {
                 return $fakeFactoryByName;
             }
@@ -123,14 +140,14 @@ trait ParamHelpers
                     return $size;
                 }
 
-                return $max ? $faker->numberBetween((int) $min, (int) $max) : $faker->numberBetween(1, 20);
+                return ! is_null($max) ? $faker->numberBetween((int) $min, (int) $max) : $faker->numberBetween(1, 20);
             },
             'number' => function () use ($size, $isExactSize, $max, $faker, $min) {
                 if ($isExactSize) {
                     return $size;
                 }
 
-                return $max ? $faker->numberBetween((int) $min, (int) $max) : $faker->randomFloat();
+                return ! is_null($max) ? $faker->numberBetween((int) $min, (int) $max) : $faker->randomFloat();
             },
             'boolean' => fn () => $faker->boolean(),
             'string' => fn () => $size ? $faker->lexify(str_repeat('?', (int) $size)) : $faker->word(),
@@ -251,7 +268,7 @@ trait ParamHelpers
      * @param float|int|string $min
      * @param float|int|string $max
      */
-    private function getDummyDataGeneratorBetween(string $type, $min, $max = 90, ?string $fieldName = null): Closure
+    private function getDummyDataGeneratorBetween(string $type, $min, $max, ?string $fieldName = null): Closure
     {
         $hints = [
             'name' => $fieldName,

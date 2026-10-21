@@ -134,6 +134,8 @@ trait ParsesValidationRules
                     $this->processRule($ruleAndArgs[0], $ruleAndArgs[1], $parameterData, $validationRulesByParameters);
                 }
 
+                $this->setSizeBoundedSetter($thirdPassRules, $parameterData);
+
                 // A user-specified example overrides the generated one.
                 if (array_key_exists('example', $userSpecifiedParameterInfo)) {
                     if ($userSpecifiedParameterInfo['example'] !== null && $this->shouldCastUserExample()) {
@@ -231,6 +233,52 @@ trait ParsesValidationRules
     }
 
     /**
+     * Builds one example generator from all of a parameter's size rules, so that the
+     * example satisfies every bound together.
+     *
+     * @param array<int, array{string, array<int, mixed>}> $rulesAndArguments
+     * @param array<string, mixed> $parameterData
+     */
+    protected function setSizeBoundedSetter(array $rulesAndArguments, array &$parameterData): void
+    {
+        $min = $max = $size = null;
+        foreach ($rulesAndArguments as [$rule, $arguments]) {
+            switch ($rule) {
+                case 'size':
+                    $size = (float) $arguments[0];
+
+                    break;
+                case 'min':
+                    $min = (float) $arguments[0];
+
+                    break;
+                case 'max':
+                    $max = (float) $arguments[0];
+
+                    break;
+                case 'between':
+                    $min = (float) $arguments[0];
+                    $max = (float) $arguments[1];
+
+                    break;
+            }
+        }
+
+        if (is_null($min) && is_null($max)) {
+            if (! is_null($size)) {
+                $parameterData['setter'] = $this->getDummyValueGenerator($parameterData['type'], ['size' => $size]);
+            }
+
+            return;
+        }
+
+        $lower = $min ?? min(1.0, $max);
+        // Keep the example small: long strings and large arrays are slow to generate.
+        $upper = min($max ?? $lower + 10, $lower + 24);
+        $parameterData['setter'] = $this->getDummyDataGeneratorBetween($parameterData['type'], $lower, $upper, $parameterData['name']);
+    }
+
+    /**
      * @param array<string, array<string, mixed>> $parameters
      * @return array<string, array<string, mixed>>
      */
@@ -238,7 +286,8 @@ trait ParsesValidationRules
     {
         $results = [];
         foreach ($parameters as $name => $details) {
-            if (Str::endsWith($name, '.*')) {
+            $isSubfield = Str::endsWith($name, '.*');
+            if ($isSubfield) {
                 // The user might have set the example via bodyParameters()
                 $exampleWasSpecified = $this->examplePresent($details);
 
@@ -256,10 +305,37 @@ trait ParsesValidationRules
                 }
             }
 
-            $results[$name] = $details;
+            if (isset($results[$name])) {
+                // 'tags' and 'tags.*' both end up as 'tags': the parent keeps its own rules, description and example.
+                $results[$name] = $isSubfield
+                    ? $this->mergeArrayAndSubfield($results[$name], $details)
+                    : $this->mergeArrayAndSubfield($details, $results[$name]);
+            } else {
+                $results[$name] = $details;
+            }
         }
 
         return $results;
+    }
+
+    /**
+     * @param array<string, mixed> $parent
+     * @param array<string, mixed> $subfield the converted `.*` entry, already typed as a list
+     * @return array<string, mixed>
+     */
+    protected function mergeArrayAndSubfield(array $parent, array $subfield): array
+    {
+        $parent['type'] = $subfield['type'];
+        unset($parent['setter']);
+        if (isset($subfield['setter'])) {
+            $parent['setter'] = $subfield['setter'];
+        }
+
+        if (! $this->examplePresent($parent) && $this->examplePresent($subfield)) {
+            $parent['example'] = $subfield['example'];
+        }
+
+        return $parent;
     }
 
     /**
@@ -646,7 +722,6 @@ trait ParsesValidationRules
                         [':size' => $ruleArguments[0]],
                         $this->getHypervelValidationBaseTypeMapping($parameterData['type'])
                     );
-                    $parameterData['setter'] = $this->getDummyValueGenerator($parameterData['type'], ['size' => $ruleArguments[0]]);
 
                     break;
                 case 'min':
@@ -655,7 +730,6 @@ trait ParsesValidationRules
                         [':min' => $ruleArguments[0]],
                         $this->getHypervelValidationBaseTypeMapping($parameterData['type'])
                     );
-                    $parameterData['setter'] = $this->getDummyDataGeneratorBetween($parameterData['type'], (float) $ruleArguments[0], fieldName: $parameterData['name']);
 
                     break;
                 case 'max':
@@ -664,8 +738,6 @@ trait ParsesValidationRules
                         [':max' => $ruleArguments[0]],
                         $this->getHypervelValidationBaseTypeMapping($parameterData['type'])
                     );
-                    $max = min($ruleArguments[0], 25);
-                    $parameterData['setter'] = $this->getDummyDataGeneratorBetween($parameterData['type'], 1, $max, $parameterData['name']);
 
                     break;
                 case 'between':
@@ -674,8 +746,6 @@ trait ParsesValidationRules
                         [':min' => $ruleArguments[0], ':max' => $ruleArguments[1]],
                         $this->getHypervelValidationBaseTypeMapping($parameterData['type'])
                     );
-                    // Avoid exponentially complex operations by using the minimum length
-                    $parameterData['setter'] = $this->getDummyDataGeneratorBetween($parameterData['type'], (float) $ruleArguments[0], (float) $ruleArguments[0] + 1, $parameterData['name']);
 
                     break;
                     // Special file types.

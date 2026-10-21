@@ -603,6 +603,98 @@ class ParsesValidationRulesTest extends TestCase
         $this->assertCount(1, $example);
         $this->assertIsString($example[0]);
     }
+
+    #[Test]
+    #[DataProvider('arrayAndItemRuleOrders')]
+    public function keepsTheParentArrayRulesWhenItAlsoHasAnItemRule(array $rules): void
+    {
+        $parameters = $this->parseAll(
+            $rules,
+            ['tags' => ['description' => 'Post tags', 'example' => ['news', 'tech']]],
+        );
+
+        $this->assertSame(['tags'], array_keys($parameters));
+        $this->assertTrue($parameters['tags']['required']);
+        $this->assertSame('string[]', $parameters['tags']['type']);
+        $this->assertSame('Post tags.', $parameters['tags']['description']);
+        $this->assertSame(['news', 'tech'], $parameters['tags']['example']);
+    }
+
+    /**
+     * @return array<string, array{array<string, string>}>
+     */
+    public static function arrayAndItemRuleOrders(): array
+    {
+        return [
+            'parent first' => [['tags' => 'required|array', 'tags.*' => 'string']],
+        ];
+    }
+
+    #[Test]
+    public function mergesAnItemEntryThatComesBeforeItsParentArray(): void
+    {
+        $parameters = $this->parser->convertArraySubfields([
+            'tags.*' => ['name' => 'tags.*', 'required' => false, 'type' => 'string', 'description' => '', 'example' => 'news'],
+            'tags' => ['name' => 'tags', 'required' => true, 'type' => 'array', 'description' => 'Post tags.', 'example' => ['a']],
+        ]);
+
+        $this->assertSame(['tags'], array_keys($parameters));
+        $this->assertTrue($parameters['tags']['required']);
+        $this->assertSame('string[]', $parameters['tags']['type']);
+        $this->assertSame('Post tags.', $parameters['tags']['description']);
+        $this->assertSame(['a'], $parameters['tags']['example']);
+    }
+
+    #[Test]
+    public function takesTheItemExampleWhenTheParentArrayHasNone(): void
+    {
+        $parameters = $this->parseAll(['tags' => 'required|array', 'tags.*' => 'string'], ['tags.*' => ['example' => 'news']]);
+
+        $this->assertSame(['news'], $parameters['tags']['example']);
+        $this->assertTrue($parameters['tags']['required']);
+    }
+
+    /**
+     * @param array<int, string> $rules
+     */
+    #[Test]
+    #[DataProvider('boundedRules')]
+    public function generatesExamplesWithinEverySizeBound(array $rules, int $min, int $max, string $name = 'field'): void
+    {
+        $generated = [];
+        for ($i = 0; $i < 60; ++$i) {
+            $parameter = $this->parseAll([$name => $rules])[$name];
+            $generated[] = $parameter['example'];
+        }
+
+        foreach ($generated as $example) {
+            $size = is_string($example) ? mb_strlen($example) : $example;
+            $this->assertGreaterThanOrEqual($min, $size);
+            $this->assertLessThanOrEqual($max, $size);
+        }
+    }
+
+    /**
+     * @return array<string, array{array<int, string>, int, int, 2?: string}>
+     */
+    public static function boundedRules(): array
+    {
+        return [
+            'min and max' => [['integer', 'min:1900', 'max:2100'], 1900, 2100],
+            'max then min' => [['integer', 'max:2100', 'min:1900'], 1900, 2100],
+            'min only' => [['integer', 'min:1000'], 1000, PHP_INT_MAX],
+            'long string min' => [['string', 'min:100'], 100, PHP_INT_MAX],
+            'small range' => [['integer', 'min:10', 'max:100'], 10, 100],
+            'max only' => [['integer', 'max:5'], 1, 5],
+            'max below one' => [['integer', 'max:0'], 0, 0],
+            'between' => [['integer', 'between:5,9'], 5, 9],
+            'size' => [['integer', 'size:7'], 7, 7],
+            'password' => [['string', 'min:8'], 8, PHP_INT_MAX, 'password'],
+            'password with max' => [['string', 'min:8', 'max:10'], 8, 10, 'password'],
+            'password with max only' => [['string', 'max:3'], 1, 3, 'password'],
+            'email' => [['string', 'min:30'], 30, PHP_INT_MAX, 'email'],
+        ];
+    }
 }
 
 /**
