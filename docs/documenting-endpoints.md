@@ -104,8 +104,11 @@ the same name replaces them. When the method's FormRequest has parameter tags in
 its own docblock, those are used and the method's are ignored.
 
 URL parameters are also read from the route and the method's type hints. A
-parameter bound to an Eloquent model takes its type and an example from the
-model, and a backed enum supplies its type and its first case's value as the
+parameter bound to an Eloquent model takes its type from the model's key, and a
+generated example of that type; with `examples.url_parameters_from_database`
+on, the example is the key of the table's first row instead, which response
+calls then fetch, so turn it on only against a database with no real data. A
+backed enum supplies its type and its first case's value as the
 example. Parameter names
 are rewritten to say what they hold: on a resource route (named `*.index`,
 `*.show`, `*.store`, `*.update` or `*.destroy`), `authors/{author}/blogs/{blog}`

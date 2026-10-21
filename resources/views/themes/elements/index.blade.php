@@ -8,7 +8,7 @@
     <meta charset="utf-8">
     <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>{!! $metadata['title'] !!}</title>
+    <title>{{ $metadata['title'] }}</title>
 
     <link href="https://fonts.googleapis.com/css?family=PT+Sans&display=swap" rel="stylesheet">
 
@@ -27,9 +27,9 @@
 
     @if($tryItOut['enabled'] ?? true)
         <script>
-            var tryItOutBaseUrl = "{!! $tryItOut['base_url'] ?? $baseUrl !!}";
-            var useCsrf = Boolean({{ $tryItOut['use_csrf'] ?? null }});
-            var csrfUrl = "{{ $tryItOut['csrf_url'] ?? null }}";
+            var tryItOutBaseUrl = @js($tryItOut['base_url'] ?? $baseUrl);
+            var useCsrf = @js((bool) ($tryItOut['use_csrf'] ?? false));
+            var csrfUrl = @js($tryItOut['csrf_url'] ?? '');
         </script>
         <script src="{{ u::getVersionedAsset($assetPathPrefix.'js/tryitout.js') }}"></script>
         <style>
@@ -263,7 +263,7 @@
         <div class="sl-mb-10">
             <div class="sl-mb-4">
                 <h1 class="sl-text-5xl sl-leading-tight sl-font-prose sl-font-semibold sl-text-heading">
-                    {!! $metadata['title'] !!}
+                    {{ $metadata['title'] }}
                 </h1>
                 @if($metadata['postman_collection_url'])
                     <a title="Download Postman collection" class="sl-mx-1"

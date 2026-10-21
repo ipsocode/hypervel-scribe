@@ -80,6 +80,42 @@ class GenerateDocumentationTest extends DatabaseTestCase
         return $this->artisan('scribe:generate', $options)->run();
     }
 
+    /**
+     * The page the docs endpoint serves, as the browser receives it.
+     */
+    private function renderedDocs(): string
+    {
+        return (string) $this->get('/docs')->assertOk()->getContent();
+    }
+
+    #[Test]
+    #[WithConfig('scribe.examples.faker_seed', 1234)]
+    public function aSeededRunLeavesTheWorkerARandomGeneratorRatherThanTheSeededOne(): void
+    {
+        // Faker seeds PHP's process-wide Mersenne Twister, so after an
+        // in-process run the worker's mt_rand(), shuffle() and the like would
+        // otherwise carry on from a seed anyone can read in the config.
+        $this->generate();
+
+        $after = [mt_rand(), mt_rand()];
+
+        mt_srand(1234);
+        $seededStream = [];
+        for ($i = 0; $i < 20000; ++$i) {
+            $seededStream[] = mt_rand();
+        }
+        mt_srand();
+
+        $continuesTheSeededStream = false;
+        for ($i = 0; $i < count($seededStream) - 1; ++$i) {
+            if ($seededStream[$i] === $after[0] && $seededStream[$i + 1] === $after[1]) {
+                $continuesTheSeededStream = true;
+                break;
+            }
+        }
+        $this->assertFalse($continuesTheSeededStream, 'mt_rand() continued the sequence of seed 1234 after the run.');
+    }
+
     private function openApiSpec(): array
     {
         return Yaml::parse(Storage::disk('local')->get('scribe/openapi.yaml'));
@@ -586,17 +622,40 @@ class GenerateDocumentationTest extends DatabaseTestCase
     {
         $this->generate();
 
-        $view = 'resources/views/scribe/index.blade.php';
+        $this->assertFileDoesNotContains(['../docs/css/'], 'resources/views/scribe/index.blade.php');
 
-        $this->assertFileContains([
-            'href="{{ asset("/vendor/scribe/css/theme-default.style.css") }}"',
-            'src="{{ asset("/vendor/scribe/images/navbar.png") }}"',
-        ], $view);
-        $this->assertFileDoesNotContains(['../docs/css/'], $view);
+        $page = $this->renderedDocs();
+        $this->assertStringContainsString('href="' . asset('/vendor/scribe/css/theme-default.style.css') . '"', $page);
+        $this->assertStringContainsString('src="' . asset('/vendor/scribe/images/navbar.png') . '"', $page);
         $this->assertMatchesRegularExpression(
-            '#src="\{\{ asset\("/vendor/scribe/js/theme-default-.+?\.js"\) \}\}"#',
-            File::get($this->app->viewPath('scribe/index.blade.php')),
+            '#src="' . preg_quote(asset('/vendor/scribe/js/theme-default-'), '#') . '.+?\.js"#',
+            $page,
         );
+    }
+
+    #[Test]
+    public function theBladeViewPrintsBladeSyntaxFromTheApplicationsDataInsteadOfRunningIt(): void
+    {
+        // The page holds what the application returned (here a response call's
+        // body). Compiled as Blade, an echo, a raw echo or a directive stored in
+        // the application's data would run on every request to the docs.
+        $payloads = [
+            'echo' => ['{{ str_repeat(chr(81), 7) }}', 'QQQQQQQ'],
+            'raw echo' => ['{!! str_repeat(chr(87), 7) !!}', 'WWWWWWW'],
+            'directive' => ['@if(false) HIDDEN-BRANCH @endif', null],
+        ];
+        $body = implode(' ', array_column($payloads, 0));
+        Scribe::afterResponseCall(fn ($request, $endpoint, $response) => $response->setContent($body));
+
+        $this->generate();
+
+        $page = $this->renderedDocs();
+        foreach ($payloads as $name => [$payload, $outputIfRun]) {
+            $this->assertStringContainsString($payload, $page, "The {$name} is printed as written.");
+            if ($outputIfRun !== null) {
+                $this->assertStringNotContainsString($outputIfRun, $page, "The {$name} did not run.");
+            }
+        }
     }
 
     #[Test]
@@ -607,9 +666,9 @@ class GenerateDocumentationTest extends DatabaseTestCase
             $this->generate();
 
             $this->assertFilenameExists('public/docs-assets/css/theme-default.style.css');
-            $this->assertFileContains(
-                ['asset("/docs-assets/css/theme-default.style.css")'],
-                'resources/views/scribe/index.blade.php',
+            $this->assertStringContainsString(
+                'href="' . asset('/docs-assets/css/theme-default.style.css') . '"',
+                $this->renderedDocs(),
             );
         } finally {
             File::deleteDirectory($this->app->publicPath('docs-assets'));
@@ -697,9 +756,11 @@ class GenerateDocumentationTest extends DatabaseTestCase
 
         $this->generate();
 
-        $view = 'resources/views/scribe/index.blade.php';
-        $this->assertFileContains([$link], $view);
-        $this->assertFileDoesNotContains(['openapi.yaml'], $view);
+        $this->assertFileDoesNotContains(['openapi.yaml'], 'resources/views/scribe/index.blade.php');
+        $this->assertStringContainsString(
+            str_replace('%url%', route('scribe.openapi'), $link),
+            $this->renderedDocs(),
+        );
     }
 
     /**
@@ -711,9 +772,9 @@ class GenerateDocumentationTest extends DatabaseTestCase
     public static function externalThemes(): array
     {
         return [
-            'scalar' => ['scalar', '{"url":"{{ route("scribe.openapi") }}"}'],
-            'elements' => ['elements', 'apiDescriptionUrl="{{ route("scribe.openapi") }}"'],
-            'rapidoc' => ['rapidoc', 'spec-url="{{ route("scribe.openapi") }}"'],
+            'scalar' => ['scalar', '{"url":"%url%"}'],
+            'elements' => ['elements', 'apiDescriptionUrl="%url%"'],
+            'rapidoc' => ['rapidoc', 'spec-url="%url%"'],
         ];
     }
 
@@ -725,10 +786,9 @@ class GenerateDocumentationTest extends DatabaseTestCase
         // docs endpoints stand in front of them.
         $this->generate();
 
-        $this->assertFileContains([
-            'href="{{ route("scribe.postman") }}"',
-            'href="{{ route("scribe.openapi") }}"',
-        ], 'resources/views/scribe/index.blade.php');
+        $page = $this->renderedDocs();
+        $this->assertStringContainsString('href="' . route('scribe.postman') . '"', $page);
+        $this->assertStringContainsString('href="' . route('scribe.openapi') . '"', $page);
     }
 
     #[Test]

@@ -132,12 +132,17 @@ function handleResponse(endpointId, response, status, headers) {
 
     const responseContentEl = document.querySelector('#execution-response-content-' + endpointId);
 
-    // dd() output (Symfony VarDumper's "Sfdump" markup) is HTML, so it is rendered;
-    // any other response is shown as text.
+    // dd() output (Symfony VarDumper's "Sfdump" markup) is HTML, so it is rendered,
+    // but in a sandboxed frame: the response is the API's data, and inserted into
+    // the page any script in it would run as the docs. Anything else is text.
     const isHypervelDump = response.includes('Sfdump');
 
     if (isHypervelDump) {
-        responseContentEl.innerHTML = response === '' ? responseContentEl.dataset.emptyResponseText : response;
+        const frame = document.createElement('iframe');
+        frame.setAttribute('sandbox', '');
+        frame.style.cssText = 'width: 100%; height: 380px; border: 0; background: #fff;';
+        frame.srcdoc = response;
+        responseContentEl.replaceChildren(frame);
     } else {
         responseContentEl.textContent = response === '' ? responseContentEl.dataset.emptyResponseText : response;
     }

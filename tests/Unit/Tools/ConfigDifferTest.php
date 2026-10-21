@@ -203,4 +203,66 @@ class ConfigDifferTest extends TestCase
         // Nothing to subtract against, so the shape change is the report.
         $this->assertSame(['examples.models_source' => 'changed to a list'], $differ->getDiff());
     }
+
+    #[UnitTest]
+    #[Test]
+    public function redactsTheValuesAtTheNamedPaths(): void
+    {
+        // The output is meant for a public bug report, so a credential is
+        // reported as changed but never printed.
+        $differ = new ConfigDiffer(
+            original: ['auth' => ['use_value' => null, 'in' => 'bearer']],
+            changed: ['auth' => ['use_value' => 'real-token-123', 'in' => 'header']],
+            redactPaths: ['auth.use_value'],
+        );
+
+        $this->assertSame([
+            'auth.use_value' => '"<redacted>"',
+            'auth.in' => '"header"',
+        ], $differ->getDiff());
+    }
+
+    #[UnitTest]
+    #[Test]
+    public function redactsCredentialLookingKeysWhereverTheyAre(): void
+    {
+        $differ = new ConfigDiffer(
+            original: [],
+            changed: ['strategies' => ['headers' => ['settings' => [
+                'Authorization' => 'Bearer real-token-123',
+                'X-Api-Key' => 'real-key-456',
+                'Accept' => 'application/json',
+            ]]]],
+        );
+
+        $this->assertSame([
+            'strategies.headers.settings.Authorization' => '"<redacted>"',
+            'strategies.headers.settings.X-Api-Key' => '"<redacted>"',
+            'strategies.headers.settings.Accept' => '"application/json"',
+        ], $differ->getDiff());
+    }
+
+    #[UnitTest]
+    #[Test]
+    public function redactsCredentialsInsideListEntriesButStillReportsTheirChange(): void
+    {
+        // A configured strategy is printed whole, so its settings are redacted
+        // before export. The comparison still uses the real values: a rotated
+        // token is a change, even though both sides print the same.
+        $before = ['StaticData', ['data' => ['Authorization' => 'Bearer old-token']]];
+        $after = ['StaticData', ['data' => ['Authorization' => 'Bearer new-token']]];
+
+        $differ = new ConfigDiffer(
+            original: ['strategies' => ['headers' => [$before]]],
+            changed: ['strategies' => ['headers' => [$after]]],
+            asList: ['strategies.*'],
+        );
+
+        $diff = $differ->getDiff()['strategies.headers'] ?? '';
+
+        $this->assertStringStartsWith('added ', $diff);
+        $this->assertStringContainsString("'<redacted>'", $diff);
+        $this->assertStringNotContainsString('old-token', $diff);
+        $this->assertStringNotContainsString('new-token', $diff);
+    }
 }

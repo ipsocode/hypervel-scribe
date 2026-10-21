@@ -238,7 +238,7 @@ class Writer
     /**
      * Turn the rendered HTML into a Blade view and move the assets out of public/docs.
      *
-     * The spec and collection links become `{{ route(...) }}` calls only when
+     * The spec and collection links become `route(...)` calls only when
      * those routes are registered (`hypervel.add_routes`), because `route()`
      * throws for an unregistered name when the view renders. Routes register at
      * boot, in the same process that runs `scribe:generate`, so the check here
@@ -266,9 +266,25 @@ class Writer
 
         $contents = file_get_contents("{$this->hypervelTypeOutputPath}/index.blade.php");
 
-        // Rewrite asset links to go through the app
-        $contents = preg_replace('#href="\.\./docs/css/(.+?)"#', 'href="{{ asset("' . $this->hypervelAssetsPath . '/css/$1") }}"', $contents);
-        $contents = preg_replace('#src="\.\./docs/(js|images)/(.+?)"#', 'src="{{ asset("' . $this->hypervelAssetsPath . '/$1/$2") }}"', $contents);
+        $marker = $this->nowdocMarkerFor($contents);
+        $urls = [];
+
+        // Rewrite asset links to go through the app. Closures rather than arrow
+        // functions, which would collect the placeholders into a copy of $urls.
+        $contents = preg_replace_callback(
+            '#href="\.\./docs/css/(.+?)"#',
+            function (array $m) use (&$urls, $marker): string {
+                return 'href="' . $this->urlPlaceholder($urls, $marker, 'asset', "{$this->hypervelAssetsPath}/css/{$m[1]}") . '"';
+            },
+            $contents
+        );
+        $contents = preg_replace_callback(
+            '#src="\.\./docs/(js|images)/(.+?)"#',
+            function (array $m) use (&$urls, $marker): string {
+                return 'src="' . $this->urlPlaceholder($urls, $marker, 'asset', "{$this->hypervelAssetsPath}/{$m[1]}/{$m[2]}") . '"';
+            },
+            $contents
+        );
 
         foreach (['postman' => 'collection.json', 'openapi' => 'openapi.yaml'] as $name => $file) {
             $routeName = $this->paths->outputPath($name, '.');
@@ -276,7 +292,7 @@ class Writer
                 continue;
             }
 
-            $route = '{{ route("' . $routeName . '") }}';
+            $route = $this->urlPlaceholder($urls, $marker, 'route', $routeName);
             // The theme links both files with an href. The external viewers take
             // the spec's URL as an attribute instead — `spec-url` (RapiDoc),
             // `apiDescriptionUrl` (Elements) — or inside Scalar's config, which
@@ -294,7 +310,62 @@ class Writer
             ], $contents);
         }
 
-        file_put_contents("{$this->hypervelTypeOutputPath}/index.blade.php", $contents);
+        file_put_contents("{$this->hypervelTypeOutputPath}/index.blade.php", $this->wrapInNowdoc($contents, $marker, $urls));
+    }
+
+    /**
+     * A nowdoc identifier that does not occur in the page.
+     *
+     * Derived from the page itself, so a value in it (an example response, say)
+     * cannot know the identifier in advance and close the string early, and an
+     * unchanged page regenerates to an unchanged view.
+     */
+    protected function nowdocMarkerFor(string $contents): string
+    {
+        $salt = 0;
+        do {
+            $marker = 'SCRIBE_PAGE_' . strtoupper(substr(hash('sha256', $salt++ . $contents), 0, 24));
+        } while (str_contains($contents, $marker));
+
+        return $marker;
+    }
+
+    /**
+     * Stand in for a URL the app resolves when the view renders.
+     *
+     * @param array<string, string> $urls placeholder => PHP expression, filled in here
+     * @param 'asset'|'route' $helper
+     */
+    protected function urlPlaceholder(array &$urls, string $marker, string $helper, string $argument): string
+    {
+        $placeholder = $marker . ':' . count($urls);
+        $urls[$placeholder] = 'e(' . $helper . '(' . var_export($argument, true) . '))';
+
+        return $placeholder;
+    }
+
+    /**
+     * Make the page a view that prints it verbatim.
+     *
+     * The page holds data from the application (example responses, headers,
+     * descriptions), and as Blade source any `{{ }}`, `{!! !!}`, `@directive`
+     * or `<?php` in that data would run on every request to the docs. Blade
+     * compiles only the template text outside PHP tags, so the page goes into
+     * a nowdoc, which PHP does not interpolate either, and the URL helpers are
+     * the only code in the view. The few passes Blade makes over the whole file
+     * first (`@verbatim`, `@php` blocks, comments, component tags) can still
+     * rewrite text inside the string, but nothing there becomes code.
+     *
+     * @param array<string, string> $urls placeholder => PHP expression
+     */
+    protected function wrapInNowdoc(string $contents, string $marker, array $urls): string
+    {
+        $replacements = '';
+        foreach ($urls as $placeholder => $expression) {
+            $replacements .= '    ' . var_export($placeholder, true) . " => {$expression},\n";
+        }
+
+        return "<?php echo strtr(<<<'{$marker}'\n{$contents}\n{$marker}, [\n{$replacements}]); ?>\n";
     }
 
     protected function runAfterGeneratingHook()

@@ -17,6 +17,7 @@ use Ipsocode\Scribe\Tools\ConsoleOutputUtils;
 use Ipsocode\Scribe\Tools\DocumentationConfig;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\HttpFoundation\Cookie;
 use Workbench\App\Http\Controllers\ResponseCallController;
 
 use function Hypervel\Testbench\workbench_path;
@@ -284,6 +285,24 @@ class ResponseCallsTest extends DatabaseTestCase
         $this->assertSame(200, $seen['after']);
         // The hook runs before the request is sent, so its edits are part of it.
         $this->assertSame('set-by-the-hook', $echoed['apiKeyHeader']);
+    }
+
+    #[Test]
+    public function theCookiesAResponseSetsAreLeftOutOfItsDocumentedHeaders(): void
+    {
+        // A session, XSRF or remember-me cookie is valid against the
+        // environment the docs were generated in, and the docs are public.
+        Scribe::afterResponseCall(function (Request $request, ExtractedEndpointData $endpointData, $response) {
+            $response->headers->setCookie(Cookie::create('session', 'real-session-id'));
+            $response->headers->set('X-Request-Id', 'abc');
+        });
+
+        $headers = array_change_key_case($this->response('response-calls.echo')['headers']);
+
+        $this->assertArrayNotHasKey('set-cookie', $headers);
+        $this->assertStringNotContainsString('real-session-id', json_encode($headers));
+        // Only the cookies go: the rest of the headers are still documented.
+        $this->assertSame('abc', $headers['x-request-id']);
     }
 
     #[Test]

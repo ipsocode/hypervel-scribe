@@ -27,26 +27,25 @@ class Response extends BaseDTO
             $parameters['status'] = (int) $parameters['status'];
         }
 
+        // Headers that change on every call, and the cookies a response sets: a
+        // session, XSRF or remember-me cookie is valid against the environment
+        // the docs were generated in, and the docs are public. Header names are
+        // case-insensitive, and YAML written by an earlier version may hold any case.
         $hiddenHeaders = [
             'date',
-            'Date',
             'etag',
-            'ETag',
             'last-modified',
-            'Last-Modified',
-            'date',
-            'Date',
             'content-length',
-            'Content-Length',
             'connection',
-            'Connection',
             'x-powered-by',
-            'X-Powered-By',
+            'set-cookie',
         ];
         if (! empty($parameters['headers'])) {
-            foreach ($hiddenHeaders as $headerName) {
-                unset($parameters['headers'][$headerName]);
-            }
+            $parameters['headers'] = array_filter(
+                $parameters['headers'],
+                fn ($name) => ! in_array(strtolower((string) $name), $hiddenHeaders, true),
+                ARRAY_FILTER_USE_KEY,
+            );
         }
 
         parent::__construct($parameters);
