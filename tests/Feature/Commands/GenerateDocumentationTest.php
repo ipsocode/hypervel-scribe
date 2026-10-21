@@ -24,6 +24,7 @@ use ReflectionProperty;
 use Symfony\Component\Yaml\Yaml;
 use Workbench\App\Http\Controllers\HiddenController;
 use Workbench\App\Http\Controllers\UndocumentableController;
+use Workbench\App\Strategies\ThrowsAnErrorStrategy;
 
 use function Hypervel\Testbench\package_path;
 use function Hypervel\Testbench\workbench_path;
@@ -786,6 +787,38 @@ class GenerateDocumentationTest extends DatabaseTestCase
 
         // ...while the closure route is documented like any other.
         $this->assertContains('api/undocumentable/closure', $documented);
+    }
+
+    #[Test]
+    public function aRouteToAMissingControllerClassIsSkippedWithAWarning(): void
+    {
+        RouteFacade::get('api/undocumentable/missing-class', ['Workbench\App\Http\Controllers\NoSuchController', 'index'])
+            ->name('undocumentable.missingClass');
+
+        $this->assertSame(GenerateDocumentation::SUCCESS, $this->generate());
+
+        $documented = $this->documentedUris();
+        $this->assertNotContains('api/undocumentable/missing-class', $documented);
+        $this->assertContains('api/posts', $documented);
+    }
+
+    #[Test]
+    public function aRouteWhoseExtractionThrowsAnErrorDoesNotStopTheRun(): void
+    {
+        // A TypeError is an Error, not an Exception: it must be caught per
+        // route like any other failure instead of ending the run.
+        RouteFacade::get('api/undocumentable/type-error', [UndocumentableController::class, 'fine'])
+            ->name('undocumentable.typeError');
+        config(['scribe.strategies.metadata' => [
+            ...config('scribe.strategies.metadata'),
+            ThrowsAnErrorStrategy::class,
+        ]]);
+
+        $this->assertSame(GenerateDocumentation::INVALID, $this->generate());
+
+        $documented = $this->documentedUris();
+        $this->assertNotContains('api/undocumentable/type-error', $documented);
+        $this->assertContains('api/posts', $documented);
     }
 
     #[Test]
