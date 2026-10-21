@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Ipsocode\Scribe\Tools;
 
-use Exception;
 use NunoMaduro\Collision\Handler;
 use NunoMaduro\Collision\Writer;
 use Symfony\Component\Console\Output\ConsoleOutput;
@@ -21,13 +20,8 @@ class ErrorHandlingUtils
 
             return;
         }
-        [$firstFrame, $secondFrame] = $e->getTrace();
-
-        try {
-            ['file' => $file, 'line' => $line] = $firstFrame;
-        } catch (Exception $_) { // @phpstan-ignore catch.neverThrown (a trace frame without a file raises a warning that the host may turn into an exception)
-            ['file' => $file, 'line' => $line] = $secondFrame;
-        }
+        $file = $e->getFile();
+        $line = $e->getLine();
         $exceptionType = get_class($e);
         $message = $e->getMessage();
         $message = "{$exceptionType} in {$file} at line {$line}: {$message}";

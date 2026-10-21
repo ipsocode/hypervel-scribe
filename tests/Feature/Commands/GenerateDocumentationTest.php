@@ -284,6 +284,58 @@ class GenerateDocumentationTest extends DatabaseTestCase
     }
 
     #[Test]
+    public function theEditsToAnEndpointSurviveARunInWhichItFails(): void
+    {
+        RouteFacade::get('api/undocumentable/type-error', [UndocumentableController::class, 'fine'])
+            ->name('undocumentable.typeError');
+        $this->assertSame(0, $this->generate());
+
+        $edit = function (string $uri): void {
+            foreach (glob($this->intermediatePath . '/endpoints/[0-9]*.yaml') as $file) {
+                $group = Yaml::parse((string) file_get_contents($file));
+                foreach ($group['endpoints'] as &$endpoint) {
+                    if ($endpoint['uri'] === $uri) {
+                        $endpoint['metadata']['description'] = 'Hand-written description.';
+                    }
+                }
+                unset($endpoint);
+                file_put_contents($file, Yaml::dump($group, 20, 2));
+            }
+        };
+        $edit('api/undocumentable/type-error');
+
+        $metadata = config('scribe.strategies.metadata');
+        config(['scribe.strategies.metadata' => [...$metadata, ThrowsAnErrorStrategy::class]]);
+        $this->assertSame(GenerateDocumentation::INVALID, $this->generate());
+
+        $this->assertContains('api/undocumentable/type-error', $this->endpointUrisOnDisk('endpoints'));
+        $this->assertContains('api/undocumentable/type-error', $this->endpointUrisOnDisk('endpoints.cache'));
+
+        config(['scribe.strategies.metadata' => $metadata]);
+        $this->assertSame(0, $this->generate());
+
+        $this->assertSame(
+            'Hand-written description.',
+            $this->openApiSpec()['paths']['/api/undocumentable/type-error']['get']['description'],
+        );
+    }
+
+    /**
+     * @return string[] the URIs of the endpoints in one of the intermediate directories
+     */
+    private function endpointUrisOnDisk(string $directory): array
+    {
+        $uris = [];
+        foreach (glob("{$this->intermediatePath}/{$directory}/[0-9]*.yaml") as $file) {
+            foreach (Yaml::parse((string) file_get_contents($file))['endpoints'] as $endpoint) {
+                $uris[] = $endpoint['uri'];
+            }
+        }
+
+        return $uris;
+    }
+
+    #[Test]
     public function forcingDiscardsEditsToTheIntermediateYaml(): void
     {
         $this->generate();
