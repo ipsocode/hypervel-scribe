@@ -29,11 +29,15 @@ class RequestValidate
             && in_array($expr->var->name, ['request', 'req'])
         ) {
             if ($expr->name->name === 'validate') {
-                return $expr->args[0]->value;
+                $argument = $expr->args[0] ?? null;
+
+                return $argument instanceof Node\Arg ? $argument->value : null;
             }
 
             if ($expr->name->name === 'validateWithBag') {
-                return $expr->args[1]->value;
+                $argument = $expr->args[1] ?? null;
+
+                return $argument instanceof Node\Arg ? $argument->value : null;
             }
         }
     }

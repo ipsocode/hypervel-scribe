@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ipsocode\Scribe\Extracting\Shared;
 
 use InvalidArgumentException;
+use stdClass;
 
 class ResponseFileTools
 {
@@ -15,13 +16,24 @@ class ResponseFileTools
             return $content;
         }
 
+        // Decoded to objects, so an empty `{}` is not turned into `[]` on the way back.
+        $fileData = json_decode($content);
         if (is_string($merge)) {
-            $json = str_replace("'", '"', $merge);
-
-            return json_encode(array_merge(json_decode($content, true), json_decode($json, true)));
+            // Strict JSON first; single quotes stand in for double ones only
+            // when that fails, so an apostrophe inside a value survives.
+            $mergeData = json_decode($merge);
+            if (! $mergeData instanceof stdClass) {
+                $mergeData = json_decode(str_replace("'", '"', $merge));
+            }
+        } else {
+            $mergeData = (object) $merge;
         }
 
-        return json_encode(array_merge(json_decode($content, true), $merge));
+        if (! $fileData instanceof stdClass || ! $mergeData instanceof stdClass) {
+            throw new InvalidArgumentException("@responseFile {$filePath} and the JSON merged into it must both be JSON objects");
+        }
+
+        return json_encode((object) array_merge((array) $fileData, (array) $mergeData), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 
     protected static function getFileContents($filePath): string
