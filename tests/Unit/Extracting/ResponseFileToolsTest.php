@@ -72,6 +72,16 @@ class ResponseFileToolsTest extends TestCase
 
     #[UnitTest]
     #[Test]
+    public function numericKeysOnEitherSideAreKept(): void
+    {
+        $this->assertSame(
+            '{"1":"a","2":"b","x":1,"3":"c"}',
+            $this->merge('{"1": "a", "2": "z"}', '{"2": "b", "x": 1, "3": "c"}'),
+        );
+    }
+
+    #[UnitTest]
+    #[Test]
     public function emptyObjectsAndSlashesInTheFileAreLeftAsTheyWere(): void
     {
         $this->assertSame(

@@ -33,7 +33,12 @@ class ResponseFileTools
             throw new InvalidArgumentException("@responseFile {$filePath} and the JSON merged into it must both be JSON objects");
         }
 
-        return json_encode((object) array_merge((array) $fileData, (array) $mergeData), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        // Assigned key by key: array_merge() would renumber numeric keys such as "1".
+        foreach (get_object_vars($mergeData) as $key => $value) {
+            $fileData->{$key} = $value;
+        }
+
+        return json_encode($fileData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 
     protected static function getFileContents($filePath): string
