@@ -47,16 +47,14 @@ class UseTransformerTags extends Strategy
         $pagination = $this->getTransformerPaginatorData($allTags);
         $serializer = $this->config->get('fractal.serializer');
 
-        $this->startDbTransaction();
-        $content = TransformerResponseTools::fetch(
+        $content = $this->inDbTransaction(fn () => TransformerResponseTools::fetch(
             $transformerClass,
             $isCollection,
             $modelInstantiator,
             $pagination,
             $resourceKey,
             $serializer
-        );
-        $this->endDbTransaction();
+        ));
 
         return [
             [

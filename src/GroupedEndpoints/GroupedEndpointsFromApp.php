@@ -28,6 +28,7 @@ use Ipsocode\Scribe\Tools\Utils as u;
 use ReflectionClass;
 use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\Yaml\Yaml;
+use Throwable;
 
 class GroupedEndpointsFromApp implements GroupedEndpointsContract
 {
@@ -204,7 +205,7 @@ class GroupedEndpointsFromApp implements GroupedEndpointsContract
                 );
 
                 c::flushWarningBuffer();
-            } catch (Exception $exception) {
+            } catch (Throwable $exception) {
                 $this->encounteredErrors = true;
                 c::flushWarningBuffer();
                 e::dumpExceptionIfVerbose($exception);
@@ -310,6 +311,10 @@ class GroupedEndpointsFromApp implements GroupedEndpointsContract
         }
         // @codeCoverageIgnoreEnd
         [$class, $method] = $routeControllerAndMethod;
+        if (is_string($class) && ! class_exists($class)) {
+            return false;
+        }
+
         $reflection = new ReflectionClass($class);
 
         if ($reflection->hasMethod($method)) {
