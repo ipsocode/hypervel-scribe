@@ -7,6 +7,7 @@ namespace Ipsocode\Scribe\Tests\Feature\Commands;
 use Hypervel\Support\Facades\File;
 use Hypervel\Support\Facades\Route as RouteFacade;
 use Hypervel\Support\Facades\Storage;
+use Hypervel\Support\Facades\URL;
 use Hypervel\Testbench\Attributes\WithConfig;
 use Hypervel\Testbench\Concerns\InteractsWithPublishedFiles;
 use InvalidArgumentException;
@@ -876,6 +877,17 @@ class GenerateDocumentationTest extends DatabaseTestCase
         $this->generate();
 
         $this->assertStringNotContainsString('leaked-origin.test', url('/'));
+    }
+
+    #[Test]
+    #[WithConfig('scribe.base_url', 'http://leaked-origin.test')]
+    public function theCallersForcedUrlOriginIsRestoredAfterTheRun(): void
+    {
+        URL::useOrigin('http://tenant-a.example');
+
+        $this->generate();
+
+        $this->assertStringStartsWith('http://tenant-a.example', url('/'));
     }
 
     #[Test]

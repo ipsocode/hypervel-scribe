@@ -113,7 +113,7 @@ replaced in it when the docs are generated:
 | Token | Becomes |
 |---|---|
 | `{date:<format>}` | The current date, formatted by PHP's `date()`: `{date:F j, Y}` |
-| `{git:short}`, `{git:long}` | The current Git commit, short or full, from `git rev-parse` |
+| `{git:short}`, `{git:long}` | The current Git commit, short (7 characters) or full, read from `.git` in the application's base path. Empty outside a repository |
 
 ```php
 'last_updated' => 'Last updated: {date:F j, Y} ({git:short})',
