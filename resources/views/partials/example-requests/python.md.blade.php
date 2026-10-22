@@ -6,7 +6,7 @@
 import requests
 import json
 
-url = '{!! rtrim($baseUrl, '/') !!}/{{ $endpoint->boundUri }}'
+url = '{!! rtrim($baseUrl, '/') !!}/{!! $endpoint->boundUri !!}'
 @if($endpoint->hasFiles() || (isset($endpoint->headers['Content-Type']) && $endpoint->headers['Content-Type'] == 'multipart/form-data' && count($endpoint->cleanBodyParameters)))
 files = {
 @foreach($endpoint->cleanBodyParameters as $parameter => $value)
@@ -32,7 +32,7 @@ params = {!! u::printQueryParamsAsKeyValue($endpoint->cleanQueryParameters, "'",
 @if(!empty($endpoint->headers))
 headers = {
 @foreach($endpoint->headers as $header => $value)
-  '{{$header}}': '{{$value}}'@if(!($loop->last)),
+  '{!! $header !!}': '{!! $value !!}'@if(!($loop->last)),
 @endif
 @endforeach
 
