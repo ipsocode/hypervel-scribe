@@ -36,6 +36,12 @@ class MethodAstParser
 
         $classAst = self::getClassAst($fileName);
         $methodAst = self::findMethodInClassAst($classAst, $methodName);
+
+        // A trait method imported under an alias is reflected by the alias, which the file doesn't declare.
+        if ($methodAst === null) {
+            return null;
+        }
+
         self::cacheMethodAst($fileName, $methodName, $methodAst);
 
         return $methodAst;

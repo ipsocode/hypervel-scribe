@@ -8,6 +8,7 @@ use Hypervel\Coroutine\Coroutine;
 use Hypervel\Http\Request;
 use Hypervel\Routing\Controller;
 use RuntimeException;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Workbench\App\Models\Post;
 
@@ -81,6 +82,22 @@ class ResponseCallController extends Controller
             ob_flush();
             echo 'second-chunk';
         });
+    }
+
+    /**
+     * Answer with a file to download.
+     */
+    public function download(): BinaryFileResponse
+    {
+        return response()->download(__FILE__);
+    }
+
+    /**
+     * Answer with a file shown inline.
+     */
+    public function file(): BinaryFileResponse
+    {
+        return response()->file(__FILE__);
     }
 
     /**
