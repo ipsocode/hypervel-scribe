@@ -71,12 +71,30 @@ class InlineValidationTest extends DatabaseTestCase
     }
 
     #[Test]
+    public function aPipeInsideAnArrayFormRegexDoesNotSplitTheRule(): void
+    {
+        $code = $this->extract('inline.array')->bodyParameters['code'];
+
+        $this->assertStringContainsString('/^(abc|xyz)$/', $code->description);
+        $this->assertMatchesRegularExpression('/^(abc|xyz)$/', $code->example);
+    }
+
+    #[Test]
     public function aCommentAboveARuleSuppliesItsDescriptionAndExample(): void
     {
         $params = $this->extract('inline.array')->bodyParameters;
 
         $this->assertStringStartsWith('How many to return.', $params['per_page']->description);
         $this->assertSame(25, $params['per_page']->example);
+    }
+
+    #[Test]
+    public function aDocblockAboveARuleLosesItsCommentSyntax(): void
+    {
+        $name = $this->extract('inline.array')->bodyParameters['name'];
+
+        $this->assertSame("The user's name.", $name->description);
+        $this->assertSame('Ada', $name->example);
     }
 
     #[Test]

@@ -7,6 +7,7 @@ namespace Ipsocode\Scribe\Extracting\Strategies;
 use Hypervel\Contracts\Validation\Factory as ValidationFactory;
 use Hypervel\Foundation\Http\FormRequest;
 use Hypervel\Routing\Route;
+use Hypervel\Validation\Validator;
 use Ipsocode\Camel\Extraction\ExtractedEndpointData;
 use Ipsocode\Scribe\Extracting\FindsFormRequestForMethod;
 use Ipsocode\Scribe\Extracting\ParsesValidationRules;
@@ -14,6 +15,7 @@ use Ipsocode\Scribe\Tools\ConsoleOutputUtils as c;
 use Ipsocode\Scribe\Tools\Globals;
 use ReflectionClass;
 use ReflectionFunctionAbstract;
+use ReflectionProperty;
 
 class GetFromFormRequestBase extends Strategy
 {
@@ -76,8 +78,11 @@ class GetFromFormRequestBase extends Strategy
             $validationFactory = app(ValidationFactory::class);
 
             // @phpstan-ignore argument.type (a list entry matches no parameter name; the container resolves validator()'s factory by its type)
-            return app()->call([$formRequest, 'validator'], [$validationFactory])
-                ->getRules();
+            $validator = app()->call([$formRequest, 'validator'], [$validationFactory]);
+
+            // getRules() has already expanded wildcards against the (empty) data, which
+            // drops `ids.*`; the rules as given keep it.
+            return (new ReflectionProperty(Validator::class, 'initialRules'))->getValue($validator);
         }
         if (method_exists($formRequest, 'rules')) {
             return app()->call([$formRequest, 'rules']);
