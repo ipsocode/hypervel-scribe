@@ -319,9 +319,8 @@ $validated = $this->validate($request, [...]);
   other entries in the array are skipped, and a key whose rules are written any
   other way is documented with no rules.
 - A comment above a rule is its description. `Example: <value>` in it sets the
-  example and `No-example` omits it, unless the rules make the parameter
-  required: a required parameter keeps a generated example, since response
-  calls have to send a value.
+  example and `No-example` omits it, even when the rules make the parameter
+  required (unlike `bodyParameters()`, no example is generated in its place).
 - A `// Query parameters` comment above the statement makes the rules query
   parameters instead of body parameters.
 
