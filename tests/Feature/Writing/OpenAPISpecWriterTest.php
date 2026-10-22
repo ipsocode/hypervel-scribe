@@ -338,6 +338,18 @@ class OpenAPISpecWriterTest extends TestCase
     }
 
     #[Test]
+    public function anEndpointWithoutResponsesGetsADefaultResponse(): void
+    {
+        $groups = [$this->createGroup([
+            $this->createMockEndpointData(['uri' => 'ping', 'httpMethods' => ['GET'], 'responses' => []]),
+        ])];
+
+        $responses = $this->generate($groups)['paths']['/ping']['get']['responses'];
+
+        $this->assertSame(['default' => ['description' => '']], $responses);
+    }
+
+    #[Test]
     public function anEmptyResponseBodyIsDocumentedWithoutContent(): void
     {
         $groups = [$this->createGroup([

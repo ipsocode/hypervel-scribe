@@ -55,7 +55,7 @@ class Writer
         $this->staticTypeOutputPath = mb_rtrim($this->config->get('static.output_path', 'public/docs'), '/');
 
         $this->hypervelAssetsPath = $this->config->get('hypervel.assets_directory')
-            ? '/' . $this->config->get('hypervel.assets_directory')
+            ? '/' . mb_trim($this->config->get('hypervel.assets_directory'), '/')
             : '/vendor/' . $this->paths->outputPath();
         $this->hypervelBuildPath = $this->paths->intermediateOutputPath('build');
 
