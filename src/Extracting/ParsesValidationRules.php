@@ -248,11 +248,23 @@ trait ParsesValidationRules
      * Builds one example generator from all of a parameter's size rules, so that the
      * example satisfies every bound together.
      *
+     * A format rule (`email`, `url`, `uuid`, `regex`, ...) leaves a setter whose examples
+     * the validator accepts, so that setter is kept and used whenever its example fits the
+     * bounds. Only when it does not fit does the bounded generator take over.
+     *
      * @param array<int, array{string, array<int, mixed>}> $rulesAndArguments
      * @param array<string, mixed> $parameterData
      */
     protected function setSizeBoundedSetter(array $rulesAndArguments, array &$parameterData): void
     {
+        // The setter of a plain type rule (`string`, `integer`, ...) knows nothing the bounded
+        // generator does not, so only a setter that some other rule left counts as a format.
+        $formatSetter = $parameterData['setter'] ?? null;
+        if ($formatSetter === ($parameterData['typeSetter'] ?? null)) {
+            $formatSetter = null;
+        }
+        unset($parameterData['typeSetter']);
+
         $min = $max = $size = null;
         foreach ($rulesAndArguments as [$rule, $arguments]) {
             switch ($rule) {
@@ -278,7 +290,13 @@ trait ParsesValidationRules
 
         if (is_null($min) && is_null($max)) {
             if (! is_null($size)) {
-                $parameterData['setter'] = $this->getDummyValueGenerator($parameterData['type'], ['size' => $size]);
+                $this->preferFormatSetter(
+                    $parameterData,
+                    $formatSetter,
+                    $this->getDummyValueGenerator($parameterData['type'], ['size' => $size]),
+                    $size,
+                    $size
+                );
             }
 
             return;
@@ -287,7 +305,54 @@ trait ParsesValidationRules
         $lower = $min ?? min(1.0, $max);
         // Keep the example small: long strings and large arrays are slow to generate.
         $upper = min($max ?? $lower + 10, $lower + 24);
-        $parameterData['setter'] = $this->getDummyDataGeneratorBetween($parameterData['type'], $lower, $upper, $parameterData['name']);
+        $this->preferFormatSetter(
+            $parameterData,
+            $formatSetter,
+            $this->getDummyDataGeneratorBetween($parameterData['type'], $lower, $upper, $parameterData['name']),
+            $min,
+            $max
+        );
+    }
+
+    /**
+     * Sets the parameter's setter to the format rule's, falling back to the bounded one
+     * when the format's example is outside the bounds.
+     *
+     * @param array<string, mixed> $parameterData
+     */
+    private function preferFormatSetter(array &$parameterData, ?Closure $formatSetter, Closure $bounded, ?float $min, ?float $max): void
+    {
+        $type = $parameterData['type'];
+
+        // A file example is built, not measured, so it always comes from the bounded generator.
+        if (is_null($formatSetter) || $type === 'file') {
+            $parameterData['setter'] = $bounded;
+
+            return;
+        }
+
+        $parameterData['setter'] = function () use ($formatSetter, $bounded, $type, $min, $max) {
+            $example = $formatSetter();
+
+            return $this->fitsSizeBounds($type, $example, $min, $max) ? $example : $bounded();
+        };
+    }
+
+    /**
+     * Whether an example meets the bounds the way the validator measures it: a number by
+     * its value, a string by its length. Any other example counts as not fitting.
+     */
+    private function fitsSizeBounds(string $type, mixed $example, ?float $min, ?float $max): bool
+    {
+        if ($type === 'integer' || $type === 'number') {
+            $measure = is_numeric($example) ? (float) $example : null;
+        } else {
+            $measure = is_string($example) ? (float) mb_strlen($example) : null;
+        }
+
+        return ! is_null($measure)
+            && (is_null($min) || $measure >= $min)
+            && (is_null($max) || $measure <= $max);
     }
 
     /**
@@ -600,14 +665,14 @@ trait ParsesValidationRules
                     // Type rules. Only `file` adds a description.
                 case 'bool':
                 case 'boolean':
-                    $parameterData['setter'] = function () {
+                    $parameterData['setter'] = $parameterData['typeSetter'] = function () {
                         return $this->getFaker()->randomElement([true, false]);
                     };
                     $parameterData['type'] = 'boolean';
 
                     break;
                 case 'string':
-                    $parameterData['setter'] = function () use ($parameterData) {
+                    $parameterData['setter'] = $parameterData['typeSetter'] = function () use ($parameterData) {
                         return $this->generateDummyValue('string', ['name' => $parameterData['name']]);
                     };
                     $parameterData['type'] = 'string';
@@ -615,21 +680,21 @@ trait ParsesValidationRules
                     break;
                 case 'int':
                 case 'integer':
-                    $parameterData['setter'] = function () {
+                    $parameterData['setter'] = $parameterData['typeSetter'] = function () {
                         return $this->generateDummyValue('integer');
                     };
                     $parameterData['type'] = 'integer';
 
                     break;
                 case 'numeric':
-                    $parameterData['setter'] = function () {
+                    $parameterData['setter'] = $parameterData['typeSetter'] = function () {
                         return $this->generateDummyValue('number');
                     };
                     $parameterData['type'] = 'number';
 
                     break;
                 case 'array':
-                    $parameterData['setter'] = function () {
+                    $parameterData['setter'] = $parameterData['typeSetter'] = function () {
                         return [$this->generateDummyValue('string')];
                     };
                     $parameterData['type'] = 'array'; // normaliseArrayAndObjectParameters() turns this into X[] or object

@@ -6,6 +6,7 @@ namespace Ipsocode\Scribe\Tests\Feature\Extracting;
 
 use Closure;
 use Hypervel\Contracts\Validation\ValidationRule;
+use Hypervel\Http\UploadedFile;
 use Hypervel\Support\Facades\Lang;
 use Hypervel\Support\Facades\Validator;
 use Hypervel\Validation\Rule;
@@ -816,6 +817,98 @@ class ParsesValidationRulesTest extends TestCase
             'email' => [['string', 'min:30'], 30, PHP_INT_MAX, 'email'],
         ];
     }
+
+    /**
+     * @param array<int, string> $rules
+     */
+    #[Test]
+    #[DataProvider('formatRulesWithBounds')]
+    public function aFormatRuleKeepsItsExampleWhenSizeBoundsAlsoApply(string $name, array $rules): void
+    {
+        for ($i = 0; $i < 30; ++$i) {
+            $example = $this->parseAll([$name => $rules])[$name]['example'];
+
+            $this->assertTrue(
+                Validator::make([$name => $example], [$name => $rules])->passes(),
+                'The example ' . json_encode($example) . " breaks the rules for {$name}."
+            );
+        }
+    }
+
+    /**
+     * @return array<string, array{string, array<int, string>}>
+     */
+    public static function formatRulesWithBounds(): array
+    {
+        return [
+            'email by name' => ['email', ['required', 'email', 'max:255']],
+            'email by rule' => ['contact', ['required', 'email', 'max:255']],
+            'url' => ['website_url', ['required', 'url', 'max:255']],
+            'uuid' => ['id', ['required', 'uuid', 'max:36']],
+            'regex with max' => ['code', ['required', 'regex:/^[a-z]{3}$/', 'max:5']],
+            'regex with exact size' => ['code', ['required', 'regex:/^[a-z]{3}$/', 'size:3']],
+        ];
+    }
+
+    #[Test]
+    public function aFormatExampleThatCannotMeetTheBoundsFallsBackToTheBoundedOne(): void
+    {
+        $tooShort = $this->parse(['required', 'regex:/^[a-z]{3}$/', 'min:6', 'max:8'])['example'];
+        $wrongSize = $this->parse(['required', 'regex:/^[a-z]{3}$/', 'size:5'])['example'];
+
+        $this->assertGreaterThanOrEqual(6, mb_strlen($tooShort));
+        $this->assertLessThanOrEqual(8, mb_strlen($tooShort));
+        $this->assertSame(5, mb_strlen($wrongSize));
+    }
+
+    #[Test]
+    public function aFileExampleIsStillBuiltByTheBoundedGenerator(): void
+    {
+        $this->assertInstanceOf(UploadedFile::class, $this->parse(['required', 'file', 'max:100'])['example']);
+    }
+
+    /**
+     * @param int|string $setterValue
+     */
+    #[Test]
+    #[DataProvider('customSetterExamples')]
+    public function aRuleObjectsSetterIsKeptOnlyWhileItFitsTheBounds(string $type, mixed $setterValue, array $bounds, bool $kept): void
+    {
+        $example = $this->parse([new FixedSetterRule($setterValue, $type), ...$bounds])['example'];
+
+        if ($kept) {
+            $this->assertSame($setterValue, $example);
+
+            return;
+        }
+
+        $this->assertNotSame($setterValue, $example);
+        if ($type === 'integer') {
+            $this->assertIsInt($example);
+            $this->assertGreaterThanOrEqual(5, $example);
+            $this->assertLessThanOrEqual(9, $example);
+        } else {
+            $this->assertIsString($example);
+            $this->assertGreaterThanOrEqual(2, mb_strlen($example));
+            $this->assertLessThanOrEqual(4, mb_strlen($example));
+        }
+    }
+
+    /**
+     * @return array<string, array{string, mixed, array<int, string>, bool}>
+     */
+    public static function customSetterExamples(): array
+    {
+        return [
+            'a number inside the bounds' => ['integer', 7, ['min:5', 'max:9'], true],
+            'a number outside the bounds' => ['integer', 100, ['min:5', 'max:9'], false],
+            'a number below the minimum' => ['integer', 1, ['min:5', 'max:9'], false],
+            'not a number' => ['integer', 'seven', ['min:5', 'max:9'], false],
+            'a string inside the bounds' => ['string', 'abc', ['min:2', 'max:4'], true],
+            'a string outside the bounds' => ['string', 'abcdefgh', ['min:2', 'max:4'], false],
+            'not a string' => ['string', 123, ['min:2', 'max:4'], false],
+        ];
+    }
 }
 
 /**
@@ -891,6 +984,25 @@ class SetterRule implements ValidationRule
     public function docs(): array
     {
         return ['setter' => fn () => 'generated'];
+    }
+}
+
+/**
+ * A rule that documents a fixed example through a `setter`, of a chosen type.
+ */
+class FixedSetterRule implements ValidationRule
+{
+    public function __construct(private mixed $value, private string $type)
+    {
+    }
+
+    public function validate(string $attribute, mixed $value, Closure $fail): void
+    {
+    }
+
+    public function docs(): array
+    {
+        return ['type' => $this->type, 'setter' => fn () => $this->value];
     }
 }
 
