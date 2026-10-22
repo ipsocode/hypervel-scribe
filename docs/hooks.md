@@ -201,7 +201,9 @@ returns a model:
 ],
 ```
 
-The default is `['factoryCreate', 'factoryMake', 'databaseFirst']`. A source that
+The default is `['factoryCreate', 'factoryMake']`. `databaseFirst` documents a
+real record, with everything the resource exposes, so list it only when the
+database you generate against holds no real data. A source that
 throws is reported as a warning and the next one is tried. When none returns a
 model, an empty instance of the class is used. Factory states and relations come
 from the response's tag or attribute (`states=`, `with=`, `factoryStates:`,
@@ -212,5 +214,13 @@ from the response's tag or attribute (`states=`, `with=`, `factoryStates:`,
 
 `examples.faker_seed` (default `1234`) makes generated values repeat from run to
 run. It seeds the Faker generator that example parameter values come from, and,
-once per run, the Faker instances model factories use. Set it to `null` for
-different values every run.
+once per run, the Faker instances model factories use. Set it to `null` or `0`
+for different values every run.
+
+Faker seeds PHP's process-wide random number generator, the one `mt_rand()` and
+`shuffle()` use, so `scribe:generate` reseeds it randomly when it finishes. That
+matters when the command runs inside a long-lived worker (the
+`RegenerateDocumentation` job, or `Artisan::call()`), which keeps the generator
+afterwards. During the run, other coroutines in the same worker draw from the
+seeded sequence, so run generation in a process of its own when the application
+uses those functions for anything secret.

@@ -48,6 +48,8 @@ class RunStateTest extends TestCase
         ConsoleOutputUtils::bootstrapOutput(new BufferedOutput);
         Globals::$shouldBeVerbose = true;
 
+        // The route-key cache fills only when examples are read from the database.
+        config(['scribe.examples.url_parameters_from_database' => true]);
         (new GetFromLaravelAPI(new DocumentationConfig(config('scribe'))))(
             ExtractedEndpointData::fromRoute($this->workbenchRoute('blogs.show')),
         );

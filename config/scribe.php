@@ -217,9 +217,16 @@ return [
         'faker_seed' => 1234,
 
         // With API resources and transformers, Scribe tries to generate example models to use in your API responses.
-        // Scribe tries each source in order: the model's factory (create, then make), then the first row in the database.
+        // Scribe tries each source in order: the model's factory (create, then make).
         // You can reorder or remove sources here; 'factoryCreateQuietly' is also available.
-        'models_source' => ['factoryCreate', 'factoryMake', 'databaseFirst'],
+        // 'databaseFirst' (the first row in the database) is too, but it publishes a real record in the docs,
+        // so add it only when the database you generate against holds no real data.
+        'models_source' => ['factoryCreate', 'factoryMake'],
+
+        // Take URL parameter examples for model-bound routes (/users/{user}) from the first row in the database,
+        // instead of generating them. Response calls then fetch that row, so its real data is documented too.
+        // Turn this on only when the database you generate against holds no real data.
+        'url_parameters_from_database' => false,
     ],
 
     // The strategies Scribe will use to extract information about your routes at each stage.
