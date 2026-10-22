@@ -82,6 +82,34 @@ class ParamHelpersTest extends TestCase
     {
         $this->assertSame('integer[]', $this->subject::normalizeTypeName('array', [1, 2, 3]));
         $this->assertSame('object', $this->subject::normalizeTypeName('array', ['key' => 'value']));
+        $this->assertSame('object[]', $this->subject::normalizeTypeName('array', [['id' => 1]]));
+        $this->assertSame('integer[][]', $this->subject::normalizeTypeName('array', [[1, 2]]));
+    }
+
+    #[UnitTest]
+    #[Test]
+    public function anEnumExampleIsPickedWithTheSeededFaker(): void
+    {
+        $values = range('a', 'h');
+        $picks = fn () => array_map(fn () => $this->subject->dummy('string', ['enumValues' => $values]), range(1, 8));
+
+        $this->assertSame($picks(), $picks());
+    }
+
+    #[UnitTest]
+    #[Test]
+    public function enumValuesOfAListTypeAreCastToItsItemTypeAndExampledAsAList(): void
+    {
+        [, , $strings] = $this->subject->parseExample('Enum: a, b', 'string[]');
+        [, , $integers] = $this->subject->parseExample('Enum: 1, 2', 'integer[]');
+
+        $this->assertSame(['a', 'b'], $strings);
+        $this->assertSame([1, 2], $integers);
+
+        $example = $this->subject->dummy('integer[]', ['enumValues' => $integers]);
+        $this->assertIsArray($example);
+        $this->assertCount(1, $example);
+        $this->assertContains($example[0], [1, 2]);
     }
 
     #[UnitTest]

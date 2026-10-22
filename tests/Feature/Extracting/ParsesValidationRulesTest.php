@@ -464,6 +464,26 @@ class ParsesValidationRulesTest extends TestCase
     }
 
     #[Test]
+    public function theNoExampleMarkerOnARequiredFieldFallsBackToAGeneratedExample(): void
+    {
+        $string = $this->parse(['required', 'string'], ['field' => ['example' => 'No-example']]);
+        $integer = $this->parse(['required', 'integer'], ['field' => ['example' => 'No-example']]);
+
+        $this->assertIsString($string['example']);
+        $this->assertNotSame('No-example', $string['example']);
+        $this->assertIsInt($integer['example']);
+        $this->assertNotSame(0, $integer['example']);
+    }
+
+    #[Test]
+    public function aRuleObjectsDocsExampleSurvivesLaterTypeAndSizeRules(): void
+    {
+        $param = $this->parse(['required', 'string', new SelfDocumentingRule, 'max:7']);
+
+        $this->assertSame('#ff9900', $param['example']);
+    }
+
+    #[Test]
     public function aDocumentedClosureRuleContributesItsDescription(): void
     {
         // A closure can't be introspected, but its docblock can — and that is

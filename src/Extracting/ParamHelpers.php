@@ -7,7 +7,6 @@ namespace Ipsocode\Scribe\Extracting;
 use Closure;
 use Faker\Generator;
 use Hypervel\Http\UploadedFile;
-use Hypervel\Support\Arr;
 use Hypervel\Support\Str;
 
 trait ParamHelpers
@@ -32,7 +31,7 @@ trait ParamHelpers
             'int' => str_replace($base, 'integer', $typeName),
             'float', 'double' => str_replace($base, 'number', $typeName),
             'array' => (empty($value) || array_keys($value)[0] === 0)
-                ? static::normalizeTypeName(gettype($value[0] ?? '')) . '[]'
+                ? static::normalizeTypeName(gettype($value[0] ?? ''), $value[0] ?? null) . '[]'
                 : 'object',
             default => $typeName
         };
@@ -92,7 +91,9 @@ trait ParamHelpers
     protected function generateDummyValue(string $type, array $hints = []): mixed
     {
         if (! empty($hints['enumValues'])) {
-            return Arr::random($hints['enumValues']);
+            $value = $this->getFaker()->randomElement($hints['enumValues']);
+
+            return str_ends_with($type, '[]') ? [$value] : $value;
         }
 
         $fakeFactory = $this->getDummyValueGenerator($type, $hints);
@@ -255,8 +256,10 @@ trait ParamHelpers
         if (preg_match('/(.*)\bEnum:\s*([\s\S]+)\s*/s', $description, $content)) {
             $description = mb_trim($content[1]);
 
+            // Each enum value is one item, so a list type casts them to its item type.
+            $itemType = str_ends_with($type, '[]') ? mb_substr($type, 0, -2) : $type;
             $enumValues = array_map(
-                fn ($value) => $this->castToType(mb_trim($value), $type),
+                fn ($value) => $this->castToType(mb_trim($value), $itemType),
                 explode(',', mb_rtrim(mb_trim($content[2]), '.'))
             );
         }
