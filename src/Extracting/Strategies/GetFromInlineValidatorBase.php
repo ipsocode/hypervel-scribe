@@ -103,7 +103,7 @@ class GetFromInlineValidatorBase extends Strategy
                         $rulesList[] = 'in:' . implode(',', array_map(fn ($case) => $case->value, $enum::cases()));
                     }
                 }
-                $rules[$paramName] = implode('|', $rulesList);
+                $rules[$paramName] = $rulesList;
             } else {
                 $rules[$paramName] = [];
             }

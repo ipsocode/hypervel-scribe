@@ -491,7 +491,8 @@ trait ParsesValidationRules
                 $parameterData['description'] .= ' ' . $customData['description'];
             }
             if (isset($customData['example'])) {
-                $parameterData['setter'] = fn () => $customData['example'];
+                // An explicit example beats every setter the rules after this one leave.
+                $parameterData['example'] = $customData['example'];
             } elseif (isset($customData['setter'])) {
                 $parameterData['setter'] = $customData['setter'];
             }
@@ -894,6 +895,16 @@ trait ParsesValidationRules
      */
     protected function getParameterExample(array $parameterData): mixed
     {
+        // "No-example" hides the example of an optional parameter. A required one still
+        // needs a value for the response call, so it is treated as having no example.
+        if ($parameterData['example'] === 'No-example') {
+            if (! $parameterData['required']) {
+                return null;
+            }
+
+            $parameterData['example'] = self::$MISSING_VALUE;
+        }
+
         // No example was given: use the setter the last processed rule left, or
         // a generated value if the parameter is required.
         if ($parameterData['example'] === self::$MISSING_VALUE) {
@@ -906,10 +917,6 @@ trait ParsesValidationRules
                 : null;
         }
         if (! is_null($parameterData['example']) && $parameterData['example'] !== self::$MISSING_VALUE) {
-            if ($parameterData['example'] === 'No-example' && ! $parameterData['required']) {
-                return null;
-            }
-
             // Cast again, since the validator may have turned the value into a string.
             return $this->castToType($parameterData['example'], $parameterData['type']);
         }
