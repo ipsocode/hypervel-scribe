@@ -32,12 +32,13 @@ class RouteMatcher implements RouteMatcherInterface
                 }
 
                 if ($this->shouldIncludeRoute($route, $routeRule, $includes)) {
-                    $matchedRoutes[] = new MatchedRoute($route);
+                    // A route matching several rules is documented once.
+                    $matchedRoutes[spl_object_id($route)] ??= new MatchedRoute($route);
                 }
             }
         }
 
-        return $matchedRoutes;
+        return array_values($matchedRoutes);
     }
 
     private function getAllRoutes()
@@ -52,7 +53,10 @@ class RouteMatcher implements RouteMatcherInterface
         }
 
         $domainsToMatch = $routeRule['match']['domains'] ?? [];
-        $pathsToMatch = $routeRule['match']['prefixes'] ?? [];
+        $pathsToMatch = array_map(
+            fn (string $prefix) => ltrim($prefix, '/'),
+            $routeRule['match']['prefixes'] ?? [],
+        );
 
         return Str::is($domainsToMatch, $route->getDomain()) && Str::is($pathsToMatch, $route->uri());
     }
