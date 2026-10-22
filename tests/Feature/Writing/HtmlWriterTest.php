@@ -422,6 +422,61 @@ class HtmlWriterTest extends TestCase
         $this->assertSame('At ', $this->writer(['last_updated' => 'At {git:short}'])->getMetadata()['last_updated']);
     }
 
+    #[Test]
+    public function aGitTokenReadsAWorktreesHeadAndTheMainRepositorysRefs(): void
+    {
+        $sha = str_repeat('a1b2', 10);
+        $root = dirname($this->source);
+        $this->putFiles([
+            'main/.git/refs/heads/feature' => "{$sha}\n",
+            'main/.git/worktrees/app/HEAD' => "ref: refs/heads/feature\n",
+            'main/.git/worktrees/app/commondir' => "../..\n",
+            // A worktree's pointer is absolute.
+            'app/.git' => "gitdir: {$root}/main/.git/worktrees/app\n",
+        ]);
+        $this->app->setBasePath("{$root}/app");
+
+        $this->assertSame($sha, $this->writer(['last_updated' => '{git:long}'])->getMetadata()['last_updated']);
+    }
+
+    #[Test]
+    public function aGitTokenReadsASubmodulesGitDirectory(): void
+    {
+        $sha = str_repeat('c3d4', 10);
+        $this->putFiles([
+            'super/.git/modules/app/HEAD' => "{$sha}\n",
+            // A submodule's pointer is relative to the submodule.
+            'super/app/.git' => "gitdir: ../.git/modules/app\n",
+        ]);
+        $this->app->setBasePath(dirname($this->source) . '/super/app');
+
+        $this->assertSame(substr($sha, 0, 7), $this->writer(['last_updated' => '{git:short}'])->getMetadata()['last_updated']);
+    }
+
+    #[Test]
+    public function aGitTokenReadsTheRepositoryAboveTheBasePath(): void
+    {
+        $sha = str_repeat('e5f6', 10);
+        $this->putFiles(['repo/.git/HEAD' => "{$sha}\n", 'repo/apps/api/.keep' => '']);
+        $this->app->setBasePath(dirname($this->source) . '/repo/apps/api');
+
+        $this->assertSame($sha, $this->writer(['last_updated' => '{git:long}'])->getMetadata()['last_updated']);
+    }
+
+    /**
+     * Write files under the test's temporary directory, creating their directories.
+     *
+     * @param array<string, string> $files
+     */
+    private function putFiles(array $files): void
+    {
+        foreach ($files as $name => $contents) {
+            $path = dirname($this->source) . "/{$name}";
+            is_dir(dirname($path)) || mkdir(dirname($path), 0o777, true);
+            file_put_contents($path, $contents);
+        }
+    }
+
     /**
      * Point the application's base path at a directory whose .git holds the given files.
      *
