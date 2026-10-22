@@ -6,6 +6,7 @@ namespace Ipsocode\Scribe\Writing;
 
 use Hypervel\Support\Facades\Route;
 use Hypervel\Support\Facades\Storage;
+use InvalidArgumentException;
 use Ipsocode\Scribe\Tools\ConsoleOutputUtils as c;
 use Ipsocode\Scribe\Tools\DocumentationConfig;
 use Ipsocode\Scribe\Tools\Globals;
@@ -37,6 +38,12 @@ class Writer
 
     protected string $hypervelAssetsPath;
 
+    /**
+     * Where the hypervel types render the page and assets before moving them.
+     * A directory Scribe owns, under `.scribe/`, so nothing of the app's is emptied.
+     */
+    protected string $hypervelBuildPath;
+
     public function __construct(protected DocumentationConfig $config, public PathConfig $paths)
     {
         $this->config->assertTypeIsSupported();
@@ -50,6 +57,11 @@ class Writer
         $this->hypervelAssetsPath = $this->config->get('hypervel.assets_directory')
             ? '/' . $this->config->get('hypervel.assets_directory')
             : '/vendor/' . $this->paths->outputPath();
+        $this->hypervelBuildPath = $this->paths->intermediateOutputPath('build');
+
+        if (! $this->isStatic) {
+            $this->assertAssetsDirectoryIsNotTheBuildDirectory();
+        }
     }
 
     /**
@@ -117,7 +129,7 @@ class Writer
             function () use ($assetsOutputPath, $outputPath, $groupedEndpoints) {
                 /** @var HtmlWriter $writer */
                 $writer = app()->makeWith(HtmlWriter::class, ['config' => $this->config]);
-                $writer->generate($groupedEndpoints, $this->paths->intermediateOutputPath(), $this->staticTypeOutputPath);
+                $writer->generate($groupedEndpoints, $this->paths->intermediateOutputPath(), $this->renderPath());
 
                 if (! $this->isStatic) {
                     $this->performFinalTasksForHypervelType();
@@ -152,7 +164,7 @@ class Writer
             function () use ($outputPath) {
                 /** @var ExternalHtmlWriter $writer */
                 $writer = app()->makeWith(ExternalHtmlWriter::class, ['config' => $this->config]);
-                $writer->generate([], $this->paths->intermediateOutputPath(), $this->staticTypeOutputPath);
+                $writer->generate([], $this->paths->intermediateOutputPath(), $this->renderPath());
 
                 if ($this->isStatic) {
                     $this->generatedFiles['html'] = realpath("{$outputPath}index.html");
@@ -254,15 +266,18 @@ class Writer
             mkdir($publicDirectory . $this->hypervelAssetsPath, 0o777, true);
         }
 
-        rename("{$this->staticTypeOutputPath}/index.html", "{$this->hypervelTypeOutputPath}/index.blade.php");
+        rename("{$this->hypervelBuildPath}/index.html", "{$this->hypervelTypeOutputPath}/index.blade.php");
 
-        // Move the assets to public/vendor/scribe or `hypervel.assets_directory`,
-        // clearing the target first so no stale files survive. Copy-then-delete
-        // rather than rename(), because rename() cannot move a directory across
-        // filesystems and `public` is not always on the same one as the working directory.
-        Utils::deleteDirectoryAndContents($publicDirectory . $this->hypervelAssetsPath);
-        Utils::copyDirectory($this->staticTypeOutputPath, $publicDirectory . $this->hypervelAssetsPath);
-        Utils::deleteDirectoryAndContents($this->staticTypeOutputPath);
+        // Move the assets to public/vendor/scribe or `hypervel.assets_directory`.
+        // Only the theme files an earlier run wrote are removed first, so no stale
+        // versioned file survives and the app's own files in that directory do
+        // too. Copy-then-delete rather than rename(), because rename() cannot
+        // move a directory across filesystems and `public` is not always on the
+        // same one as the working directory.
+        $assetsDirectory = $publicDirectory . $this->hypervelAssetsPath;
+        HtmlWriter::pruneThemeAssets($assetsDirectory);
+        Utils::copyDirectory($this->hypervelBuildPath, $assetsDirectory);
+        Utils::deleteDirectoryAndContents($this->hypervelBuildPath);
 
         $contents = file_get_contents("{$this->hypervelTypeOutputPath}/index.blade.php");
 
@@ -373,6 +388,41 @@ class Writer
         if (Globals::$__afterGenerating !== null) {
             c::info('Running `afterGenerating()` hook...');
             call_user_func_array(Globals::$__afterGenerating, [$this->generatedFiles]);
+        }
+    }
+
+    /**
+     * Where the page and assets are rendered: `static.output_path` for the
+     * static types, Scribe's own build directory for the hypervel ones.
+     */
+    protected function renderPath(): string
+    {
+        return $this->isStatic ? $this->staticTypeOutputPath : $this->hypervelBuildPath;
+    }
+
+    /**
+     * The build directory is deleted after every run, so it must not be, hold
+     * or sit inside the directory the assets are moved to.
+     */
+    protected function assertAssetsDirectoryIsNotTheBuildDirectory(): void
+    {
+        $this->assertDirectoriesDoNotOverlap(
+            public_path() . $this->hypervelAssetsPath,
+            (getcwd() ?: '') . '/' . $this->hypervelBuildPath,
+        );
+    }
+
+    protected function assertDirectoriesDoNotOverlap(string $assets, string $build): void
+    {
+        $assets = mb_rtrim($assets, '/') . '/';
+        $build = mb_rtrim($build, '/') . '/';
+
+        if (str_starts_with($assets, $build) || str_starts_with($build, $assets)) {
+            throw new InvalidArgumentException(
+                "`hypervel.assets_directory` resolves to {$assets}, which is or overlaps the directory "
+                . "Scribe builds the page in ({$build}). Choose a directory within `public` that "
+                . 'is not inside .scribe/.'
+            );
         }
     }
 

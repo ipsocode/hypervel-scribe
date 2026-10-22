@@ -354,6 +354,24 @@ class OpenAPISpecWriterTest extends TestCase
     }
 
     #[Test]
+    public function operationIdsAreUniqueAndDropPunctuation(): void
+    {
+        $groups = [$this->createGroup([
+            $this->createMockEndpointData(['uri' => 'users', 'httpMethods' => ['GET'], 'metadata.title' => 'List']),
+            $this->createMockEndpointData(['uri' => 'posts', 'httpMethods' => ['GET'], 'metadata.title' => 'List']),
+            $this->createMockEndpointData(['uri' => 'tags', 'httpMethods' => ['GET'], 'metadata.title' => 'List']),
+            $this->createMockEndpointData(['uri' => 'build', 'httpMethods' => ['GET'], 'metadata.title' => 'C++ compile']),
+        ])];
+
+        $paths = $this->generate($groups)['paths'];
+
+        $this->assertSame('list', $paths['/users']['get']['operationId']);
+        $this->assertSame('list2', $paths['/posts']['get']['operationId']);
+        $this->assertSame('list3', $paths['/tags']['get']['operationId']);
+        $this->assertSame('cCompile', $paths['/build']['get']['operationId']);
+    }
+
+    #[Test]
     public function operationIdsComeFromTheEndpointTitle(): void
     {
         $groups = [$this->createGroup([
@@ -552,6 +570,33 @@ class OpenAPISpecWriterTest extends TestCase
         $this->assertSame('apiKey', $scheme['type']);
         $this->assertSame('api_key', $scheme['name']);
         $this->assertSame('query', $scheme['in']);
+    }
+
+    #[Test]
+    public function aQueryOrBodyTokenIsDocumentedAsAQueryApiKey(): void
+    {
+        $this->config = array_merge($this->config, [
+            'auth' => ['enabled' => true, 'in' => 'query_or_body', 'name' => 'api_token', 'extra_info' => ''],
+        ]);
+
+        $scheme = $this->generate([$this->createGroup([$this->createMockEndpointData()])])['components']['securitySchemes']['default'];
+
+        $this->assertSame('apiKey', $scheme['type']);
+        $this->assertSame('api_token', $scheme['name']);
+        $this->assertSame('query', $scheme['in']);
+    }
+
+    #[Test]
+    public function aBodyTokenEmitsNoSecuritySchemeAndNoGlobalSecurity(): void
+    {
+        $this->config = array_merge($this->config, [
+            'auth' => ['enabled' => true, 'in' => 'body', 'name' => 'api_token', 'extra_info' => ''],
+        ]);
+
+        $spec = $this->generate([$this->createGroup([$this->createMockEndpointData()])]);
+
+        $this->assertArrayNotHasKey('components', $spec);
+        $this->assertArrayNotHasKey('security', $spec);
     }
 
     #[Test]

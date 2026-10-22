@@ -17,9 +17,13 @@ use Ipsocode\Scribe\Extracting\RouteDocBlocker;
 use Ipsocode\Scribe\Scribe;
 use Ipsocode\Scribe\Tests\DatabaseTestCase;
 use Ipsocode\Scribe\Tools\ConsoleOutputUtils;
+use Ipsocode\Scribe\Tools\DocumentationConfig;
 use Ipsocode\Scribe\Tools\Globals;
+use Ipsocode\Scribe\Tools\PathConfig;
+use Ipsocode\Scribe\Writing\Writer;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionMethod;
 use ReflectionProperty;
 use Symfony\Component\Yaml\Yaml;
 use Workbench\App\Http\Controllers\HiddenController;
@@ -592,6 +596,68 @@ class GenerateDocumentationTest extends DatabaseTestCase
         } finally {
             File::deleteDirectory($this->app->publicPath('docs-assets'));
         }
+    }
+
+    #[Test]
+    #[WithConfig('scribe.hypervel.assets_directory', 'assets')]
+    public function aRunLeavesTheAppsOwnFilesInTheAssetsDirectoryAlone(): void
+    {
+        $unrelated = $this->app->publicPath('assets/app.css');
+        File::ensureDirectoryExists(dirname($unrelated));
+        file_put_contents($unrelated, 'body {}');
+        // An earlier run's theme file, which the new run replaces.
+        File::ensureDirectoryExists($this->app->publicPath('assets/css'));
+        file_put_contents($this->app->publicPath('assets/css/theme-default.old.css'), '');
+
+        try {
+            $this->generate();
+
+            $this->assertFileExists($unrelated);
+            $this->assertFileDoesNotExist($this->app->publicPath('assets/css/theme-default.old.css'));
+            $this->assertFilenameExists('public/assets/css/theme-default.style.css');
+        } finally {
+            File::deleteDirectory($this->app->publicPath('assets'));
+        }
+    }
+
+    #[Test]
+    #[WithConfig('scribe.static.output_path', 'public')]
+    public function aHypervelRunLeavesTheStaticOutputPathAlone(): void
+    {
+        $unrelated = package_path('public/robots.txt');
+        File::ensureDirectoryExists(dirname($unrelated));
+        file_put_contents($unrelated, 'User-agent: *');
+
+        $this->generate();
+
+        $this->assertFileExists($unrelated);
+        $this->assertDirectoryDoesNotExist(package_path('public/css'));
+    }
+
+    #[Test]
+    #[WithConfig('scribe.hypervel.assets_directory', 'docs')]
+    public function anAssetsDirectoryNamedLikeTheDefaultOutputPathStillGetsItsAssets(): void
+    {
+        try {
+            $this->generate();
+
+            $this->assertFilenameExists('public/docs/css/theme-default.style.css');
+            $this->assertFilenameExists('public/docs/js/theme-default-' . Scribe::VERSION . '.js');
+        } finally {
+            File::deleteDirectory($this->app->publicPath('docs'));
+        }
+    }
+
+    #[Test]
+    public function anAssetsDirectoryThatOverlapsTheBuildDirectoryIsRefused(): void
+    {
+        $writer = new Writer(new DocumentationConfig(config('scribe')), new PathConfig);
+        $method = new ReflectionMethod($writer, 'assertDirectoriesDoNotOverlap');
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('overlaps the directory Scribe builds the page in');
+
+        $method->invoke($writer, '/app/.scribe', '/app/.scribe/build');
     }
 
     #[Test]
