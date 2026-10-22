@@ -10,12 +10,18 @@ use Hypervel\Database\Eloquent\Factories\Factory;
 use Hypervel\Database\Eloquent\Relations\BelongsTo;
 use Hypervel\Database\Eloquent\Relations\BelongsToMany;
 use Hypervel\Routing\Route;
+use Hypervel\Routing\RouteAction;
 use Hypervel\Support\Facades\File;
 use Hypervel\Support\Str;
 use Ipsocode\Scribe\Exceptions\CouldntFindFactory;
 use Ipsocode\Scribe\Exceptions\CouldntGetRouteDetails;
 use Ipsocode\Scribe\Reflection\DocBlock\Tag;
 use Ipsocode\Scribe\Tools\ConsoleOutputUtils as c;
+use Laravel\SerializableClosure\SerializableClosure;
+use Laravel\SerializableClosure\Serializers\Native as NativeSerializer;
+use Laravel\SerializableClosure\Serializers\Signed as SignedSerializer;
+use Laravel\SerializableClosure\Support\SelfReference;
+use Laravel\SerializableClosure\UnsignedSerializableClosure;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionFunction;
@@ -79,6 +85,19 @@ class Utils
         if ($uses !== null) {
             if (is_array($uses)) {
                 return $uses;
+            }
+            if (is_string($uses) && RouteAction::containsSerializedClosure($action)) {
+                // `route:cache` stores a closure route's `uses` as a serialized
+                // closure; unserialize it the way Route::runCallable() does.
+                $closure = unserialize($uses, ['allowed_classes' => [
+                    SerializableClosure::class,
+                    UnsignedSerializableClosure::class,
+                    NativeSerializer::class,
+                    SignedSerializer::class,
+                    SelfReference::class,
+                ]])->getClosure();
+
+                return [$closure, '__invoke'];
             }
             if (is_string($uses)) {
                 $usesArray = explode('@', $uses);

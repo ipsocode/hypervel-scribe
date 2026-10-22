@@ -12,6 +12,7 @@ use Ipsocode\Scribe\Exceptions\CouldntFindFactory;
 use Ipsocode\Scribe\Exceptions\CouldntGetRouteDetails;
 use Ipsocode\Scribe\Tests\DatabaseTestCase;
 use Ipsocode\Scribe\Tools\Utils;
+use Laravel\SerializableClosure\SerializableClosure;
 use PHPUnit\Framework\Attributes\Test;
 use ReflectionFunction;
 use ReflectionMethod;
@@ -63,6 +64,20 @@ class UtilsTest extends DatabaseTestCase
         [$uses, $method] = Utils::getRouteClassAndMethodNames($this->workbenchRoute('home'));
 
         $this->assertInstanceOf(Closure::class, $uses);
+        $this->assertSame('__invoke', $method);
+    }
+
+    #[Test]
+    public function readsTheClosureOffAClosureRouteFromTheRouteCache(): void
+    {
+        // `route:cache` stores a closure route's `uses` as a serialized closure.
+        $route = (new Route(['GET'], 'api/cached', fn () => null))
+            ->setAction(['uses' => serialize(new SerializableClosure(fn () => 'cached'))]);
+
+        [$uses, $method] = Utils::getRouteClassAndMethodNames($route);
+
+        $this->assertInstanceOf(Closure::class, $uses);
+        $this->assertSame('cached', $uses());
         $this->assertSame('__invoke', $method);
     }
 
