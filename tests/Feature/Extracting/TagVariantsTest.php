@@ -11,6 +11,7 @@ use Ipsocode\Scribe\Tests\DatabaseTestCase;
 use Ipsocode\Scribe\Tools\DocumentationConfig;
 use PHPUnit\Framework\Attributes\Test;
 use Workbench\App\Http\Controllers\ClassLevelTagsController;
+use Workbench\App\Http\Requests\UndocumentedRequest;
 
 /**
  * `@queryParam name type required deprecated description` — every part after
@@ -26,6 +27,8 @@ class TagVariantsTest extends DatabaseTestCase
             ->name('tags.classLevel');
         $router->get('api/tags/class-level-override', [ClassLevelTagsController::class, 'overrides'])
             ->name('tags.classLevelOverride');
+        $router->get('api/tags/class-and-method', [ClassAndMethodTagsController::class, 'withFormRequest'])
+            ->name('tags.classAndMethod');
     }
 
     private function extract(string $routeName): ExtractedEndpointData
@@ -205,5 +208,34 @@ class TagVariantsTest extends DatabaseTestCase
     public function anExplicitNullExampleIsKeptRatherThanGenerated(): void
     {
         $this->assertNull($this->extract('tags.classLevelOverride')->queryParameters['nothing']->example);
+    }
+
+    #[Test]
+    public function aMethodsTagsAreReadAlongsideTheControllersWhenItTakesAFormRequestWithNoTags(): void
+    {
+        $endpoint = $this->extract('tags.classAndMethod');
+
+        $this->assertArrayHasKey('X-Tenant', $endpoint->headers);
+        $this->assertArrayHasKey('X-Trace', $endpoint->headers);
+        $this->assertArrayHasKey('tenant', $endpoint->queryParameters);
+        $this->assertArrayHasKey('trace', $endpoint->queryParameters);
+    }
+}
+
+/**
+ * @header X-Tenant acme
+ *
+ * @queryParam tenant string The tenant. Example: acme
+ */
+class ClassAndMethodTagsController
+{
+    /**
+     * @header X-Trace abc
+     *
+     * @queryParam trace string The trace. Example: abc
+     */
+    public function withFormRequest(UndocumentedRequest $request): array
+    {
+        return [];
     }
 }
