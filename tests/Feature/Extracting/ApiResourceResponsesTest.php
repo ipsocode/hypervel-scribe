@@ -6,8 +6,10 @@ namespace Ipsocode\Scribe\Tests\Feature\Extracting;
 
 use Hypervel\Routing\Router;
 use Ipsocode\Camel\Extraction\ExtractedEndpointData;
+use Ipsocode\Scribe\Attributes\ResponseFromApiResource;
 use Ipsocode\Scribe\Extracting\Extractor;
 use Ipsocode\Scribe\Extracting\Shared\ApiResourceResponseTools;
+use Ipsocode\Scribe\Extracting\Strategies\Responses\UseResponseAttributes;
 use Ipsocode\Scribe\Tests\DatabaseTestCase;
 use Ipsocode\Scribe\Tools\ConsoleOutputUtils;
 use Ipsocode\Scribe\Tools\DocumentationConfig;
@@ -169,6 +171,29 @@ class ApiResourceResponsesTest extends DatabaseTestCase
         ConsoleOutputUtils::bootstrapOutput(new BufferedOutput);
 
         $this->assertSame(['status' => 'accepted'], $this->body('posts.emptyResource')['data']);
+    }
+
+    #[Test]
+    public function aSingleResourceIsCachedPerRelationsItLoads(): void
+    {
+        $strategy = new class(new DocumentationConfig(config('scribe'))) extends UseResponseAttributes {
+            public function exampleModel(ExtractedEndpointData $endpoint, ResponseFromApiResource $attribute): mixed
+            {
+                $this->endpointData = $endpoint;
+
+                return $this->exampleModelForApiResource(Post::class, $attribute);
+            }
+        };
+        $endpoint = $this->extract('posts.show');
+
+        $plain = $strategy->exampleModel($endpoint, new ResponseFromApiResource(PostResource::class, Post::class));
+        $withAuthor = $strategy->exampleModel($endpoint, new ResponseFromApiResource(PostResource::class, Post::class, with: ['author']));
+        $counted = $strategy->exampleModel($endpoint, new ResponseFromApiResource(PostResource::class, Post::class, withCount: ['tags']));
+
+        $this->assertFalse($plain->relationLoaded('author'));
+        $this->assertTrue($withAuthor->relationLoaded('author'));
+        $this->assertNotNull($counted->tags_count);
+        $this->assertSame($plain, $strategy->exampleModel($endpoint, new ResponseFromApiResource(PostResource::class, Post::class)));
     }
 
     #[Test]
