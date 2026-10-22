@@ -9,7 +9,9 @@ use Hypervel\Context\RequestContext;
 use Hypervel\Http\JsonResponse;
 use Hypervel\Http\Request;
 use Hypervel\Http\Resources\Json\JsonResource;
+use Hypervel\Support\Facades\Artisan;
 use Ipsocode\Camel\Extraction\ExtractedEndpointData;
+use Ipsocode\Scribe\Commands\GenerateDocumentation;
 use Ipsocode\Scribe\Extracting\Extractor;
 use Ipsocode\Scribe\Extracting\MethodAstParser;
 use Ipsocode\Scribe\Extracting\Shared\ApiResourceResponseTools;
@@ -22,6 +24,7 @@ use Ipsocode\Scribe\Tools\Globals;
 use PhpParser\Node\Stmt\ClassMethod;
 use PHPUnit\Framework\Attributes\Test;
 use ReflectionMethod;
+use ReflectionProperty;
 use RuntimeException;
 use Swoole\Coroutine;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -134,6 +137,33 @@ class CoroutineSafetyTest extends TestCase
 
         CoroutineContext::forget('scribe.coroutine_safety_test');
         $this->assertFalse(CoroutineContext::has('scribe.coroutine_safety_test'));
+    }
+
+    #[Test]
+    public function aSecondGenerateRunInTheSameWorkerFailsFastInsteadOfResettingTheFirst(): void
+    {
+        $second = [];
+        // The hook runs inside the first run, after it has claimed the worker.
+        Scribe::bootstrap(function () use (&$second) {
+            $second = [Artisan::call('scribe:generate'), Artisan::output()];
+
+            throw new RuntimeException('stop the first run here');
+        });
+
+        try {
+            Artisan::call('scribe:generate');
+            $this->fail('The first run should have stopped at the hook.');
+        } catch (RuntimeException $e) {
+            $this->assertSame('stop the first run here', $e->getMessage());
+        }
+
+        $this->assertSame(1, $second[0]);
+        $this->assertStringContainsString('Another scribe:generate run is under way', $second[1]);
+        $this->assertStringContainsString('RegenerateDocumentation', $second[1]);
+
+        // The first run released the worker on its way out.
+        $running = new ReflectionProperty(GenerateDocumentation::class, 'running');
+        $this->assertFalse($running->getValue());
     }
 
     #[Test]

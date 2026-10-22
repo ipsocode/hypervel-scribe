@@ -18,6 +18,7 @@ Class names are relative to `Ipsocode\Scribe`, except `BaseDTO`.
 | `Extracting\RouteDocBlocker` | Parsed docblocks, per route, per class and per method |
 | `Extracting\Shared\UrlParamsNormalizer` | A controller method's type-hinted models |
 | `Extracting\Strategies\UrlParameters\GetFromLaravelAPI` | Each model's example route key, taken from its first row (null for an empty table) |
+| `Commands\GenerateDocumentation` | Whether a run is under way in this worker; a second one fails fast rather than reset the first's state |
 | `Extracting\SeededFaker` | The one Faker generator example values are drawn from |
 | `Ipsocode\Camel\BaseDTO` | Reflected property metadata, per DTO class |
 | `Extracting\Strategies\Responses\UseResponseAttributes` | Example models for single API resources, reused across a path's operations so the `{id}` in the path matches the id in every response body |

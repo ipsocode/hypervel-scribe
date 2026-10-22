@@ -553,6 +553,24 @@ class GenerateDocumentationTest extends DatabaseTestCase
     }
 
     #[Test]
+    public function aWorkerThatHasRenderedTheDocsServesTheNewPageAfterARegeneration(): void
+    {
+        // The view engine stops checking a view's source once it has seen its
+        // compiled copy up to date, so a regeneration has to compile the page.
+        Scribe::afterResponseCall(fn ($request, $endpoint, $response) => $response->setContent('OLD-PAGE-BODY'));
+        $this->generate();
+        $this->assertStringContainsString('OLD-PAGE-BODY', $this->renderedDocs());
+        $this->assertStringContainsString('OLD-PAGE-BODY', $this->renderedDocs());
+
+        Scribe::afterResponseCall(fn ($request, $endpoint, $response) => $response->setContent('NEW-PAGE-BODY'));
+        $this->generate(['--force' => true]);
+
+        $page = $this->renderedDocs();
+        $this->assertStringContainsString('NEW-PAGE-BODY', $page);
+        $this->assertStringNotContainsString('OLD-PAGE-BODY', $page);
+    }
+
+    #[Test]
     public function theBladeViewPrintsBladeSyntaxFromTheApplicationsDataInsteadOfRunningIt(): void
     {
         // The page holds what the application returned (here a response call's

@@ -38,11 +38,30 @@ class GenerateDocumentation extends Command
 
     protected PathConfig $paths;
 
+    /**
+     * Whether a run is under way in this worker. Its state is worker-global,
+     * so a second run starting while the first yields would reset it.
+     */
+    protected static bool $running = false;
+
+    public static function flushState(): void
+    {
+        static::$running = false;
+    }
+
     public function handle(RouteMatcherInterface $routeMatcher, GroupedEndpointsFactory $groupedEndpointsFactory): int
     {
+        // Checked and set with no yield in between, so two coroutines cannot both pass.
+        if (static::$running) {
+            $this->error('Another scribe:generate run is under way in this worker, and its state is shared. Dispatch Ipsocode\Scribe\Jobs\RegenerateDocumentation instead, which runs one at a time.');
+
+            return self::FAILURE;
+        }
+
         // Run in-process (Artisan::call from a job, a schedule or a request), the
         // command shares a worker whose statics outlive it, so it starts clean.
         RunState::flush();
+        static::$running = true;
 
         try {
             $this->bootstrap();
