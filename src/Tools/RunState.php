@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ipsocode\Scribe\Tools;
 
 use Ipsocode\Camel\BaseDTO;
+use Ipsocode\Scribe\Commands\GenerateDocumentation;
 use Ipsocode\Scribe\Extracting\Extractor;
 use Ipsocode\Scribe\Extracting\MethodAstParser;
 use Ipsocode\Scribe\Extracting\RouteDocBlocker;
@@ -47,5 +48,6 @@ final class RunState
         GetFromFormRequestBase::flushState();
         GetFromInlineValidatorBase::flushState();
         GetFromLaravelAPI::flushState();
+        GenerateDocumentation::flushState();
     }
 }

@@ -310,7 +310,13 @@ class Writer
             ], $contents);
         }
 
-        file_put_contents("{$this->hypervelTypeOutputPath}/index.blade.php", $this->wrapInNowdoc($contents, $marker, $urls));
+        $view = "{$this->hypervelTypeOutputPath}/index.blade.php";
+        file_put_contents($view, $this->wrapInNowdoc($contents, $marker, $urls));
+
+        // A worker that has rendered the page once stops checking whether its
+        // compiled copy is stale, so compile the new one now: every worker
+        // includes the compiled file again on each render.
+        app('blade.compiler')->compile($view);
     }
 
     /**

@@ -88,9 +88,8 @@ publish tags `scribe-*`, env vars `SCRIBE_*` and `config/scribe.php`. Each
 violation is reported on its line. This package's settings are
 `.github/conventions.php`: the exceptions are exact, reasoned entries in its `allowed` list,
 `'<path>' => [<exact number of hits>, '<why>']`. They cover the code-coverage
-guards whose comments say why the suite cannot reach them, and the two
-`shell_exec()` calls behind the `last_updated` setting's `{git:short}` and
-`{git:long}` tokens. The check fails once a count stops matching either way.
+guards whose comments say why the suite cannot reach them. The check fails
+once a count stops matching either way.
 
 The automated review also runs `.github/scripts/review-scan.sh`, which flags what
 a diff adds or removes. To see what it will flag on your branch:

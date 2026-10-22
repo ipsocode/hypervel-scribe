@@ -96,6 +96,13 @@ Spreading the routes over coroutines with `Hypervel\Coroutine\parallel()` or
   in route order: the model factories' Faker is seeded once per run and its
   sequence advances from one model to the next.
 
+An in-process run shares one more thing with its worker: `ResponseCalls` sets its
+`config` overrides (by default `app.debug => false`) with the worker-global
+`Config::set()` and restores them afterwards. While a response call yields on
+I/O, every other request and job coroutine in the worker sees the overrides.
+Run `scribe:generate` in a worker of its own, or through the job on a queue
+worker that serves nothing else, if that matters.
+
 Response calls do run one child coroutine each, through
 `Hypervel\Coroutine\Waiter`. That is for isolation and a timeout, not for
 concurrency: the parent waits for each call before it moves on. See
