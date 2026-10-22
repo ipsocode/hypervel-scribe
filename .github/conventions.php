@@ -39,7 +39,7 @@ return [
             'src/GroupedEndpoints/GroupedEndpointsFromApp.php' => [4, 'two guards the route helpers leave nothing to catch: getRouteClassAndMethodNames() returns a usable pair or throws, and isValidRoute() has already thrown on a short one'],
             'src/ScribeServiceProvider.php' => [2, 'the Str alias fallback, which fires only in an application that dropped the alias from config/app.php'],
             'src/Tools/ErrorHandlingUtils.php' => [2, 'the fallback for an application without Whoops, which the suite always has as a dev dependency'],
-            'src/Writing/OpenApiSpecGenerators/BaseGenerator.php' => [2, "json_decode()'s default arm: every type it returns is handled above it, and a null decode has already returned"],
+            'src/Writing/OpenApiSpecGenerators/SchemaBuilder.php' => [2, "json_decode()'s default arm: every type it returns is handled above it, and a null decode has already returned"],
         ],
         'shell' => [
             'src/Writing/HtmlWriter.php' => [2, "last_updated's {git:short} and {git:long} tokens run git rev-parse while the docs are generated, in an artisan command, never on a request path"],
