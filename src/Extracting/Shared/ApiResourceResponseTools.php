@@ -15,8 +15,8 @@ use Hypervel\Pagination\LengthAwarePaginator;
 use Hypervel\Pagination\Paginator;
 use Hypervel\Support\Arr;
 use Ipsocode\Camel\Extraction\ExtractedEndpointData;
+use Ipsocode\Scribe\Extracting\DocBlocks\DocBlockTag;
 use Ipsocode\Scribe\Extracting\RouteDocBlocker;
-use Ipsocode\Scribe\Reflection\DocBlock\Tag;
 use Ipsocode\Scribe\Tools\ErrorHandlingUtils as e;
 use Ipsocode\Scribe\Tools\Utils;
 
@@ -143,7 +143,7 @@ class ApiResourceResponseTools
     {
         $docBlock = RouteDocBlocker::forClass($apiResourceClass);
 
-        /** @var null|Tag $mixinTag */
+        /** @var null|DocBlockTag $mixinTag */
         $mixinTag = Arr::first(Utils::filterDocBlockTags($docBlock->getTags(), 'mixin'));
         if (empty($mixinTag) || empty($modelClass = mb_trim($mixinTag->getContent()))) {
             return null;

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Ipsocode\Scribe\Tests\Unit\Tools;
 
 use Hypervel\Foundation\Testing\Attributes\UnitTest;
-use Ipsocode\Scribe\Reflection\DocBlock;
+use Ipsocode\Scribe\Extracting\DocBlocks\ParsedDocBlock;
 use Ipsocode\Scribe\Tests\Unit\TestCase;
 use Ipsocode\Scribe\Tools\Utils;
 use PHPUnit\Framework\Attributes\Test;
@@ -101,7 +101,7 @@ class UtilsTest extends TestCase
     #[Test]
     public function filtersDocblockTagsCaseInsensitively(): void
     {
-        $tags = (new DocBlock("/**\n * @group Things\n * @QueryParam page\n * @queryParam per_page\n */"))->getTags();
+        $tags = (new ParsedDocBlock("/**\n * @group Things\n * @QueryParam page\n * @queryParam per_page\n */"))->getTags();
 
         $queryParamTags = Utils::filterDocBlockTags($tags, 'queryparam');
 

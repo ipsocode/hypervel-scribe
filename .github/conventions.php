@@ -15,9 +15,8 @@ return [
     // tags, SCRIBE_* env vars and config/scribe.php.
     'slug' => 'scribe',
 
-    // Paths under the package root that no rule governs. src/Reflection is
-    // re-namespaced third-party code, kept as its authors wrote it.
-    'excluded' => ['src/Reflection'],
+    // Paths under the package root that no rule governs.
+    'excluded' => [],
 
     // Namespaces banned on top of Illuminate\ and Laravel\, each with what to use
     // instead.
@@ -26,9 +25,8 @@ return [
     // Function-name prefixes banned in shipped code, each with what to use instead.
     'banned_functions' => [],
 
-    // Paths phpunit.xml's <source> may leave out of the coverage gate: the same
-    // third-party src/Reflection.
-    'coverage_excludes' => ['src/Reflection'],
+    // Paths phpunit.xml's <source> may leave out of the coverage gate.
+    'coverage_excludes' => [],
 
     // The exceptions, per rule: '<path>' => [<exact number of hits>, '<why>']. The
     // check fails as soon as a count stops matching, either way. Each reason is the

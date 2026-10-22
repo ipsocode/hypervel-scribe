@@ -8,11 +8,11 @@ use Exception;
 use Hypervel\Support\Arr;
 use Ipsocode\Camel\Extraction\ExtractedEndpointData;
 use Ipsocode\Scribe\Extracting\DatabaseTransactionHelpers;
+use Ipsocode\Scribe\Extracting\DocBlocks\DocBlockTag;
 use Ipsocode\Scribe\Extracting\InstantiatesExampleModels;
 use Ipsocode\Scribe\Extracting\RouteDocBlocker;
 use Ipsocode\Scribe\Extracting\Shared\TransformerResponseTools;
 use Ipsocode\Scribe\Extracting\Strategies\Strategy;
-use Ipsocode\Scribe\Reflection\DocBlock\Tag;
 use Ipsocode\Scribe\Tools\AnnotationParser as a;
 use Ipsocode\Scribe\Tools\Utils;
 use ReflectionClass;
@@ -36,9 +36,9 @@ class UseTransformerTags extends Strategy
     /**
      * Get a response from the @transformer/@transformerCollection and @transformerModel tags.
      *
-     * @param Tag[] $allTags
+     * @param DocBlockTag[] $allTags
      */
-    public function getTransformerResponseFromTag(Tag $transformerTag, array $allTags): ?array
+    public function getTransformerResponseFromTag(DocBlockTag $transformerTag, array $allTags): ?array
     {
         [$statusCode, $transformerClass, $isCollection] = $this->getStatusCodeAndTransformerClass($transformerTag);
         [$model, $factoryStates, $relations, $resourceKey] = $this->getClassToBeTransformed($allTags);
@@ -75,7 +75,7 @@ class UseTransformerTags extends Strategy
         return $this->getTransformerResponseFromTag($transformerTag, $tags);
     }
 
-    private function getStatusCodeAndTransformerClass(Tag $tag): array
+    private function getStatusCodeAndTransformerClass(DocBlockTag $tag): array
     {
         preg_match('/^(\d{3})?\s?([\s\S]*)$/', $tag->getContent(), $result);
         $status = (int) ($result[1] ?: 200);
@@ -106,7 +106,7 @@ class UseTransformerTags extends Strategy
         return [$type, $states, $relations, $resourceKey];
     }
 
-    private function getTransformerTag(array $tags): ?Tag
+    private function getTransformerTag(array $tags): ?DocBlockTag
     {
         return Arr::first(Utils::filterDocBlockTags($tags, 'transformer', 'transformercollection'));
     }
@@ -116,7 +116,7 @@ class UseTransformerTags extends Strategy
      * `@transformerPaginator App\Transformers\HypervelPaginatorAdapter 15`. The
      * adapter wraps a Hypervel paginator, so Fractal's bundled one does not fit.
      *
-     * @param Tag[] $tags
+     * @param DocBlockTag[] $tags
      */
     private function getTransformerPaginatorData(array $tags): array
     {
