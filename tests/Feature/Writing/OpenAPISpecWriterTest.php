@@ -8,10 +8,12 @@ use Ipsocode\Camel\Output\OutputEndpointData;
 use Ipsocode\Scribe\Tests\CreatesMockEndpoints;
 use Ipsocode\Scribe\Tests\TestCase;
 use Ipsocode\Scribe\Tools\DocumentationConfig;
+use Ipsocode\Scribe\Writing\OpenApiSpecGenerators\BaseGenerator;
 use Ipsocode\Scribe\Writing\OpenApiSpecGenerators\OpenApiGenerator;
 use Ipsocode\Scribe\Writing\OpenAPISpecWriter;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
+use stdClass;
 
 class OpenAPISpecWriterTest extends TestCase
 {
@@ -1113,6 +1115,45 @@ class OpenAPISpecWriterTest extends TestCase
         $this->assertSame('users.list', $spec['paths']['/users']['get']['x-internal-id']);
         // The sections it did not implement are untouched rather than emptied.
         $this->assertSame($this->config['title'], $spec['info']['title']);
+    }
+
+    #[Test]
+    public function aCustomGeneratorKeepsTheOverridableBaseGeneratorMethods(): void
+    {
+        $generator = new MarkingNullableGenerator(new DocumentationConfig($this->config));
+
+        // The schemas BaseGenerator builds honour what the subclass overrides...
+        $schema = $generator->generateFieldData(['name' => 'a', 'type' => 'string', 'nullable' => true]);
+        $this->assertSame('maybe', $schema['x-nullable']);
+
+        // ...and the helpers it hands to subclasses still work.
+        $this->assertEquals(new stdClass, $generator->emptyAsObject([]));
+        $this->assertSame(['a' => 1], $generator->emptyAsObject(['a' => 1]));
+        $this->assertSame('number', $generator->openApiType('double'));
+        $this->assertSame([], $generator->filterRequiredResponseFields($this->createMockEndpointData(), ['a']));
+    }
+}
+
+/**
+ * A BaseGenerator that marks nullable schemas its own way.
+ */
+class MarkingNullableGenerator extends BaseGenerator
+{
+    protected function applyNullable(array &$schema, bool $nullable): void
+    {
+        if ($nullable) {
+            $schema['x-nullable'] = 'maybe';
+        }
+    }
+
+    public function emptyAsObject(array $field): array|stdClass
+    {
+        return $this->objectIfEmpty($field);
+    }
+
+    public function openApiType(mixed $type): mixed
+    {
+        return $this->convertScribeOrPHPTypeToOpenAPIType($type);
     }
 }
 
