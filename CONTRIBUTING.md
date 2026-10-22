@@ -93,8 +93,7 @@ guards whose comments say why the suite cannot reach them, and the two
 `{git:long}` tokens. The check fails once a count stops matching either way.
 
 The automated review also runs `.github/scripts/review-scan.sh`, which flags what
-a diff adds or removes (`.github/review/scan-skip` lists what it leaves
-alone). To see what it will flag on your branch:
+a diff adds or removes. To see what it will flag on your branch:
 `git diff origin/main...HEAD | bash .github/scripts/review-scan.sh`. The
 review's instructions are the `pr-review` skill,
 `.github/claude/skills/pr-review/SKILL.md`: ask Claude Code to follow it on your

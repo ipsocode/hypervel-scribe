@@ -84,7 +84,6 @@ test-state registrar. Its `flushState()` resets everything:
 ```php
 RunState::flush();
 Globals::flushState();
-Tag::flushState();
 ```
 
 A test has to shed what an application sets at boot as well as what a run

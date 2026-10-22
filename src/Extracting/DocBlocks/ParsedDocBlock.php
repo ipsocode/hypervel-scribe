@@ -11,9 +11,9 @@ use phpDocumentor\Reflection\DocBlockFactory;
  * A docblock reduced to what Scribe reads: its summary, its description and
  * its tags as a name and the raw text that follows it.
  *
- * The parsing is phpDocumentor's. Tags are not interpreted beyond that, so a
- * `@response` body or a `@bodyParam` line reaches the strategies exactly as
- * written.
+ * phpDocumentor splits the docblock up. Nothing in it is interpreted beyond
+ * that ({@see RawTagFactory}, {@see RawDescriptionFactory}), so a `@response`
+ * body or a `@bodyParam` line reaches the strategies exactly as written.
  */
 class ParsedDocBlock
 {
@@ -32,7 +32,8 @@ class ParsedDocBlock
             return;
         }
 
-        $docBlock = DocBlockFactory::createInstance()->create($docComment);
+        $tagFactory = new RawTagFactory;
+        $docBlock = (new DocBlockFactory(new RawDescriptionFactory($tagFactory), $tagFactory))->create($docComment);
 
         $this->summary = $docBlock->getSummary();
         $this->description = (string) $docBlock->getDescription();

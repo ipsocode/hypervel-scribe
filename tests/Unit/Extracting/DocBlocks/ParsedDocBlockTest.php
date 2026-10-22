@@ -58,4 +58,37 @@ class ParsedDocBlockTest extends TestCase
             ['mixin', '\App\Models\User', '\App\Models\User'],
         ], $tags);
     }
+
+    #[UnitTest]
+    #[Test]
+    public function keepsTagsAndDescriptionsAsWritten(): void
+    {
+        $docBlock = new ParsedDocBlock(<<<'DOC'
+            /**
+             * Lists {} at 50%.
+             *
+             * Returns {} or {@link https://example.com}, 10% of the time.
+             *
+             * @response {}
+             * @response 200 {"data": {}, "rate": "5%"}
+             * @bodyParam meta object Example: {@see nothing}
+             * @see Something
+             * @mixin User
+             * @method foo bar
+             */
+            DOC);
+
+        $tags = array_map(fn ($tag) => [$tag->getName(), $tag->getContent()], $docBlock->getTags());
+
+        $this->assertSame('Lists {} at 50%.', $docBlock->getShortDescription());
+        $this->assertSame('Returns {} or {@link https://example.com}, 10% of the time.', $docBlock->getLongDescription());
+        $this->assertSame([
+            ['response', '{}'],
+            ['response', '200 {"data": {}, "rate": "5%"}'],
+            ['bodyParam', 'meta object Example: {@see nothing}'],
+            ['see', 'Something'],
+            ['mixin', 'User'],
+            ['method', 'foo bar'],
+        ], $tags);
+    }
 }
