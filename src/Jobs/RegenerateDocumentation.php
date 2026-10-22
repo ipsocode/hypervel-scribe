@@ -30,6 +30,18 @@ class RegenerateDocumentation implements ShouldQueue
      */
     public int $maxExceptions = 1;
 
+    /**
+     * Seconds the lock is held, in case a worker dies holding it.
+     */
+    public const LOCK_EXPIRES_AFTER = 30 * 60;
+
+    /**
+     * A full extraction can take minutes and one response call alone up to a
+     * minute, so the worker's default `--timeout` of 60 seconds would kill the
+     * worker mid-run and leave the lock held. Never longer than the lock.
+     */
+    public int $timeout = self::LOCK_EXPIRES_AFTER;
+
     public function __construct(
         public string $config = 'scribe',
         public bool $force = false,
@@ -49,7 +61,7 @@ class RegenerateDocumentation implements ShouldQueue
         // there it is dropped. The lock expires on its own in case a worker
         // dies holding it.
         return [
-            (new WithoutOverlapping)->releaseAfter(60)->expireAfter(30 * 60),
+            (new WithoutOverlapping)->releaseAfter(60)->expireAfter(self::LOCK_EXPIRES_AFTER),
         ];
     }
 
