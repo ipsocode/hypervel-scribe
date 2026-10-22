@@ -86,15 +86,13 @@ holds the names this package writes where the application writes too: context
 keys `__scribe.*`, cache and lock keys `scribe:*`, commands `scribe:<verb>`,
 publish tags `scribe-*`, env vars `SCRIBE_*` and `config/scribe.php`. Each
 violation is reported on its line. This package's settings are
-`.github/conventions.php`: `src/Reflection` is out of its reach, and the
-exceptions are exact, reasoned entries in its `allowed` list,
+`.github/conventions.php`: the exceptions are exact, reasoned entries in its `allowed` list,
 `'<path>' => [<exact number of hits>, '<why>']`. They cover the code-coverage
 guards whose comments say why the suite cannot reach them. The check fails
 once a count stops matching either way.
 
 The automated review also runs `.github/scripts/review-scan.sh`, which flags what
-a diff adds or removes, leaving `src/Reflection/` alone
-(`.github/review/scan-skip`). To see what it will flag on your branch:
+a diff adds or removes. To see what it will flag on your branch:
 `git diff origin/main...HEAD | bash .github/scripts/review-scan.sh`. The
 review's instructions are the `pr-review` skill,
 `.github/claude/skills/pr-review/SKILL.md`: ask Claude Code to follow it on your
@@ -146,8 +144,6 @@ not exempt. Every change is held to these rules:
   commands return an exit code.
 - Hypervel APIs only, never `Illuminate\*`. Tests reach the container with
   `$app->get(...)`, never array access.
-- `src/Reflection/` is vendored third-party code: leave it alone unless the
-  change is about it.
 - New behaviour comes with a test. `@codeCoverageIgnore` is not a way past the
   coverage gate.
 

@@ -69,7 +69,7 @@ The source is
 The package keeps its caches and the `Scribe::` hooks in worker-lifetime static
 properties, which would otherwise carry from one test into the next.
 [`Ipsocode\Scribe\Testing\TestState`](../src/Testing/TestState.php) resets them
-after every test: the per-run caches, the hooks and the docblock tag handlers.
+after every test: the per-run caches and the hooks.
 
 It is registered through `extra.hypervel.test-state` in the package's
 `composer.json`, so an application's suite picks it up without any code,

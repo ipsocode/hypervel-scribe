@@ -15,9 +15,8 @@ return [
     // tags, SCRIBE_* env vars and config/scribe.php.
     'slug' => 'scribe',
 
-    // Paths under the package root that no rule governs. src/Reflection is
-    // re-namespaced third-party code, kept as its authors wrote it.
-    'excluded' => ['src/Reflection'],
+    // Paths under the package root that no rule governs.
+    'excluded' => [],
 
     // Namespaces banned on top of Illuminate\ and Laravel\, each with what to use
     // instead.
@@ -26,9 +25,8 @@ return [
     // Function-name prefixes banned in shipped code, each with what to use instead.
     'banned_functions' => [],
 
-    // Paths phpunit.xml's <source> may leave out of the coverage gate: the same
-    // third-party src/Reflection.
-    'coverage_excludes' => ['src/Reflection'],
+    // Paths phpunit.xml's <source> may leave out of the coverage gate.
+    'coverage_excludes' => [],
 
     // The exceptions, per rule: '<path>' => [<exact number of hits>, '<why>']. The
     // check fails as soon as a count stops matching, either way. Each reason is the
@@ -39,7 +37,7 @@ return [
             'src/GroupedEndpoints/GroupedEndpointsFromApp.php' => [4, 'two guards the route helpers leave nothing to catch: getRouteClassAndMethodNames() returns a usable pair or throws, and isValidRoute() has already thrown on a short one'],
             'src/ScribeServiceProvider.php' => [2, 'the Str alias fallback, which fires only in an application that dropped the alias from config/app.php'],
             'src/Tools/ErrorHandlingUtils.php' => [2, 'the fallback for an application without Whoops, which the suite always has as a dev dependency'],
-            'src/Writing/OpenApiSpecGenerators/BaseGenerator.php' => [2, "json_decode()'s default arm: every type it returns is handled above it, and a null decode has already returned"],
+            'src/Writing/OpenApiSpecGenerators/SchemaBuilder.php' => [2, "json_decode()'s default arm: every type it returns is handled above it, and a null decode has already returned"],
         ],
     ],
 ];

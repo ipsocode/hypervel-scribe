@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Ipsocode\Scribe\Extracting\Strategies\Responses;
 
 use Ipsocode\Camel\Extraction\ExtractedEndpointData;
+use Ipsocode\Scribe\Extracting\DocBlocks\DocBlockTag;
 use Ipsocode\Scribe\Extracting\RouteDocBlocker;
 use Ipsocode\Scribe\Extracting\Shared\ResponseFileTools;
 use Ipsocode\Scribe\Extracting\Strategies\Strategy;
-use Ipsocode\Scribe\Reflection\DocBlock\Tag;
 use Ipsocode\Scribe\Tools\AnnotationParser as a;
 use Ipsocode\Scribe\Tools\Utils;
 
@@ -25,7 +25,7 @@ class UseResponseFileTag extends Strategy
     }
 
     /**
-     * @param Tag[] $tags
+     * @param DocBlockTag[] $tags
      */
     public function getFileResponses(array $tags): ?array
     {
@@ -35,7 +35,7 @@ class UseResponseFileTag extends Strategy
             return null;
         }
 
-        return array_map(function (Tag $responseFileTag) {
+        return array_map(function (DocBlockTag $responseFileTag) {
             preg_match('/^(\d{3})?\s*(.*?)({.*})?$/', $responseFileTag->getContent(), $result);
             [$_, $status, $mainContent] = $result;
             $json = $result[3] ?? null;
