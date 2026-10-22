@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Ipsocode\Scribe\Testing;
 
 use Hypervel\Testing\PHPUnit\AfterEachTestCleanup;
-use Ipsocode\Scribe\Reflection\DocBlock\Tag;
 use Ipsocode\Scribe\Tools\Globals;
 use Ipsocode\Scribe\Tools\RunState;
 
@@ -25,13 +24,11 @@ class TestState
 
     /**
      * Resets the per-run caches ({@see RunState}) plus the configuration a run
-     * leaves alone: the hooks registered through the `Scribe` class and the
-     * docblock tag handlers.
+     * leaves alone: the hooks registered through the `Scribe` class.
      */
     public static function flushState(): void
     {
         RunState::flush();
         Globals::flushState();
-        Tag::flushState();
     }
 }

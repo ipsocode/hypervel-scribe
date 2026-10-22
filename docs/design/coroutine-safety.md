@@ -67,8 +67,6 @@ holds one has a `flushState()`. There are two kinds.
 **Configuration an application sets at boot**:
 
 - the `Scribe::` hooks, stored in `Tools\Globals`
-- the docblock tag handlers, registered with
-  `Ipsocode\Scribe\Reflection\DocBlock\Tag::registerTagHandler()`
 
 `Tools\RunState::flush()` clears the first kind, and `scribe:generate` calls it
 on the way in and on the way out. It leaves the second kind alone.

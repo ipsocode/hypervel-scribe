@@ -35,11 +35,6 @@ parameters:
     paths:
         - src
 
-    # Re-namespaced third-party code (mpociot/reflection-docblock). phpunit.xml already
-    # excludes it from coverage for the same reason: it is vendored, not authored here.
-    excludePaths:
-        - src/Reflection
-
     # The first of two deliberate divergences from components, which turns this off because
     # its global patterns belong to many packages and a run over a subset of them would
     # report the rest as unmatched. Nothing here is shared that way, so an ignore whose

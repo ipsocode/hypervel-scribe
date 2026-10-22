@@ -6,7 +6,7 @@ namespace Ipsocode\Scribe\Extracting;
 
 use Exception;
 use Hypervel\Routing\Route;
-use Ipsocode\Scribe\Reflection\DocBlock;
+use Ipsocode\Scribe\Extracting\DocBlocks\ParsedDocBlock;
 use Ipsocode\Scribe\Tools\ConsoleOutputUtils as c;
 use Ipsocode\Scribe\Tools\Utils as u;
 use ReflectionClass;
@@ -26,17 +26,17 @@ class RouteDocBlocker
     protected static array $docBlocks = [];
 
     /**
-     * @var array<string, DocBlock> keyed by class name
+     * @var array<string, ParsedDocBlock> keyed by class name
      */
     protected static array $classDocBlocks = [];
 
     /**
-     * @var array<string, DocBlock> keyed by declaring class and method name
+     * @var array<string, ParsedDocBlock> keyed by declaring class and method name
      */
     protected static array $methodDocBlocks = [];
 
     /**
-     * @return array{method: DocBlock, class: ?DocBlock} Method and class docblocks
+     * @return array{method: ParsedDocBlock, class: ?ParsedDocBlock} Method and class docblocks
      */
     public static function getDocBlocksFromRoute(Route $route): array
     {
@@ -48,7 +48,7 @@ class RouteDocBlocker
     /**
      * @param mixed $className a class name or handler instance, or a [class, method] pair
      * @param null|mixed $methodName the method name, unless $className is a pair
-     * @return array{method: DocBlock, class: DocBlock} Method and class docblocks
+     * @return array{method: ParsedDocBlock, class: ParsedDocBlock} Method and class docblocks
      */
     public static function getDocBlocks(Route $route, $className, $methodName = null): array
     {
@@ -90,12 +90,12 @@ class RouteDocBlocker
      *
      * @param class-string|object|ReflectionClass $class
      */
-    public static function forClass(object|string $class): DocBlock
+    public static function forClass(object|string $class): ParsedDocBlock
     {
         $reflection = $class instanceof ReflectionClass ? $class : new ReflectionClass($class);
 
         return self::$classDocBlocks[$reflection->getName()]
-            ??= new DocBlock($reflection->getDocComment() ?: '');
+            ??= new ParsedDocBlock($reflection->getDocComment() ?: '');
     }
 
     /**
@@ -104,14 +104,14 @@ class RouteDocBlocker
      * A closure has no name to key a cache on, and closure routes are rare, so
      * a function's docblock is parsed on every call.
      */
-    public static function forMethod(ReflectionFunctionAbstract $method): DocBlock
+    public static function forMethod(ReflectionFunctionAbstract $method): ParsedDocBlock
     {
         if (! $method instanceof ReflectionMethod) {
-            return new DocBlock($method->getDocComment() ?: '');
+            return new ParsedDocBlock($method->getDocComment() ?: '');
         }
 
         return self::$methodDocBlocks[$method->class . '::' . $method->getName()]
-            ??= new DocBlock($method->getDocComment() ?: '');
+            ??= new ParsedDocBlock($method->getDocComment() ?: '');
     }
 
     /**
