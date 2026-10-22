@@ -249,9 +249,9 @@ class GetFromLaravelAPI extends Strategy
         $className = str_replace(['-', '_', ' '], '', Str::title($urlThing));
         $rootNamespace = app()->getNamespace();
 
-        if (class_exists($class = "{$rootNamespace}Models\\" . $className, autoload: false)
+        if (class_exists($class = "{$rootNamespace}Models\\" . $className)
             // Or directly under the root namespace, for apps without a Models directory.
-            || class_exists($class = $rootNamespace . $className, autoload: false)) {
+            || class_exists($class = $rootNamespace . $className)) {
             try {
                 $instance = new $class;
             } catch (Error) { // An enum or another class that can't be instantiated.

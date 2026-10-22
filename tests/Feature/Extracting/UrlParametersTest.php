@@ -49,6 +49,8 @@ class UrlParametersTest extends DatabaseTestCase
             ->name('params.constrained');
         $router->get('api/params/widgets/{id}', [UrlParamsController::class, 'namedAfterItsThing'])
             ->name('params.widget');
+        $router->get('api/params/sprockets/{id}', [UrlParamsController::class, 'namedAfterItsThing'])
+            ->name('params.sprocket');
         $router->get('api/params/gizmos/{id}', [UrlParamsController::class, 'namedAfterItsThing'])
             ->name('params.gizmo');
         $router->get('api/params/slugs/{post:slug}', [UrlParamsController::class, 'boundModel'])
@@ -287,6 +289,26 @@ class UrlParametersTest extends DatabaseTestCase
     }
 
     #[Test]
+    public function aModelThatIsNotLoadedYetIsStillFoundFromTheUrl(): void
+    {
+        // `App\Models\Sprocket` only comes into existence when the autoloader
+        // is asked for it, so finding it must not depend on what loaded first.
+        $this->assertFalse(class_exists('App\Models\Sprocket', autoload: false));
+        $autoloader = static function (string $class): void {
+            if ($class === 'App\Models\Sprocket') {
+                class_alias(Sprocket::class, $class);
+            }
+        };
+        spl_autoload_register($autoloader);
+
+        try {
+            $this->assertSame('integer', $this->extract('params.sprocket')->urlParameters['id']->type);
+        } finally {
+            spl_autoload_unregister($autoloader);
+        }
+    }
+
+    #[Test]
     public function aUrlThingThatNamesSomethingUninstantiableIsIgnored(): void
     {
         // `App\Models\Gizmo` is an enum, so `new` on it raises an Error rather
@@ -321,6 +343,11 @@ class Author extends Model
 enum Gizmo: string
 {
     case One = 'one';
+}
+
+class Sprocket extends Model
+{
+    protected ?string $table = 'sprockets';
 }
 
 class_alias(Widget::class, 'App\Models\Widget');

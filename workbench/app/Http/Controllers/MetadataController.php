@@ -41,6 +41,16 @@ class MetadataController extends Controller
     }
 
     /**
+     * Fetch the capitalised things.
+     *
+     * @Group Capitalised group
+     */
+    public function capitalisedGroup(): array
+    {
+        return [];
+    }
+
+    /**
      * Explicitly public.
      *
      * @unauthenticated

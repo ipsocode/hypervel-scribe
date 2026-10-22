@@ -245,7 +245,8 @@ class GroupedEndpointsFromApp implements GroupedEndpointsContract
 
         $changed = [];
         foreach ($properties as $property) {
-            if ($thisEndpointCached[$property] !== $thisEndpointLatest[$property]) {
+            // A section the user deleted from the file reads as absent, not as an error.
+            if (($thisEndpointCached[$property] ?? null) !== ($thisEndpointLatest[$property] ?? null)) {
                 $changed[] = $property;
             }
         }
