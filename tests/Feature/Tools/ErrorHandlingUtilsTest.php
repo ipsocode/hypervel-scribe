@@ -46,6 +46,22 @@ class ErrorHandlingUtilsTest extends TestCase
     }
 
     #[Test]
+    public function withoutVerboseItNamesTheLineTheExceptionWasThrownOn(): void
+    {
+        try {
+            $thrownOn = __LINE__ + 1;
+            throw new RuntimeException('something broke');
+        } catch (RuntimeException $e) {
+            ErrorHandlingUtils::dumpExceptionIfVerbose($e);
+        }
+
+        $this->assertStringContainsString(
+            RuntimeException::class . ' in ' . __FILE__ . " at line {$thrownOn}: something broke",
+            $this->output->fetch(),
+        );
+    }
+
+    #[Test]
     public function withVerboseItDumpsTheWholeTrace(): void
     {
         Globals::$shouldBeVerbose = true;

@@ -59,14 +59,14 @@ trait ConvertsValidationRules
                     // Type rules. Only `file` adds a description.
                 case 'bool':
                 case 'boolean':
-                    $parameterData['setter'] = function () {
+                    $parameterData['setter'] = $parameterData['typeSetter'] = function () {
                         return $this->getFaker()->randomElement([true, false]);
                     };
                     $parameterData['type'] = 'boolean';
 
                     break;
                 case 'string':
-                    $parameterData['setter'] = function () use ($parameterData) {
+                    $parameterData['setter'] = $parameterData['typeSetter'] = function () use ($parameterData) {
                         return $this->generateDummyValue('string', ['name' => $parameterData['name']]);
                     };
                     $parameterData['type'] = 'string';
@@ -74,21 +74,21 @@ trait ConvertsValidationRules
                     break;
                 case 'int':
                 case 'integer':
-                    $parameterData['setter'] = function () {
+                    $parameterData['setter'] = $parameterData['typeSetter'] = function () {
                         return $this->generateDummyValue('integer');
                     };
                     $parameterData['type'] = 'integer';
 
                     break;
                 case 'numeric':
-                    $parameterData['setter'] = function () {
+                    $parameterData['setter'] = $parameterData['typeSetter'] = function () {
                         return $this->generateDummyValue('number');
                     };
                     $parameterData['type'] = 'number';
 
                     break;
                 case 'array':
-                    $parameterData['setter'] = function () {
+                    $parameterData['setter'] = $parameterData['typeSetter'] = function () {
                         return [$this->generateDummyValue('string')];
                     };
                     $parameterData['type'] = 'array'; // normaliseArrayAndObjectParameters() turns this into X[] or object
@@ -211,7 +211,7 @@ trait ConvertsValidationRules
                     break;
                 case 'regex':
                     $parameterData['description'] .= ' ' . $this->getDescription($rule, [':regex' => $ruleArguments[0]]);
-                    $parameterData['setter'] = fn () => $this->getFaker()->regexify($ruleArguments[0]);
+                    $parameterData['setter'] = fn () => $this->getFaker()->regexify($this->stripRegexDelimiters($ruleArguments[0]));
 
                     break;
                     // Special number types.
@@ -234,7 +234,6 @@ trait ConvertsValidationRules
                         [':size' => $ruleArguments[0]],
                         $this->getHypervelValidationBaseTypeMapping($parameterData['type'])
                     );
-                    $parameterData['setter'] = $this->getDummyValueGenerator($parameterData['type'], ['size' => $ruleArguments[0]]);
 
                     break;
                 case 'min':
@@ -243,7 +242,6 @@ trait ConvertsValidationRules
                         [':min' => $ruleArguments[0]],
                         $this->getHypervelValidationBaseTypeMapping($parameterData['type'])
                     );
-                    $parameterData['setter'] = $this->getDummyDataGeneratorBetween($parameterData['type'], (float) $ruleArguments[0], fieldName: $parameterData['name']);
 
                     break;
                 case 'max':
@@ -252,8 +250,6 @@ trait ConvertsValidationRules
                         [':max' => $ruleArguments[0]],
                         $this->getHypervelValidationBaseTypeMapping($parameterData['type'])
                     );
-                    $max = min($ruleArguments[0], 25);
-                    $parameterData['setter'] = $this->getDummyDataGeneratorBetween($parameterData['type'], 1, $max, $parameterData['name']);
 
                     break;
                 case 'between':
@@ -262,8 +258,6 @@ trait ConvertsValidationRules
                         [':min' => $ruleArguments[0], ':max' => $ruleArguments[1]],
                         $this->getHypervelValidationBaseTypeMapping($parameterData['type'])
                     );
-                    // Avoid exponentially complex operations by using the minimum length
-                    $parameterData['setter'] = $this->getDummyDataGeneratorBetween($parameterData['type'], (float) $ruleArguments[0], (float) $ruleArguments[0] + 1, $parameterData['name']);
 
                     break;
                     // Special file types.

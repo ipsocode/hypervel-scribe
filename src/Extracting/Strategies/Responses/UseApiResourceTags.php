@@ -53,16 +53,14 @@ class UseApiResourceTags extends Strategy
 
         $modelInstantiator = fn () => $this->instantiateExampleModel($modelClass, $factoryStates, $relations);
 
-        $this->startDbTransaction();
-        $content = ApiResourceResponseTools::fetch(
+        $content = $this->inDbTransaction(fn () => ApiResourceResponseTools::fetch(
             $apiResourceClass,
             $isCollection,
             $modelInstantiator,
             $endpointData,
             $pagination,
             $additionalData,
-        );
-        $this->endDbTransaction();
+        ));
 
         return [
             [

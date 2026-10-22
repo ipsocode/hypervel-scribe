@@ -88,7 +88,8 @@ trait NormalisesValidationParameters
     {
         $results = [];
         foreach ($parameters as $name => $details) {
-            if (Str::endsWith($name, '.*')) {
+            $isSubfield = Str::endsWith($name, '.*');
+            if ($isSubfield) {
                 // The user might have set the example via bodyParameters()
                 $exampleWasSpecified = $this->examplePresent($details);
 
@@ -106,10 +107,37 @@ trait NormalisesValidationParameters
                 }
             }
 
-            $results[$name] = $details;
+            if (isset($results[$name])) {
+                // 'tags' and 'tags.*' both end up as 'tags': the parent keeps its own rules, description and example.
+                $results[$name] = $isSubfield
+                    ? $this->mergeArrayAndSubfield($results[$name], $details)
+                    : $this->mergeArrayAndSubfield($details, $results[$name]);
+            } else {
+                $results[$name] = $details;
+            }
         }
 
         return $results;
+    }
+
+    /**
+     * @param array<string, mixed> $parent
+     * @param array<string, mixed> $subfield the converted `.*` entry, already typed as a list
+     * @return array<string, mixed>
+     */
+    protected function mergeArrayAndSubfield(array $parent, array $subfield): array
+    {
+        $parent['type'] = $subfield['type'];
+        unset($parent['setter']);
+        if (isset($subfield['setter'])) {
+            $parent['setter'] = $subfield['setter'];
+        }
+
+        if (! $this->examplePresent($parent) && $this->examplePresent($subfield)) {
+            $parent['example'] = $subfield['example'];
+        }
+
+        return $parent;
     }
 
     /**
@@ -129,7 +157,9 @@ trait NormalisesValidationParameters
                 $examples[$details['name']] = $details['example'];
             } elseif (preg_match('/.+\.[^*]+$/', $details['name'])) {
                 // An object field (eg 'data.details.title') takes its example from its parent's, if recorded.
-                [$parentName, $fieldName] = preg_split('/\.(?=[\w-]+$)/', $details['name']);
+                $dot = mb_strrpos($details['name'], '.');
+                $parentName = mb_substr($details['name'], 0, $dot);
+                $fieldName = mb_substr($details['name'], $dot + 1);
                 if (array_key_exists($parentName, $examples) && is_array($examples[$parentName])
                     && array_key_exists($fieldName, $examples[$parentName])) {
                     $examples[$details['name']] = $details['example'] = $examples[$parentName][$fieldName];
@@ -150,6 +180,16 @@ trait NormalisesValidationParameters
      */
     protected function getParameterExample(array $parameterData): mixed
     {
+        // "No-example" hides the example of an optional parameter. A required one still
+        // needs a value for the response call, so it is treated as having no example.
+        if ($parameterData['example'] === 'No-example') {
+            if (! $parameterData['required']) {
+                return null;
+            }
+
+            $parameterData['example'] = self::$MISSING_VALUE;
+        }
+
         // No example was given: use the setter the last processed rule left, or
         // a generated value if the parameter is required.
         if ($parameterData['example'] === self::$MISSING_VALUE) {
@@ -162,10 +202,6 @@ trait NormalisesValidationParameters
                 : null;
         }
         if (! is_null($parameterData['example']) && $parameterData['example'] !== self::$MISSING_VALUE) {
-            if ($parameterData['example'] === 'No-example' && ! $parameterData['required']) {
-                return null;
-            }
-
             // Cast again, since the validator may have turned the value into a string.
             return $this->castToType($parameterData['example'], $parameterData['type']);
         }
