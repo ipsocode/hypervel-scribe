@@ -599,6 +599,22 @@ class GenerateDocumentationTest extends DatabaseTestCase
     }
 
     #[Test]
+    #[WithConfig('scribe.hypervel.assets_directory', '/docs-assets/')]
+    public function aLeadingSlashInTheAssetsDirectoryDoesNotMakeAssetUrlsProtocolRelative(): void
+    {
+        try {
+            $this->generate();
+
+            $this->assertFilenameExists('public/docs-assets/css/theme-default.style.css');
+            $page = $this->renderedDocs();
+            $this->assertStringContainsString(asset('/docs-assets/css/theme-default.style.css'), $page);
+            $this->assertStringNotContainsString('//docs-assets', $page);
+        } finally {
+            File::deleteDirectory($this->app->publicPath('docs-assets'));
+        }
+    }
+
+    #[Test]
     #[WithConfig('scribe.hypervel.assets_directory', 'assets')]
     public function aRunLeavesTheAppsOwnFilesInTheAssetsDirectoryAlone(): void
     {

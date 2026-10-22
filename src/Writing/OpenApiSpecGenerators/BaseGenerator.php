@@ -410,7 +410,7 @@ class BaseGenerator extends OpenApiGenerator
     }
 
     /**
-     * @return array<string, mixed>|stdClass
+     * @return array<int|string, mixed>
      */
     protected function generateEndpointResponsesSpec(OutputEndpointData $endpoint)
     {
@@ -456,7 +456,8 @@ class BaseGenerator extends OpenApiGenerator
             }
         }
 
-        return $this->objectIfEmpty($responses);
+        // OpenAPI requires an operation to have at least one response.
+        return $responses ?: ['default' => ['description' => '']];
     }
 
     protected function getResponseDescription(Response $response): string
