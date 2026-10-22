@@ -27,6 +27,8 @@ class MetadataTest extends DatabaseTestCase
             ->name('meta.groupNoTitle');
         $router->get('api/meta/group-with-title', [MetadataController::class, 'groupWithTitle'])
             ->name('meta.groupWithTitle');
+        $router->get('api/meta/capitalised-group', [MetadataController::class, 'capitalisedGroup'])
+            ->name('meta.capitalisedGroup');
         $router->get('api/meta/unauthenticated', [MetadataController::class, 'unauthenticated'])
             ->name('meta.unauthenticated');
         $router->get('api/meta/deprecated-bare', [MetadataController::class, 'deprecatedBare'])
@@ -49,6 +51,12 @@ class MetadataTest extends DatabaseTestCase
     public function aGroupTagOnTheMethodOverridesTheControllersGroup(): void
     {
         $this->assertSame('Method group', $this->extract('meta.groupWithTitle')->metadata->groupName);
+    }
+
+    #[Test]
+    public function aGroupTagIsReadWhateverItsCase(): void
+    {
+        $this->assertSame('Capitalised group', $this->extract('meta.capitalisedGroup')->metadata->groupName);
     }
 
     #[Test]

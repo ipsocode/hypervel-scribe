@@ -291,6 +291,21 @@ class GenerateDocumentationTest extends DatabaseTestCase
     }
 
     #[Test]
+    public function aSectionDeletedFromTheIntermediateYamlDoesNotBreakTheMerge(): void
+    {
+        $this->generate();
+
+        $file = $this->intermediatePath . '/endpoints/00.yaml';
+        $group = Yaml::parse((string) file_get_contents($file));
+        $uri = $group['endpoints'][0]['uri'];
+        unset($group['endpoints'][0]['responseFields']);
+        file_put_contents($file, Yaml::dump($group, 20, 2));
+
+        $this->assertSame(0, $this->generate());
+        $this->assertArrayHasKey('/' . $uri, $this->openApiSpec()['paths']);
+    }
+
+    #[Test]
     public function forcingDiscardsEditsToTheIntermediateYaml(): void
     {
         $this->generate();
