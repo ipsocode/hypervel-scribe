@@ -255,11 +255,13 @@ class ParamHelpersTest extends TestCase
 
     #[UnitTest]
     #[Test]
-    public function aSizedListStillGeneratesOneItem(): void
+    public function aSizedListHoldsThatManyItems(): void
     {
-        // The size constrains the item, not the list: a `size:3` on `ids.*`
-        // means each id is 3, not that there are three of them.
-        $this->assertCount(1, $this->subject->dummy('string[]', ['size' => 3]));
+        // On a list the size is the item count, as the validator reads it.
+        $example = $this->subject->dummy('string[]', ['size' => 3]);
+
+        $this->assertCount(3, $example);
+        $this->assertContainsOnlyString($example);
     }
 
     #[UnitTest]
@@ -268,8 +270,8 @@ class ParamHelpersTest extends TestCase
     {
         // `digits:5` and `size:5` mean the value itself, so a generated example
         // that ignored them would fail the rule it came from.
-        $this->assertSame(5, $this->subject->dummy('integer', ['size' => 5]));
-        $this->assertSame(5, $this->subject->dummy('number', ['size' => 5]));
+        $this->assertSame(5, $this->subject->dummy('integer', ['size' => 5.0]));
+        $this->assertEquals(5, $this->subject->dummy('number', ['size' => 5]));
     }
 
     #[UnitTest]

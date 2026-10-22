@@ -23,12 +23,19 @@ use ReflectionFunction;
 use ReflectionProperty;
 use stdClass;
 use Throwable;
+use UnitEnum;
 
 trait ParsesValidationRules
 {
     use ParamHelpers;
 
     public static stdClass $MISSING_VALUE;
+
+    /** A `*` segment of a rule key, with the dot before it unless it comes first. */
+    private const WILDCARD_SEGMENT = '/(^|\.)\*(?=\.|$)/';
+
+    /** The `0` that normaliseRules() seeds in place of a `*` segment. */
+    private const SEEDED_SEGMENT = '/(^|\.)0(?=\.|$)/';
 
     /**
      * Resets the using class's own copy of the sentinel. Trait statics are
@@ -112,6 +119,11 @@ trait ParsesValidationRules
                 $firstPassRules = array_filter($rulesAndArguments, fn ($ruleAndArgs) => Str::is($firstPassRuleNames, $ruleAndArgs[0]));
                 foreach ($firstPassRules as $ruleAndArgs) {
                     $this->processRule($ruleAndArgs[0], $ruleAndArgs[1], $parameterData, $validationRulesByParameters);
+                }
+
+                // `sometimes` makes a parameter optional wherever it sits in the ruleset.
+                if ($parameterData['sometimes']) {
+                    $parameterData['required'] = false;
                 }
 
                 $secondPassRules = array_filter($rulesAndArguments, fn ($ruleAndArgs) => ! Str::is($firstPassRuleNames, $ruleAndArgs[0]) && ! in_array($ruleAndArgs[0], $rulesWhichDependOnType));
@@ -355,7 +367,9 @@ trait ParsesValidationRules
                 $examples[$details['name']] = $details['example'];
             } elseif (preg_match('/.+\.[^*]+$/', $details['name'])) {
                 // An object field (eg 'data.details.title') takes its example from its parent's, if recorded.
-                [$parentName, $fieldName] = preg_split('/\.(?=[\w-]+$)/', $details['name']);
+                $dot = mb_strrpos($details['name'], '.');
+                $parentName = mb_substr($details['name'], 0, $dot);
+                $fieldName = mb_substr($details['name'], $dot + 1);
                 if (array_key_exists($parentName, $examples) && is_array($examples[$parentName])
                     && array_key_exists($fieldName, $examples[$parentName])) {
                     $examples[$details['name']] = $details['example'] = $examples[$parentName][$fieldName];
@@ -386,12 +400,12 @@ trait ParsesValidationRules
         // the data, so the test data gets a one-item array for each such key.
         $testData = [];
         foreach ($rules as $key => $ruleset) {
-            if (! Str::contains($key, '.*')) {
+            if (! preg_match(self::WILDCARD_SEGMENT, (string) $key)) {
                 continue;
             }
 
             // Only the key's presence matters, not its value.
-            Arr::set($testData, str_replace('.*', '.0', $key), Str::random());
+            Arr::set($testData, preg_replace(self::WILDCARD_SEGMENT, '${1}0', (string) $key), Str::random());
         }
 
         // The complete ruleset, with '*' in nested array keys replaced by '0'.
@@ -405,9 +419,9 @@ trait ParsesValidationRules
                 $paramName = preg_replace('/__asterisk__[^.]*\b/', '*', $paramName);
             }
 
-            // Turn 'ids.0' back into 'ids.*'
-            if (Str::contains($paramName, '.0')) {
-                $genericArrayKeyName = str_replace('.0', '.*', $paramName);
+            // Turn 'ids.0' (or a top-level '0.name') back into 'ids.*' ('*.name')
+            if (preg_match(self::SEEDED_SEGMENT, (string) $paramName)) {
+                $genericArrayKeyName = preg_replace(self::SEEDED_SEGMENT, '${1}*', (string) $paramName);
 
                 // But only if the original rules used that key
                 if (isset($rules[$genericArrayKeyName])) {
@@ -450,6 +464,40 @@ trait ParsesValidationRules
     }
 
     /**
+     * Applies the rule's `only()` and `except()` lists to an enum's cases; `only()` wins, as in the rule itself.
+     *
+     * @param array<int, UnitEnum> $cases
+     * @return array<int, UnitEnum>
+     */
+    protected function filterEnumCases(Enum $rule, array $cases): array
+    {
+        $only = (new ReflectionProperty(Enum::class, 'only'))->getValue($rule);
+        $except = (new ReflectionProperty(Enum::class, 'except'))->getValue($rule);
+
+        if (! empty($only)) {
+            return array_values(array_filter($cases, fn ($case) => in_array($case, $only, true)));
+        }
+
+        return array_values(array_filter($cases, fn ($case) => ! in_array($case, $except, true)));
+    }
+
+    /**
+     * Takes the delimiters and trailing flags off a `regex:` argument, eg `/^[a-z]{3}$/i` becomes `^[a-z]{3}$`.
+     */
+    protected function stripRegexDelimiters(string $pattern): string
+    {
+        $opening = $pattern[0] ?? '';
+        $closing = ['(' => ')', '[' => ']', '{' => '}', '<' => '>'][$opening] ?? $opening;
+        $end = mb_strrpos($pattern, $closing);
+
+        if ($opening === '' || ctype_alnum($opening) || $end === false || $end === 0) {
+            return $pattern;
+        }
+
+        return mb_substr($pattern, 1, $end - 1);
+    }
+
+    /**
      * @param array<string, mixed> $parameterData
      * @param array<string, mixed> $allParameters
      */
@@ -462,7 +510,11 @@ trait ParsesValidationRules
         if (enum_exists($enumClass) && method_exists($enumClass, 'tryFrom')) {
             // Only a BackedEnum has ->value, and only a BackedEnum has tryFrom().
             // @phpstan-ignore property.notFound (a tryFrom() enum is a BackedEnum, which has ->value)
-            $cases = array_map(fn ($case) => $case->value, $enumClass::cases());
+            $cases = array_map(fn ($case) => $case->value, $this->filterEnumCases($rule, $enumClass::cases()));
+            if ($cases === []) {
+                return;
+            }
+
             $parameterData['type'] = gettype($cases[0]);
             $parameterData['enumValues'] = $cases;
             // Seeded getFaker() keeps the picked example stable across doc runs
@@ -700,7 +752,7 @@ trait ParsesValidationRules
                     break;
                 case 'regex':
                     $parameterData['description'] .= ' ' . $this->getDescription($rule, [':regex' => $ruleArguments[0]]);
-                    $parameterData['setter'] = fn () => $this->getFaker()->regexify($ruleArguments[0]);
+                    $parameterData['setter'] = fn () => $this->getFaker()->regexify($this->stripRegexDelimiters($ruleArguments[0]));
 
                     break;
                     // Special number types.

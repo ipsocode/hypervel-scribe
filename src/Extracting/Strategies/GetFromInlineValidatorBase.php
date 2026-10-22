@@ -110,7 +110,7 @@ class GetFromInlineValidatorBase extends Strategy
 
             $dataFromComment = [];
             $comments = implode("\n", array_map(
-                fn ($comment) => mb_ltrim(mb_ltrim($comment->getReformattedText(), '/')),
+                fn ($comment) => $this->stripCommentSyntax($comment->getReformattedText()),
                 $item->getComments()
             ));
 
@@ -130,6 +130,23 @@ class GetFromInlineValidatorBase extends Strategy
         }
 
         return [$rules, $customParameterData];
+    }
+
+    /**
+     * Takes the comment markers off a comment, line by line: `//` and `#`, the
+     * `/** ... *\/` of a docblock and the `*` that starts each of its lines.
+     */
+    protected function stripCommentSyntax(string $comment): string
+    {
+        $lines = [];
+        foreach (explode("\n", $comment) as $line) {
+            $cleaned = mb_trim(preg_replace(['/\*+\/$/', '/^\/\*+\s*/', '/^\/+\s*/', '/^\*+\s*/', '/^#+\s*/'], '', mb_trim($line)));
+            if ($cleaned !== '') {
+                $lines[] = $cleaned;
+            }
+        }
+
+        return implode("\n", $lines);
     }
 
     protected function extractEnumClassFromArrayItem(Node\ArrayItem $arrayItem): ?string

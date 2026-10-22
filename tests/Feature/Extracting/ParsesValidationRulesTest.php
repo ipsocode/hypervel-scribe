@@ -674,6 +674,106 @@ class ParsesValidationRulesTest extends TestCase
         $this->assertTrue($parameters['tags']['required']);
     }
 
+    #[Test]
+    public function aRegexExampleMatchesThePatternWithoutItsDelimitersOrFlags(): void
+    {
+        foreach (['/^[a-z]{3}$/i', '#^[a-z]{3}$#', '(^[a-z]{3}$)'] as $pattern) {
+            $example = $this->parse(['regex:' . $pattern])['example'];
+
+            $this->assertMatchesRegularExpression('/^[a-z]{3}$/i', $example, $pattern);
+        }
+    }
+
+    #[Test]
+    public function aRegexWithoutDelimitersIsUsedAsWritten(): void
+    {
+        $this->assertSame('abc', $this->parse(['regex:abc'])['example']);
+    }
+
+    #[Test]
+    public function anEnumRuleOnlyDocumentsTheCasesItAllows(): void
+    {
+        $only = $this->parse([Rule::enum(PostStatus::class)->only(PostStatus::Published)]);
+        $except = $this->parse([Rule::enum(PostStatus::class)->except([PostStatus::Published])]);
+
+        $this->assertSame(['published'], $only['enumValues']);
+        $this->assertSame('published', $only['example']);
+        $this->assertSame(['draft'], $except['enumValues']);
+        $this->assertSame('draft', $except['example']);
+    }
+
+    #[Test]
+    public function anEnumRuleThatAllowsNoCaseIsLeftUndocumented(): void
+    {
+        $parameter = $this->parse([Rule::enum(PostStatus::class)->except(PostStatus::cases())]);
+
+        $this->assertArrayNotHasKey('enumValues', $parameter);
+        $this->assertSame('string', $parameter['type']);
+    }
+
+    #[Test]
+    #[DataProvider('sometimesOrders')]
+    public function sometimesMakesAParameterOptionalInAnyRuleOrder(string $rules): void
+    {
+        $this->assertFalse($this->parse($rules)['required']);
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function sometimesOrders(): array
+    {
+        return [
+            'required first' => ['required|sometimes|string'],
+            'sometimes first' => ['sometimes|required|string'],
+        ];
+    }
+
+    #[Test]
+    public function aTopLevelWildcardKeyIsKept(): void
+    {
+        $parsed = $this->parser->getParametersFromValidationRules(['*.name' => 'required|string']);
+
+        $this->assertSame(['*.name'], array_keys($parsed));
+        $this->assertTrue($parsed['*.name']['required']);
+    }
+
+    #[Test]
+    public function aKeyWithUnusualCharactersIsDocumented(): void
+    {
+        $parameters = $this->parseAll(['meta' => 'array', 'meta.@type' => 'required|string']);
+
+        $this->assertSame('object', $parameters['meta']['type']);
+        $this->assertSame('string', $parameters['meta.@type']['type']);
+        $this->assertTrue($parameters['meta.@type']['required']);
+    }
+
+    #[Test]
+    public function aListWithAnExactSizeHoldsThatManyItems(): void
+    {
+        $parameter = $this->parse([new ListRule, 'size:3']);
+
+        $this->assertSame('string[]', $parameter['type']);
+        $this->assertCount(3, $parameter['example']);
+    }
+
+    #[Test]
+    public function aListOfSizedItemsHoldsOneItemOfTheRightType(): void
+    {
+        $parameters = $this->parseAll(['field' => 'array', 'field.*' => 'string|min:3']);
+
+        $this->assertSame('string[]', $parameters['field']['type']);
+        $this->assertCount(1, $parameters['field']['example']);
+        $this->assertGreaterThanOrEqual(3, mb_strlen($parameters['field']['example'][0]));
+    }
+
+    #[Test]
+    public function anExactSizeIsATypedExample(): void
+    {
+        $this->assertSame(5, $this->parse(['integer', 'size:5'])['example']);
+        $this->assertEquals(5, $this->parse(['numeric', 'size:5'])['example']);
+    }
+
     /**
      * @param array<int, string> $rules
      */

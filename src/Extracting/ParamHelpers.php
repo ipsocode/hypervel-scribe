@@ -7,6 +7,7 @@ namespace Ipsocode\Scribe\Extracting;
 use Closure;
 use Faker\Generator;
 use Hypervel\Http\UploadedFile;
+use Hypervel\Support\Arr;
 use Hypervel\Support\Str;
 
 trait ParamHelpers
@@ -116,9 +117,11 @@ trait ParamHelpers
 
         $size = $hints['size'] ?? null;
         if ($isListType) {
-            // A list example holds a single item.
+            // A list example holds a single item, or as many as an exact size asks for.
+            $itemHints = Arr::except($hints, ['size']);
+
             return $size
-                ? fn () => [$this->generateDummyValue($baseType, range(0, min($size - 1, 5)))]
+                ? fn () => array_map(fn () => $this->generateDummyValue($baseType, $itemHints), range(1, (int) $size))
                 : fn () => [$this->generateDummyValue($baseType, $hints)];
         }
 
@@ -138,7 +141,7 @@ trait ParamHelpers
         $fakeFactoriesByType = [
             'integer' => function () use ($size, $isExactSize, $max, $faker, $min) {
                 if ($isExactSize) {
-                    return $size;
+                    return (int) $size;
                 }
 
                 return ! is_null($max) ? $faker->numberBetween((int) $min, (int) $max) : $faker->numberBetween(1, 20);

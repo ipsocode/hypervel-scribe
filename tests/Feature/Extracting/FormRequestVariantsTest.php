@@ -97,6 +97,14 @@ class FormRequestVariantsTest extends DatabaseTestCase
     }
 
     #[Test]
+    public function aValidatorMethodKeepsItsWildcardRules(): void
+    {
+        $endpoint = $this->extract('formRequests.redeem');
+
+        $this->assertSame('integer[]', $endpoint->bodyParameters['ids']->type);
+    }
+
+    #[Test]
     public function theInstantiationHookGetsToBuildTheRequest(): void
     {
         $seen = null;
