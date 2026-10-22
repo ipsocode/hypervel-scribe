@@ -27,6 +27,7 @@ use ReflectionMethod;
 use ReflectionProperty;
 use RuntimeException;
 use Swoole\Coroutine;
+use Swoole\Coroutine\Channel;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Terminal;
 use Workbench\App\Http\Controllers\PostController;
@@ -162,6 +163,45 @@ class CoroutineSafetyTest extends TestCase
         $this->assertStringContainsString('RegenerateDocumentation', $second[1]);
 
         // The first run released the worker on its way out.
+        $running = new ReflectionProperty(GenerateDocumentation::class, 'running');
+        $this->assertFalse($running->getValue());
+    }
+
+    #[Test]
+    public function twoGenerateRunsInParallelCoroutinesLetOnlyOneThrough(): void
+    {
+        $release = new Channel(1);
+        $hookRuns = 0;
+        // The hook runs inside whichever run claimed the worker, and yields there
+        // until the other run has returned.
+        Scribe::bootstrap(function () use ($release, &$hookRuns) {
+            ++$hookRuns;
+            $release->pop(5);
+
+            throw new RuntimeException('stop the first run here');
+        });
+
+        $run = function () use ($release) {
+            $output = new BufferedOutput;
+
+            try {
+                return [Artisan::call('scribe:generate', [], $output), $output->fetch()];
+            } catch (RuntimeException $e) {
+                return [$e->getMessage(), ''];
+            } finally {
+                $release->push(true);
+            }
+        };
+
+        // Put the run that failed fast, with its exit code, first.
+        $results = parallel([$run, $run]);
+        usort($results, fn (array $a) => is_int($a[0]) ? -1 : 1);
+
+        $this->assertSame(1, $hookRuns);
+        $this->assertSame(1, $results[0][0]);
+        $this->assertStringContainsString('Another scribe:generate run is under way', $results[0][1]);
+        $this->assertSame('stop the first run here', $results[1][0]);
+
         $running = new ReflectionProperty(GenerateDocumentation::class, 'running');
         $this->assertFalse($running->getValue());
     }

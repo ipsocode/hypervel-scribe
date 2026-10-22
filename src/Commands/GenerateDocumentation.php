@@ -61,17 +61,18 @@ class GenerateDocumentation extends Command
             return self::FAILURE;
         }
 
+        // The command forces the origin below, in the caller's coroutine, so keep
+        // the caller's own to put back.
+        // UrlGenerator has no getter, so read its context key off the class. Read
+        // before the worker is claimed: a throw here must not leave it claimed.
+        $previousOrigin = CoroutineContext::get(
+            (new ReflectionClassConstant(UrlGenerator::class, 'FORCED_ROOT_CONTEXT_KEY'))->getValue()
+        );
+
         // Run in-process (Artisan::call from a job, a schedule or a request), the
         // command shares a worker whose statics outlive it, so it starts clean.
         RunState::flush();
         static::$running = true;
-
-        // The command forces the origin below, in the caller's coroutine, so keep
-        // the caller's own to put back.
-        // UrlGenerator has no getter, so read its context key off the class.
-        $previousOrigin = CoroutineContext::get(
-            (new ReflectionClassConstant(UrlGenerator::class, 'FORCED_ROOT_CONTEXT_KEY'))->getValue()
-        );
 
         try {
             $this->bootstrap();
