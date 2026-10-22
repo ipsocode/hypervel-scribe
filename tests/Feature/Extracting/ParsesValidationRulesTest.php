@@ -647,6 +647,7 @@ class ParsesValidationRulesTest extends TestCase
     {
         return [
             'parent first' => [['tags' => 'required|array', 'tags.*' => 'string']],
+            'item first' => [['tags.*' => 'string', 'tags' => 'required|array']],
         ];
     }
 

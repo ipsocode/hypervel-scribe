@@ -266,7 +266,9 @@ call on the resource before rendering it). `#[ResponseFromTransformer]` takes
 A method that type-hints a `Hypervel\Foundation\Http\FormRequest` is documented
 from its `rules()`, or from the rules of its `validator()` method when it has
 one. The parameters' types, whether they are required, and examples are
-inferred from the rules. Descriptions and examples come from `bodyParameters()`:
+inferred from the rules. Descriptions and examples come from `bodyParameters()`,
+where `'example' => 'No-example'` omits the example of an optional parameter (a
+required one keeps a generated example, which response calls send):
 
 ```php
 class StorePostRequest extends FormRequest
@@ -317,7 +319,9 @@ $validated = $this->validate($request, [...]);
   other entries in the array are skipped, and a key whose rules are written any
   other way is documented with no rules.
 - A comment above a rule is its description. `Example: <value>` in it sets the
-  example and `No-example` omits it.
+  example and `No-example` omits it, unless the rules make the parameter
+  required: a required parameter keeps a generated example, since response
+  calls have to send a value.
 - A `// Query parameters` comment above the statement makes the rules query
   parameters instead of body parameters.
 
