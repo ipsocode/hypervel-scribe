@@ -41,8 +41,5 @@ return [
             'src/Tools/ErrorHandlingUtils.php' => [2, 'the fallback for an application without Whoops, which the suite always has as a dev dependency'],
             'src/Writing/OpenApiSpecGenerators/BaseGenerator.php' => [2, "json_decode()'s default arm: every type it returns is handled above it, and a null decode has already returned"],
         ],
-        'shell' => [
-            'src/Writing/HtmlWriter.php' => [2, "last_updated's {git:short} and {git:long} tokens run git rev-parse while the docs are generated, in an artisan command, never on a request path"],
-        ],
     ],
 ];

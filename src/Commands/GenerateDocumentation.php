@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Ipsocode\Scribe\Commands;
 
 use Hypervel\Console\Command;
+use Hypervel\Context\CoroutineContext;
+use Hypervel\Routing\UrlGenerator;
 use Hypervel\Support\Arr;
 use Hypervel\Support\Facades\URL;
 use Hypervel\Support\Str;
@@ -18,6 +20,7 @@ use Ipsocode\Scribe\Tools\Globals;
 use Ipsocode\Scribe\Tools\PathConfig;
 use Ipsocode\Scribe\Tools\RunState;
 use Ipsocode\Scribe\Writing\Writer;
+use ReflectionClassConstant;
 
 class GenerateDocumentation extends Command
 {
@@ -63,6 +66,13 @@ class GenerateDocumentation extends Command
         RunState::flush();
         static::$running = true;
 
+        // The command forces the origin below, in the caller's coroutine, so keep
+        // the caller's own to put back.
+        // UrlGenerator has no getter, so read its context key off the class.
+        $previousOrigin = CoroutineContext::get(
+            (new ReflectionClassConstant(UrlGenerator::class, 'FORCED_ROOT_CONTEXT_KEY'))->getValue()
+        );
+
         try {
             $this->bootstrap();
 
@@ -90,8 +100,8 @@ class GenerateDocumentation extends Command
             return $errored ? self::INVALID : self::SUCCESS;
         } finally {
             // The forced origin is coroutine-scoped, but an in-process run shares
-            // the caller's coroutine, so clear it before returning.
-            URL::useOrigin(null);
+            // the caller's coroutine, so put the caller's back before returning.
+            URL::useOrigin($previousOrigin);
 
             // Leave none of this run's caches behind for the rest of the worker.
             RunState::flush();

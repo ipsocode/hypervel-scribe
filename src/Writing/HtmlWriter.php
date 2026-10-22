@@ -164,8 +164,8 @@ class HtmlWriter
         $tokens = [
             'date' => fn ($format) => date($format),
             'git' => fn ($format) => match ($format) {
-                'short' => mb_trim(shell_exec('git rev-parse --short HEAD') ?? ''),
-                'long' => mb_trim(shell_exec('git rev-parse HEAD') ?? ''),
+                'short' => mb_substr($this->gitHead(), 0, 7),
+                'long' => $this->gitHead(),
                 default => throw new InvalidArgumentException("The `git` token only supports formats 'short' and 'long', but you specified {$format}"),
             },
         ];
@@ -178,6 +178,29 @@ class HtmlWriter
         }
 
         return $lastUpdated;
+    }
+
+    /**
+     * The commit HEAD points at, read from the .git directory rather than by
+     * running git, which would block the worker. Empty outside a repository.
+     */
+    protected function gitHead(): string
+    {
+        $gitDir = base_path('.git');
+        $head = is_file($gitDir . '/HEAD') ? mb_trim((string) file_get_contents($gitDir . '/HEAD')) : '';
+
+        if (! str_starts_with($head, 'ref: ')) {
+            return $head;
+        }
+
+        $ref = mb_substr($head, 5);
+        if (is_file($gitDir . '/' . $ref)) {
+            return mb_trim((string) file_get_contents($gitDir . '/' . $ref));
+        }
+
+        $packed = is_file($gitDir . '/packed-refs') ? (string) file_get_contents($gitDir . '/packed-refs') : '';
+
+        return preg_match('/^([0-9a-f]{40}) ' . preg_quote($ref, '/') . '$/m', $packed, $matches) ? $matches[1] : '';
     }
 
     protected function getHeadings(array $headingsBeforeEndpoints, array $endpointsByGroupAndSubgroup, array $headingsAfterEndpoints): array
