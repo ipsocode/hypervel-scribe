@@ -129,10 +129,6 @@ class TestStateTest extends TestCase
     #[Test]
     public function everyMutableStaticPropertyDeclaredInSrcHasAFlushState(): void
     {
-        // src/Reflection is re-namespaced third-party (phpDocumentor) code,
-        // outside this package's coroutine-safety conventions.
-        $excludedNamespacePrefix = 'Ipsocode\Scribe\Reflection\\';
-
         $srcDir = dirname(__DIR__, 3) . '/src';
         $iterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($srcDir, FilesystemIterator::SKIP_DOTS)
@@ -148,7 +144,7 @@ class TestStateTest extends TestCase
         }
 
         foreach (array_merge(get_declared_classes(), get_declared_traits()) as $fqcn) {
-            if (! str_starts_with($fqcn, 'Ipsocode\Scribe\\') || str_starts_with($fqcn, $excludedNamespacePrefix)) {
+            if (! str_starts_with($fqcn, 'Ipsocode\Scribe\\')) {
                 continue;
             }
 

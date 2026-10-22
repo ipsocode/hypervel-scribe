@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Ipsocode\Scribe\Extracting\Strategies\Headers;
 
+use Ipsocode\Scribe\Extracting\DocBlocks\DocBlockTag;
 use Ipsocode\Scribe\Extracting\ParamHelpers;
 use Ipsocode\Scribe\Extracting\Strategies\TagStrategyWithFormRequestFallback;
-use Ipsocode\Scribe\Reflection\DocBlock\Tag;
 use Ipsocode\Scribe\Tools\Utils;
 
 class GetFromHeaderTag extends TagStrategyWithFormRequestFallback
@@ -14,13 +14,13 @@ class GetFromHeaderTag extends TagStrategyWithFormRequestFallback
     use ParamHelpers;
 
     /**
-     * @param Tag[] $tagsOnMethod
-     * @param Tag[] $tagsOnClass
+     * @param DocBlockTag[] $tagsOnMethod
+     * @param DocBlockTag[] $tagsOnClass
      */
     public function getFromTags(array $tagsOnMethod, array $tagsOnClass = []): array
     {
         $headerTags = Utils::filterDocBlockTags([...$tagsOnClass, ...$tagsOnMethod], 'header');
-        $headers = collect($headerTags)->mapWithKeys(function (Tag $tag) {
+        $headers = collect($headerTags)->mapWithKeys(function (DocBlockTag $tag) {
             // Format:
             // @header <name> <example>
             // Examples:

@@ -6,9 +6,9 @@ namespace Ipsocode\Scribe\Extracting\Strategies;
 
 use Hypervel\Routing\Route;
 use Ipsocode\Camel\Extraction\ExtractedEndpointData;
+use Ipsocode\Scribe\Extracting\DocBlocks\DocBlockTag;
 use Ipsocode\Scribe\Extracting\FindsFormRequestForMethod;
 use Ipsocode\Scribe\Extracting\RouteDocBlocker;
-use Ipsocode\Scribe\Reflection\DocBlock\Tag;
 use ReflectionFunctionAbstract;
 
 abstract class TagStrategyWithFormRequestFallback extends Strategy
@@ -41,8 +41,8 @@ abstract class TagStrategyWithFormRequestFallback extends Strategy
     }
 
     /**
-     * @param Tag[] $tagsOnMethod
-     * @param Tag[] $tagsOnClass
+     * @param DocBlockTag[] $tagsOnMethod
+     * @param DocBlockTag[] $tagsOnClass
      */
     abstract public function getFromTags(array $tagsOnMethod, array $tagsOnClass = []): array;
 }

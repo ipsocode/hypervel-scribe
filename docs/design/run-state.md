@@ -66,17 +66,15 @@ cleared before control goes back to the caller.
 
 - the hooks an application registers through the `Scribe` class
   (`Scribe::beforeResponseCall()`, `Scribe::afterGenerating()` and the rest),
-  stored in `Tools\Globals`;
-- the docblock tag handlers registered with
-  `Ipsocode\Scribe\Reflection\DocBlock\Tag::registerTagHandler()`.
+  stored in `Tools\Globals`.
 
-Those are configuration. The application sets them once when it boots and
+These are configuration. The application sets them once when it boots and
 expects them to be there for every run, so a run must not erase them.
 `Globals::$shouldBeVerbose` sits on the same class but belongs to one run, so
 `RunState::flush()` resets that one property directly.
 
 [`RunStateTest`](../../tests/Feature/Tools/RunStateTest.php) pins both sides:
-every cache is dropped, and a hook and a tag handler survive.
+every cache is dropped, and a hook survives.
 
 ## Testing\TestState
 
@@ -86,11 +84,10 @@ test-state registrar. Its `flushState()` resets everything:
 ```php
 RunState::flush();
 Globals::flushState();
-Tag::flushState();
 ```
 
 A test has to shed what an application sets at boot as well as what a run
-caches, or one test's hooks and tag handlers reach the next.
+caches, or one test's hooks reach the next.
 
 It is declared in `composer.json` under `extra.hypervel.test-state`, and
 Hypervel's `AfterEachTestExtension` discovers it and runs it after every test.

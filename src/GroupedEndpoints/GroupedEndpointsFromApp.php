@@ -14,11 +14,11 @@ use Ipsocode\Camel\Output\OutputEndpointData;
 use Ipsocode\Scribe\Commands\GenerateDocumentation;
 use Ipsocode\Scribe\Exceptions\CouldntGetRouteDetails;
 use Ipsocode\Scribe\Extracting\ApiDetails;
+use Ipsocode\Scribe\Extracting\DocBlocks\DocBlockTag;
 use Ipsocode\Scribe\Extracting\Extractor;
 use Ipsocode\Scribe\Extracting\RouteDocBlocker;
 use Ipsocode\Scribe\Matching\MatchedRoute;
 use Ipsocode\Scribe\Matching\RouteMatcherInterface;
-use Ipsocode\Scribe\Reflection\DocBlock\Tag;
 use Ipsocode\Scribe\Tools\ConsoleOutputUtils as c;
 use Ipsocode\Scribe\Tools\DocumentationConfig;
 use Ipsocode\Scribe\Tools\ErrorHandlingUtils as e;
@@ -388,7 +388,7 @@ class GroupedEndpointsFromApp implements GroupedEndpointsContract
         if (! ($class = $routeControllerAndMethod[0]) instanceof Closure) {
             $classDocBlock = RouteDocBlocker::forClass($class);
             $shouldIgnoreClass = collect($classDocBlock->getTags())
-                ->filter(function (Tag $tag) {
+                ->filter(function (DocBlockTag $tag) {
                     return Str::lower($tag->getName()) === 'hidefromapidocumentation';
                 })->isNotEmpty();
 
@@ -399,7 +399,7 @@ class GroupedEndpointsFromApp implements GroupedEndpointsContract
 
         $methodDocBlock = RouteDocBlocker::forMethod(u::getReflectedRouteMethod($routeControllerAndMethod));
         $shouldIgnoreMethod = collect($methodDocBlock->getTags())
-            ->filter(function (Tag $tag) {
+            ->filter(function (DocBlockTag $tag) {
                 return Str::lower($tag->getName()) === 'hidefromapidocumentation';
             })->isNotEmpty();
 

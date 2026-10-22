@@ -27,8 +27,6 @@ Every change is held to these:
   Commands return an exit code.
 - Hypervel APIs only. Tests reach the container with `$app->get(...)`, never
   with array access.
-- `src/Reflection/` is vendored third-party code. Leave it alone unless the
-  change is about it.
 - New behaviour comes with a test. `@codeCoverageIgnore` is not a way past the
   coverage gate.
 
@@ -67,8 +65,6 @@ holds one has a `flushState()`. There are two kinds.
 **Configuration an application sets at boot**:
 
 - the `Scribe::` hooks, stored in `Tools\Globals`
-- the docblock tag handlers, registered with
-  `Ipsocode\Scribe\Reflection\DocBlock\Tag::registerTagHandler()`
 
 `Tools\RunState::flush()` clears the first kind, and `scribe:generate` calls it
 on the way in and on the way out. It leaves the second kind alone.

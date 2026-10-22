@@ -29,6 +29,7 @@
         "hypervel/components": "0.4.x-dev",
         "nikic/php-parser": "^5.0",
         "parsedown/parsedown": "^1.7",
+        "phpdocumentor/reflection-docblock": "^5.6 || ^6.0",
         "ramsey/uuid": "^4.2.2",
         "symfony/var-exporter": "^8.1",
         "symfony/yaml": "^8.1"
