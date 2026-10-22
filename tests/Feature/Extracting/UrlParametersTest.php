@@ -53,6 +53,16 @@ class UrlParametersTest extends DatabaseTestCase
             ->name('params.gizmo');
         $router->get('api/params/slugs/{post:slug}', [UrlParamsController::class, 'boundModel'])
             ->name('params.inlineBound');
+        $router->get('api/params/titles/{post:title}', [UrlParamsController::class, 'boundModel'])
+            ->name('params.titleBound');
+        $router->get('api/params/scoped/{post}', [UrlParamsController::class, 'boundModel'])
+            ->setBindingFields(['post' => 'title'])
+            ->name('params.scopedBound');
+        $router->get('api/params/states/{state}', [UrlParamsController::class, 'namedAfterItsThing'])
+            ->whereIn('state', ['draft', 'published'])
+            ->name('params.whereIn');
+        $router->get('api/params/authors/{post}', [UrlParamsController::class, 'boundModel'])
+            ->name('params.typeHintedOverUrl');
     }
 
     private function extract(string $routeName): ExtractedEndpointData
@@ -223,6 +233,39 @@ class UrlParametersTest extends DatabaseTestCase
     }
 
     #[Test]
+    public function aBindingFieldTypesAndFillsTheExampleFromThatColumn(): void
+    {
+        $post = \Workbench\App\Models\Post::factory()->create();
+
+        foreach (['params.titleBound' => 'post_title', 'params.scopedBound' => 'post_title'] as $route => $name) {
+            $param = $this->extract($route)->urlParameters[$name];
+
+            // Not the primary key, so not the key's integer type or the row's id.
+            $this->assertSame('string', $param->type);
+            $this->assertSame($post->title, $param->example);
+        }
+    }
+
+    #[Test]
+    public function aModelFoundFromTheUrlDoesNotReplaceATypeHintedOne(): void
+    {
+        // `/authors/{post}` names an Author model, but the method type-hints Post.
+        $post = \Workbench\App\Models\Post::factory()->create();
+        $param = $this->extract('params.typeHintedOverUrl')->urlParameters['post_id'];
+
+        $this->assertSame($post->id, $param->example);
+    }
+
+    #[Test]
+    public function aWhereInConstraintGivesOneOfItsValuesAsTheExample(): void
+    {
+        $this->assertContains(
+            $this->extract('params.whereIn')->urlParameters['state']->example,
+            ['draft', 'published'],
+        );
+    }
+
+    #[Test]
     public function aParameterThatAlreadyHasATypeIsLeftAlone(): void
     {
         // A strategy extending this one can type a parameter itself — from an
@@ -264,6 +307,14 @@ class Widget extends Model
 }
 
 /**
+ * A model the URL `/authors/{post}` names, though the method type-hints a Post.
+ */
+class Author extends Model
+{
+    protected ?string $table = 'authors';
+}
+
+/**
  * Named the same way a model would be, but not a model — and not something
  * `new` will even accept.
  */
@@ -273,4 +324,5 @@ enum Gizmo: string
 }
 
 class_alias(Widget::class, 'App\Models\Widget');
+class_alias(Author::class, 'App\Models\Author');
 class_alias(Gizmo::class, 'App\Models\Gizmo');

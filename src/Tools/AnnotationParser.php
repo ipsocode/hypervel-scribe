@@ -17,15 +17,25 @@ class AnnotationParser
     {
         $parsedFields = array_fill_keys($allowedFields, null);
 
-        foreach ($allowedFields as $field) {
-            preg_match("/{$field}=([^\\s'\"]+|\".+?\"|'.+?')\\s*/", $annotationContent, $fieldAndValue);
+        $names = implode('|', array_map(fn ($field) => preg_quote($field, '/'), $allowedFields));
+        $value = "([^\\s'\"]+|\".+?\"|'.+?')";
 
-            if (count($fieldAndValue)) {
-                [$matchingText, $attributeValue] = $fieldAndValue;
-                $annotationContent = str_replace($matchingText, '', $annotationContent);
+        // Fields are only read at the edges, so a `status=` inside the content
+        // (a URL in a JSON body, a quoted scenario) stays part of it.
+        $atStart = "/^\\s*({$names})={$value}(?:\\s+|\$)/";
+        $atEnd = "/(?:^|\\s+)({$names})={$value}\\s*\$/";
 
-                $parsedFields[$field] = mb_trim($attributeValue, '"\' ');
+        while (true) {
+            if (preg_match($atStart, $annotationContent, $match)) {
+                $annotationContent = substr($annotationContent, strlen($match[0]));
+            } elseif (preg_match($atEnd, $annotationContent, $match, PREG_OFFSET_CAPTURE)) {
+                $annotationContent = substr($annotationContent, 0, $match[0][1]);
+                $match = array_map(fn ($part) => $part[0], $match);
+            } else {
+                break;
             }
+
+            $parsedFields[$match[1]] ??= mb_trim($match[2], '"\' ');
         }
 
         return [

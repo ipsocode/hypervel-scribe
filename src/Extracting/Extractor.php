@@ -72,8 +72,8 @@ class Extractor
             $this->mergeInheritedMethodsData('headers', $endpointData, $inheritedDocsOverrides);
 
             $this->fetchBodyParameters($endpointData);
-            $endpointData->cleanBodyParameters = self::cleanParams($endpointData->bodyParameters);
             $this->mergeInheritedMethodsData('bodyParameters', $endpointData, $inheritedDocsOverrides);
+            $endpointData->cleanBodyParameters = self::cleanParams($endpointData->bodyParameters);
 
             if (count($endpointData->cleanBodyParameters) && ! isset($endpointData->headers['Content-Type'])) {
                 // Default to JSON when no strategy set a Content-Type.
@@ -433,13 +433,16 @@ class Extractor
         $overrides = $inheritedDocsOverrides[$stage] ?? [];
         $normalizeParamData = fn ($data, $key) => array_merge($data, ['name' => $key]);
         if (is_array($overrides)) {
+            if ($stage === 'responses') {
+                $endpointData->responses = new ResponseCollection(
+                    $endpointData->responses->concat($overrides)->sortBy('status')->values()->all()
+                );
+
+                return;
+            }
+
             foreach ($overrides as $key => $item) {
                 switch ($stage) {
-                    case 'responses':
-                        $endpointData->responses->concat($overrides);
-                        $endpointData->responses->sortBy('status');
-
-                        break;
                     case 'urlParameters':
                     case 'bodyParameters':
                     case 'queryParameters':
