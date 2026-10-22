@@ -27,8 +27,6 @@ Every change is held to these:
   Commands return an exit code.
 - Hypervel APIs only. Tests reach the container with `$app->get(...)`, never
   with array access.
-- `src/Reflection/` is vendored third-party code. Leave it alone unless the
-  change is about it.
 - New behaviour comes with a test. `@codeCoverageIgnore` is not a way past the
   coverage gate.
 
