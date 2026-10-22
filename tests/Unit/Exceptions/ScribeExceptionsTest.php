@@ -88,7 +88,7 @@ class ScribeExceptionsTest extends TestCase
 
         $this->assertInstanceOf(ScribeException::class, $e);
         $this->assertStringContainsString('reporting', $e->getMessage());
-        $this->assertStringContainsString('databaseConnectionsToTransact', $e->getMessage());
+        $this->assertStringContainsString('database_connections_to_transact', $e->getMessage());
         $this->assertSame($inner, $e->getPrevious());
     }
 

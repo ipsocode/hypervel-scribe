@@ -23,12 +23,19 @@ use ReflectionFunction;
 use ReflectionProperty;
 use stdClass;
 use Throwable;
+use UnitEnum;
 
 trait ParsesValidationRules
 {
     use ParamHelpers;
 
     public static stdClass $MISSING_VALUE;
+
+    /** A `*` segment of a rule key, with the dot before it unless it comes first. */
+    private const WILDCARD_SEGMENT = '/(^|\.)\*(?=\.|$)/';
+
+    /** The `0` that normaliseRules() seeds in place of a `*` segment. */
+    private const SEEDED_SEGMENT = '/(^|\.)0(?=\.|$)/';
 
     /**
      * Resets the using class's own copy of the sentinel. Trait statics are
@@ -114,6 +121,11 @@ trait ParsesValidationRules
                     $this->processRule($ruleAndArgs[0], $ruleAndArgs[1], $parameterData, $validationRulesByParameters);
                 }
 
+                // `sometimes` makes a parameter optional wherever it sits in the ruleset.
+                if ($parameterData['sometimes']) {
+                    $parameterData['required'] = false;
+                }
+
                 $secondPassRules = array_filter($rulesAndArguments, fn ($ruleAndArgs) => ! Str::is($firstPassRuleNames, $ruleAndArgs[0]) && ! in_array($ruleAndArgs[0], $rulesWhichDependOnType));
                 foreach ($secondPassRules as $ruleAndArgs) {
                     $this->processRule($ruleAndArgs[0], $ruleAndArgs[1], $parameterData, $validationRulesByParameters);
@@ -133,6 +145,8 @@ trait ParsesValidationRules
                 foreach ($thirdPassRules as $ruleAndArgs) {
                     $this->processRule($ruleAndArgs[0], $ruleAndArgs[1], $parameterData, $validationRulesByParameters);
                 }
+
+                $this->setSizeBoundedSetter($thirdPassRules, $parameterData);
 
                 // A user-specified example overrides the generated one.
                 if (array_key_exists('example', $userSpecifiedParameterInfo)) {
@@ -231,6 +245,117 @@ trait ParsesValidationRules
     }
 
     /**
+     * Builds one example generator from all of a parameter's size rules, so that the
+     * example satisfies every bound together.
+     *
+     * A format rule (`email`, `url`, `uuid`, `regex`, ...) leaves a setter whose examples
+     * the validator accepts, so that setter is kept and used whenever its example fits the
+     * bounds. Only when it does not fit does the bounded generator take over.
+     *
+     * @param array<int, array{string, array<int, mixed>}> $rulesAndArguments
+     * @param array<string, mixed> $parameterData
+     */
+    protected function setSizeBoundedSetter(array $rulesAndArguments, array &$parameterData): void
+    {
+        // The setter of a plain type rule (`string`, `integer`, ...) knows nothing the bounded
+        // generator does not, so only a setter that some other rule left counts as a format.
+        $formatSetter = $parameterData['setter'] ?? null;
+        if ($formatSetter === ($parameterData['typeSetter'] ?? null)) {
+            $formatSetter = null;
+        }
+        unset($parameterData['typeSetter']);
+
+        $min = $max = $size = null;
+        foreach ($rulesAndArguments as [$rule, $arguments]) {
+            switch ($rule) {
+                case 'size':
+                    $size = (float) $arguments[0];
+
+                    break;
+                case 'min':
+                    $min = (float) $arguments[0];
+
+                    break;
+                case 'max':
+                    $max = (float) $arguments[0];
+
+                    break;
+                case 'between':
+                    $min = (float) $arguments[0];
+                    $max = (float) $arguments[1];
+
+                    break;
+            }
+        }
+
+        if (is_null($min) && is_null($max)) {
+            if (! is_null($size)) {
+                $this->preferFormatSetter(
+                    $parameterData,
+                    $formatSetter,
+                    $this->getDummyValueGenerator($parameterData['type'], ['size' => $size]),
+                    $size,
+                    $size
+                );
+            }
+
+            return;
+        }
+
+        $lower = $min ?? min(1.0, $max);
+        // Keep the example small: long strings and large arrays are slow to generate.
+        $upper = min($max ?? $lower + 10, $lower + 24);
+        $this->preferFormatSetter(
+            $parameterData,
+            $formatSetter,
+            $this->getDummyDataGeneratorBetween($parameterData['type'], $lower, $upper, $parameterData['name']),
+            $min,
+            $max
+        );
+    }
+
+    /**
+     * Sets the parameter's setter to the format rule's, falling back to the bounded one
+     * when the format's example is outside the bounds.
+     *
+     * @param array<string, mixed> $parameterData
+     */
+    private function preferFormatSetter(array &$parameterData, ?Closure $formatSetter, Closure $bounded, ?float $min, ?float $max): void
+    {
+        $type = $parameterData['type'];
+
+        // A file example is built, not measured, so it always comes from the bounded generator.
+        if (is_null($formatSetter) || $type === 'file') {
+            $parameterData['setter'] = $bounded;
+
+            return;
+        }
+
+        $parameterData['setter'] = function () use ($formatSetter, $bounded, $type, $min, $max) {
+            $example = $formatSetter();
+
+            return $this->fitsSizeBounds($type, $example, $min, $max) ? $example : $bounded();
+        };
+    }
+
+    /**
+     * Whether an example meets the bounds the way the validator measures it: a number by
+     * its value, a string by its length. Any other example counts as not fitting.
+     */
+    private function fitsSizeBounds(string $type, mixed $example, ?float $min, ?float $max): bool
+    {
+        if ($type === 'integer' || $type === 'number') {
+            $measure = is_numeric($example) ? (float) $example : null;
+        } else {
+            $measure = is_string($example) ? (float) mb_strlen($example) : null;
+        }
+
+        return ! is_null($measure)
+            && (is_null($min) || $measure >= $min)
+            && (is_null($max) || $measure <= $max);
+    }
+
+    /**
      * @param array<string, array<string, mixed>> $parameters
      * @return array<string, array<string, mixed>>
      */
@@ -238,7 +363,8 @@ trait ParsesValidationRules
     {
         $results = [];
         foreach ($parameters as $name => $details) {
-            if (Str::endsWith($name, '.*')) {
+            $isSubfield = Str::endsWith($name, '.*');
+            if ($isSubfield) {
                 // The user might have set the example via bodyParameters()
                 $exampleWasSpecified = $this->examplePresent($details);
 
@@ -256,10 +382,37 @@ trait ParsesValidationRules
                 }
             }
 
-            $results[$name] = $details;
+            if (isset($results[$name])) {
+                // 'tags' and 'tags.*' both end up as 'tags': the parent keeps its own rules, description and example.
+                $results[$name] = $isSubfield
+                    ? $this->mergeArrayAndSubfield($results[$name], $details)
+                    : $this->mergeArrayAndSubfield($details, $results[$name]);
+            } else {
+                $results[$name] = $details;
+            }
         }
 
         return $results;
+    }
+
+    /**
+     * @param array<string, mixed> $parent
+     * @param array<string, mixed> $subfield the converted `.*` entry, already typed as a list
+     * @return array<string, mixed>
+     */
+    protected function mergeArrayAndSubfield(array $parent, array $subfield): array
+    {
+        $parent['type'] = $subfield['type'];
+        unset($parent['setter']);
+        if (isset($subfield['setter'])) {
+            $parent['setter'] = $subfield['setter'];
+        }
+
+        if (! $this->examplePresent($parent) && $this->examplePresent($subfield)) {
+            $parent['example'] = $subfield['example'];
+        }
+
+        return $parent;
     }
 
     /**
@@ -279,7 +432,9 @@ trait ParsesValidationRules
                 $examples[$details['name']] = $details['example'];
             } elseif (preg_match('/.+\.[^*]+$/', $details['name'])) {
                 // An object field (eg 'data.details.title') takes its example from its parent's, if recorded.
-                [$parentName, $fieldName] = preg_split('/\.(?=[\w-]+$)/', $details['name']);
+                $dot = mb_strrpos($details['name'], '.');
+                $parentName = mb_substr($details['name'], 0, $dot);
+                $fieldName = mb_substr($details['name'], $dot + 1);
                 if (array_key_exists($parentName, $examples) && is_array($examples[$parentName])
                     && array_key_exists($fieldName, $examples[$parentName])) {
                     $examples[$details['name']] = $details['example'] = $examples[$parentName][$fieldName];
@@ -310,12 +465,12 @@ trait ParsesValidationRules
         // the data, so the test data gets a one-item array for each such key.
         $testData = [];
         foreach ($rules as $key => $ruleset) {
-            if (! Str::contains($key, '.*')) {
+            if (! preg_match(self::WILDCARD_SEGMENT, (string) $key)) {
                 continue;
             }
 
             // Only the key's presence matters, not its value.
-            Arr::set($testData, str_replace('.*', '.0', $key), Str::random());
+            Arr::set($testData, preg_replace(self::WILDCARD_SEGMENT, '${1}0', (string) $key), Str::random());
         }
 
         // The complete ruleset, with '*' in nested array keys replaced by '0'.
@@ -329,9 +484,9 @@ trait ParsesValidationRules
                 $paramName = preg_replace('/__asterisk__[^.]*\b/', '*', $paramName);
             }
 
-            // Turn 'ids.0' back into 'ids.*'
-            if (Str::contains($paramName, '.0')) {
-                $genericArrayKeyName = str_replace('.0', '.*', $paramName);
+            // Turn 'ids.0' (or a top-level '0.name') back into 'ids.*' ('*.name')
+            if (preg_match(self::SEEDED_SEGMENT, (string) $paramName)) {
+                $genericArrayKeyName = preg_replace(self::SEEDED_SEGMENT, '${1}*', (string) $paramName);
 
                 // But only if the original rules used that key
                 if (isset($rules[$genericArrayKeyName])) {
@@ -374,6 +529,40 @@ trait ParsesValidationRules
     }
 
     /**
+     * Applies the rule's `only()` and `except()` lists to an enum's cases; `only()` wins, as in the rule itself.
+     *
+     * @param array<int, UnitEnum> $cases
+     * @return array<int, UnitEnum>
+     */
+    protected function filterEnumCases(Enum $rule, array $cases): array
+    {
+        $only = (new ReflectionProperty(Enum::class, 'only'))->getValue($rule);
+        $except = (new ReflectionProperty(Enum::class, 'except'))->getValue($rule);
+
+        if (! empty($only)) {
+            return array_values(array_filter($cases, fn ($case) => in_array($case, $only, true)));
+        }
+
+        return array_values(array_filter($cases, fn ($case) => ! in_array($case, $except, true)));
+    }
+
+    /**
+     * Takes the delimiters and trailing flags off a `regex:` argument, eg `/^[a-z]{3}$/i` becomes `^[a-z]{3}$`.
+     */
+    protected function stripRegexDelimiters(string $pattern): string
+    {
+        $opening = $pattern[0] ?? '';
+        $closing = ['(' => ')', '[' => ']', '{' => '}', '<' => '>'][$opening] ?? $opening;
+        $end = mb_strrpos($pattern, $closing);
+
+        if ($opening === '' || ctype_alnum($opening) || $end === false || $end === 0) {
+            return $pattern;
+        }
+
+        return mb_substr($pattern, 1, $end - 1);
+    }
+
+    /**
      * @param array<string, mixed> $parameterData
      * @param array<string, mixed> $allParameters
      */
@@ -386,7 +575,11 @@ trait ParsesValidationRules
         if (enum_exists($enumClass) && method_exists($enumClass, 'tryFrom')) {
             // Only a BackedEnum has ->value, and only a BackedEnum has tryFrom().
             // @phpstan-ignore property.notFound (a tryFrom() enum is a BackedEnum, which has ->value)
-            $cases = array_map(fn ($case) => $case->value, $enumClass::cases());
+            $cases = array_map(fn ($case) => $case->value, $this->filterEnumCases($rule, $enumClass::cases()));
+            if ($cases === []) {
+                return;
+            }
+
             $parameterData['type'] = gettype($cases[0]);
             $parameterData['enumValues'] = $cases;
             // Seeded getFaker() keeps the picked example stable across doc runs
@@ -415,7 +608,8 @@ trait ParsesValidationRules
                 $parameterData['description'] .= ' ' . $customData['description'];
             }
             if (isset($customData['example'])) {
-                $parameterData['setter'] = fn () => $customData['example'];
+                // An explicit example beats every setter the rules after this one leave.
+                $parameterData['example'] = $customData['example'];
             } elseif (isset($customData['setter'])) {
                 $parameterData['setter'] = $customData['setter'];
             }
@@ -471,14 +665,14 @@ trait ParsesValidationRules
                     // Type rules. Only `file` adds a description.
                 case 'bool':
                 case 'boolean':
-                    $parameterData['setter'] = function () {
+                    $parameterData['setter'] = $parameterData['typeSetter'] = function () {
                         return $this->getFaker()->randomElement([true, false]);
                     };
                     $parameterData['type'] = 'boolean';
 
                     break;
                 case 'string':
-                    $parameterData['setter'] = function () use ($parameterData) {
+                    $parameterData['setter'] = $parameterData['typeSetter'] = function () use ($parameterData) {
                         return $this->generateDummyValue('string', ['name' => $parameterData['name']]);
                     };
                     $parameterData['type'] = 'string';
@@ -486,21 +680,21 @@ trait ParsesValidationRules
                     break;
                 case 'int':
                 case 'integer':
-                    $parameterData['setter'] = function () {
+                    $parameterData['setter'] = $parameterData['typeSetter'] = function () {
                         return $this->generateDummyValue('integer');
                     };
                     $parameterData['type'] = 'integer';
 
                     break;
                 case 'numeric':
-                    $parameterData['setter'] = function () {
+                    $parameterData['setter'] = $parameterData['typeSetter'] = function () {
                         return $this->generateDummyValue('number');
                     };
                     $parameterData['type'] = 'number';
 
                     break;
                 case 'array':
-                    $parameterData['setter'] = function () {
+                    $parameterData['setter'] = $parameterData['typeSetter'] = function () {
                         return [$this->generateDummyValue('string')];
                     };
                     $parameterData['type'] = 'array'; // normaliseArrayAndObjectParameters() turns this into X[] or object
@@ -623,7 +817,7 @@ trait ParsesValidationRules
                     break;
                 case 'regex':
                     $parameterData['description'] .= ' ' . $this->getDescription($rule, [':regex' => $ruleArguments[0]]);
-                    $parameterData['setter'] = fn () => $this->getFaker()->regexify($ruleArguments[0]);
+                    $parameterData['setter'] = fn () => $this->getFaker()->regexify($this->stripRegexDelimiters($ruleArguments[0]));
 
                     break;
                     // Special number types.
@@ -646,7 +840,6 @@ trait ParsesValidationRules
                         [':size' => $ruleArguments[0]],
                         $this->getHypervelValidationBaseTypeMapping($parameterData['type'])
                     );
-                    $parameterData['setter'] = $this->getDummyValueGenerator($parameterData['type'], ['size' => $ruleArguments[0]]);
 
                     break;
                 case 'min':
@@ -655,7 +848,6 @@ trait ParsesValidationRules
                         [':min' => $ruleArguments[0]],
                         $this->getHypervelValidationBaseTypeMapping($parameterData['type'])
                     );
-                    $parameterData['setter'] = $this->getDummyDataGeneratorBetween($parameterData['type'], (float) $ruleArguments[0], fieldName: $parameterData['name']);
 
                     break;
                 case 'max':
@@ -664,8 +856,6 @@ trait ParsesValidationRules
                         [':max' => $ruleArguments[0]],
                         $this->getHypervelValidationBaseTypeMapping($parameterData['type'])
                     );
-                    $max = min($ruleArguments[0], 25);
-                    $parameterData['setter'] = $this->getDummyDataGeneratorBetween($parameterData['type'], 1, $max, $parameterData['name']);
 
                     break;
                 case 'between':
@@ -674,8 +864,6 @@ trait ParsesValidationRules
                         [':min' => $ruleArguments[0], ':max' => $ruleArguments[1]],
                         $this->getHypervelValidationBaseTypeMapping($parameterData['type'])
                     );
-                    // Avoid exponentially complex operations by using the minimum length
-                    $parameterData['setter'] = $this->getDummyDataGeneratorBetween($parameterData['type'], (float) $ruleArguments[0], (float) $ruleArguments[0] + 1, $parameterData['name']);
 
                     break;
                     // Special file types.
@@ -824,6 +1012,16 @@ trait ParsesValidationRules
      */
     protected function getParameterExample(array $parameterData): mixed
     {
+        // "No-example" hides the example of an optional parameter. A required one still
+        // needs a value for the response call, so it is treated as having no example.
+        if ($parameterData['example'] === 'No-example') {
+            if (! $parameterData['required']) {
+                return null;
+            }
+
+            $parameterData['example'] = self::$MISSING_VALUE;
+        }
+
         // No example was given: use the setter the last processed rule left, or
         // a generated value if the parameter is required.
         if ($parameterData['example'] === self::$MISSING_VALUE) {
@@ -836,10 +1034,6 @@ trait ParsesValidationRules
                 : null;
         }
         if (! is_null($parameterData['example']) && $parameterData['example'] !== self::$MISSING_VALUE) {
-            if ($parameterData['example'] === 'No-example' && ! $parameterData['required']) {
-                return null;
-            }
-
             // Cast again, since the validator may have turned the value into a string.
             return $this->castToType($parameterData['example'], $parameterData['type']);
         }

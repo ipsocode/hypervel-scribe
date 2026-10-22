@@ -25,6 +25,8 @@ class ValidatorPostRequest extends FormRequest
 
         return $factory->make([], [
             'code' => $isWrite ? 'required|string' : 'sometimes|string',
+            'ids' => 'array',
+            'ids.*' => 'integer',
         ]);
     }
 
@@ -37,6 +39,10 @@ class ValidatorPostRequest extends FormRequest
             'code' => [
                 'description' => 'The redemption code.',
                 'example' => 'ABC-123',
+            ],
+            'ids' => [
+                'description' => 'The ids to redeem.',
+                'example' => [1, 2],
             ],
         ];
     }

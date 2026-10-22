@@ -32,13 +32,16 @@ trait ParamHelpers
             'int' => str_replace($base, 'integer', $typeName),
             'float', 'double' => str_replace($base, 'number', $typeName),
             'array' => (empty($value) || array_keys($value)[0] === 0)
-                ? static::normalizeTypeName(gettype($value[0] ?? '')) . '[]'
+                ? static::normalizeTypeName(gettype($value[0] ?? ''), $value[0] ?? null) . '[]'
                 : 'object',
             default => $typeName
         };
     }
 
-    protected function getFakeFactoryByName(string $name): ?Closure
+    /**
+     * @param array<array-key, mixed> $hints
+     */
+    protected function getFakeFactoryByName(string $name, array $hints = []): ?Closure
     {
         $faker = $this->getFaker();
 
@@ -51,6 +54,20 @@ trait ParamHelpers
             Str::endsWith($name, ['timezone']) => 'timezone',
             default => $name,
         };
+
+        $min = $hints['min'] ?? null;
+        $max = $hints['max'] ?? null;
+        if (! is_null($min) || ! is_null($max)) {
+            // Only a password can honour length bounds; the other fakers would ignore them.
+            if ($normalizedName !== 'password' && $normalizedName !== 'pwd') {
+                return null;
+            }
+
+            $minLength = max((int) ($min ?? 1), 1);
+            $maxLength = max((int) ($max ?? $minLength + 10), $minLength);
+
+            return fn () => $faker->password($minLength, $maxLength);
+        }
 
         return match ($normalizedName) {
             'email' => fn () => $faker->safeEmail(),
@@ -75,7 +92,9 @@ trait ParamHelpers
     protected function generateDummyValue(string $type, array $hints = []): mixed
     {
         if (! empty($hints['enumValues'])) {
-            return Arr::random($hints['enumValues']);
+            $value = $this->getFaker()->randomElement($hints['enumValues']);
+
+            return str_ends_with($type, '[]') ? [$value] : $value;
         }
 
         $fakeFactory = $this->getDummyValueGenerator($type, $hints);
@@ -98,14 +117,16 @@ trait ParamHelpers
 
         $size = $hints['size'] ?? null;
         if ($isListType) {
-            // A list example holds a single item.
+            // A list example holds a single item, or as many as an exact size asks for.
+            $itemHints = Arr::except($hints, ['size']);
+
             return $size
-                ? fn () => [$this->generateDummyValue($baseType, range(0, min($size - 1, 5)))]
+                ? fn () => array_map(fn () => $this->generateDummyValue($baseType, $itemHints), range(1, (int) $size))
                 : fn () => [$this->generateDummyValue($baseType, $hints)];
         }
 
         if (($hints['name'] ?? false) && $baseType !== 'file') {
-            $fakeFactoryByName = $this->getFakeFactoryByName($hints['name']);
+            $fakeFactoryByName = $this->getFakeFactoryByName($hints['name'], $hints);
             if ($fakeFactoryByName) {
                 return $fakeFactoryByName;
             }
@@ -120,17 +141,17 @@ trait ParamHelpers
         $fakeFactoriesByType = [
             'integer' => function () use ($size, $isExactSize, $max, $faker, $min) {
                 if ($isExactSize) {
-                    return $size;
+                    return (int) $size;
                 }
 
-                return $max ? $faker->numberBetween((int) $min, (int) $max) : $faker->numberBetween(1, 20);
+                return ! is_null($max) ? $faker->numberBetween((int) $min, (int) $max) : $faker->numberBetween(1, 20);
             },
             'number' => function () use ($size, $isExactSize, $max, $faker, $min) {
                 if ($isExactSize) {
                     return $size;
                 }
 
-                return $max ? $faker->numberBetween((int) $min, (int) $max) : $faker->randomFloat();
+                return ! is_null($max) ? $faker->numberBetween((int) $min, (int) $max) : $faker->randomFloat();
             },
             'boolean' => fn () => $faker->boolean(),
             'string' => fn () => $size ? $faker->lexify(str_repeat('?', (int) $size)) : $faker->word(),
@@ -238,8 +259,10 @@ trait ParamHelpers
         if (preg_match('/(.*)\bEnum:\s*([\s\S]+)\s*/s', $description, $content)) {
             $description = mb_trim($content[1]);
 
+            // Each enum value is one item, so a list type casts them to its item type.
+            $itemType = str_ends_with($type, '[]') ? mb_substr($type, 0, -2) : $type;
             $enumValues = array_map(
-                fn ($value) => $this->castToType(mb_trim($value), $type),
+                fn ($value) => $this->castToType(mb_trim($value), $itemType),
                 explode(',', mb_rtrim(mb_trim($content[2]), '.'))
             );
         }
@@ -251,7 +274,7 @@ trait ParamHelpers
      * @param float|int|string $min
      * @param float|int|string $max
      */
-    private function getDummyDataGeneratorBetween(string $type, $min, $max = 90, ?string $fieldName = null): Closure
+    private function getDummyDataGeneratorBetween(string $type, $min, $max, ?string $fieldName = null): Closure
     {
         $hints = [
             'name' => $fieldName,

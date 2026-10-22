@@ -25,6 +25,7 @@ use ReflectionProperty;
 use Symfony\Component\Yaml\Yaml;
 use Workbench\App\Http\Controllers\HiddenController;
 use Workbench\App\Http\Controllers\UndocumentableController;
+use Workbench\App\Strategies\ThrowsAnErrorStrategy;
 
 use function Hypervel\Testbench\package_path;
 use function Hypervel\Testbench\workbench_path;
@@ -317,6 +318,58 @@ class GenerateDocumentationTest extends DatabaseTestCase
             ->all();
 
         $this->assertContains('Hand-written description.', $descriptions);
+    }
+
+    #[Test]
+    public function theEditsToAnEndpointSurviveARunInWhichItFails(): void
+    {
+        RouteFacade::get('api/undocumentable/type-error', [UndocumentableController::class, 'fine'])
+            ->name('undocumentable.typeError');
+        $this->assertSame(0, $this->generate());
+
+        $edit = function (string $uri): void {
+            foreach (glob($this->intermediatePath . '/endpoints/[0-9]*.yaml') as $file) {
+                $group = Yaml::parse((string) file_get_contents($file));
+                foreach ($group['endpoints'] as &$endpoint) {
+                    if ($endpoint['uri'] === $uri) {
+                        $endpoint['metadata']['description'] = 'Hand-written description.';
+                    }
+                }
+                unset($endpoint);
+                file_put_contents($file, Yaml::dump($group, 20, 2));
+            }
+        };
+        $edit('api/undocumentable/type-error');
+
+        $metadata = config('scribe.strategies.metadata');
+        config(['scribe.strategies.metadata' => [...$metadata, ThrowsAnErrorStrategy::class]]);
+        $this->assertSame(GenerateDocumentation::INVALID, $this->generate());
+
+        $this->assertContains('api/undocumentable/type-error', $this->endpointUrisOnDisk('endpoints'));
+        $this->assertContains('api/undocumentable/type-error', $this->endpointUrisOnDisk('endpoints.cache'));
+
+        config(['scribe.strategies.metadata' => $metadata]);
+        $this->assertSame(0, $this->generate());
+
+        $this->assertSame(
+            'Hand-written description.',
+            $this->openApiSpec()['paths']['/api/undocumentable/type-error']['get']['description'],
+        );
+    }
+
+    /**
+     * @return string[] the URIs of the endpoints in one of the intermediate directories
+     */
+    private function endpointUrisOnDisk(string $directory): array
+    {
+        $uris = [];
+        foreach (glob("{$this->intermediatePath}/{$directory}/[0-9]*.yaml") as $file) {
+            foreach (Yaml::parse((string) file_get_contents($file))['endpoints'] as $endpoint) {
+                $uris[] = $endpoint['uri'];
+            }
+        }
+
+        return $uris;
     }
 
     #[Test]
@@ -865,6 +918,38 @@ class GenerateDocumentationTest extends DatabaseTestCase
 
         // ...while the closure route is documented like any other.
         $this->assertContains('api/undocumentable/closure', $documented);
+    }
+
+    #[Test]
+    public function aRouteToAMissingControllerClassIsSkippedWithAWarning(): void
+    {
+        RouteFacade::get('api/undocumentable/missing-class', ['Workbench\App\Http\Controllers\NoSuchController', 'index'])
+            ->name('undocumentable.missingClass');
+
+        $this->assertSame(GenerateDocumentation::SUCCESS, $this->generate());
+
+        $documented = $this->documentedUris();
+        $this->assertNotContains('api/undocumentable/missing-class', $documented);
+        $this->assertContains('api/posts', $documented);
+    }
+
+    #[Test]
+    public function aRouteWhoseExtractionThrowsAnErrorDoesNotStopTheRun(): void
+    {
+        // A TypeError is an Error, not an Exception: it must be caught per
+        // route like any other failure instead of ending the run.
+        RouteFacade::get('api/undocumentable/type-error', [UndocumentableController::class, 'fine'])
+            ->name('undocumentable.typeError');
+        config(['scribe.strategies.metadata' => [
+            ...config('scribe.strategies.metadata'),
+            ThrowsAnErrorStrategy::class,
+        ]]);
+
+        $this->assertSame(GenerateDocumentation::INVALID, $this->generate());
+
+        $documented = $this->documentedUris();
+        $this->assertNotContains('api/undocumentable/type-error', $documented);
+        $this->assertContains('api/posts', $documented);
     }
 
     #[Test]

@@ -13,7 +13,7 @@ class CouldntStartDatabaseTransaction extends RuntimeException implements Scribe
     {
         return new self(
             "Couldn't start a database transaction for the connection {$connectionName}. "
-            . "Make sure this database is running. If you aren't using this connection, remove it from your `databaseConnectionsToTransact` config",
+            . "Make sure this database is running. If you aren't using this connection, remove it from your `database_connections_to_transact` config",
             0,
             $originalException
         );

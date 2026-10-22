@@ -63,6 +63,10 @@ class InlineValidationController extends Controller
             'status' => ['nullable', new Enum(PostStatus::class)],
             // Sort direction.
             'direction' => ['nullable', Rule::enum(PostStatus::class)],
+            // A pipe inside a regex must not split the rule.
+            'code' => ['required', 'regex:/^(abc|xyz)$/'],
+            /* The user's name. Example: Ada */
+            'name' => ['nullable', 'string'],
         ]);
 
         return ['data' => $validated];
