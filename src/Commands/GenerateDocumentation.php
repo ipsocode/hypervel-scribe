@@ -105,6 +105,12 @@ class GenerateDocumentation extends Command
 
             // Leave none of this run's caches behind for the rest of the worker.
             RunState::flush();
+
+            // `examples.faker_seed` seeds PHP's process-wide Mersenne Twister
+            // through Faker, so the worker's mt_rand(), shuffle() and the like
+            // would carry on from a seed anyone can read in the config. Hand it
+            // back a random one.
+            mt_srand();
         }
     }
 
