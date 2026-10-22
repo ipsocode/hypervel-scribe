@@ -19,6 +19,14 @@ use Symfony\Component\VarExporter\VarExporter;
 class ConfigDiffer
 {
     /**
+     * Keys whose string values are credentials, wherever they sit: a header in
+     * a strategy's settings as much as a top-level option.
+     */
+    protected const string SENSITIVE_KEY = '/authorization|token|secret|password|passwd|api[-_]?key|cookie|credential/i';
+
+    protected const string REDACTED = '<redacted>';
+
+    /**
      * @param array $original the baseline to compare against — the package's own defaults
      * @param array $changed the array being described, whose keys drive the walk
      * @param array $ignorePaths dotted paths to skip, as `Str::is()` patterns. For prose and
@@ -26,12 +34,16 @@ class ConfigDiffer
      *                           normal state and reporting it is only noise.
      * @param array $asList dotted paths to compare as unordered lists rather than by key,
      *                      reported as `added x: removed y`
+     * @param string[] $redactPaths dotted paths, as `Str::is()` patterns, whose values are reported
+     *                              as changed but never printed, besides any key matching
+     *                              SENSITIVE_KEY. The output is meant for a public bug report.
      */
     public function __construct(
         protected array $original,
         protected array $changed,
         protected array $ignorePaths = [],
         protected array $asList = [],
+        protected array $redactPaths = [],
     ) {
     }
 
@@ -71,7 +83,8 @@ class ConfigDiffer
                     );
                 }
             } elseif ($oldValue !== $value) {
-                $diff[$fullKey] = json_encode($value, JSON_UNESCAPED_SLASHES);
+                $printable = Str::is($this->redactPaths, $fullKey) ? $this->redactValue($value) : $this->redact([$key => $value])[$key];
+                $diff[$fullKey] = json_encode($printable, JSON_UNESCAPED_SLASHES);
             }
         }
 
@@ -110,12 +123,49 @@ class ConfigDiffer
      * spelling — which `strategies.*` needs, since a configured strategy is an
      * array rather than a class-string.
      *
+     * The comparison uses the real values, so a rotated credential still counts
+     * as a change; only what is returned for printing is redacted.
+     *
      * @return array<int|string, string>
      */
     protected function subtractArraysFlat(array $a, array $b): array
     {
         $export = fn ($item) => is_array($item) ? VarExporter::export($item) : $item;
+        $missing = array_diff(array_map($export, $a), array_map($export, $b));
 
-        return array_diff(array_map($export, $a), array_map($export, $b));
+        $printable = [];
+        foreach (array_keys($missing) as $key) {
+            $printable[$key] = is_array($a[$key]) ? VarExporter::export($this->redact($a[$key])) : $a[$key];
+        }
+
+        return $printable;
+    }
+
+    /**
+     * The array with the value under every SENSITIVE_KEY replaced, at any depth.
+     *
+     * @param array<mixed> $values
+     * @return array<mixed>
+     */
+    protected function redact(array $values): array
+    {
+        foreach ($values as $key => $value) {
+            if (is_array($value)) {
+                $values[$key] = $this->redact($value);
+            } elseif (preg_match(self::SENSITIVE_KEY, (string) $key)) {
+                $values[$key] = $this->redactValue($value);
+            }
+        }
+
+        return $values;
+    }
+
+    /**
+     * A credential's stand-in. An empty or non-string value reveals nothing,
+     * and printing it keeps "unset" and "turned off" readable.
+     */
+    protected function redactValue(mixed $value): mixed
+    {
+        return is_string($value) && $value !== '' ? self::REDACTED : $value;
     }
 }
