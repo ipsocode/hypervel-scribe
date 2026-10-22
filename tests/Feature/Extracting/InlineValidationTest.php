@@ -89,6 +89,15 @@ class InlineValidationTest extends DatabaseTestCase
     }
 
     #[Test]
+    public function aDocblockAboveARuleLosesItsCommentSyntax(): void
+    {
+        $name = $this->extract('inline.array')->bodyParameters['name'];
+
+        $this->assertSame("The user's name.", $name->description);
+        $this->assertSame('Ada', $name->example);
+    }
+
+    #[Test]
     public function aNoExampleCommentSuppressesTheGeneratedExample(): void
     {
         $params = $this->extract('inline.array')->bodyParameters;
