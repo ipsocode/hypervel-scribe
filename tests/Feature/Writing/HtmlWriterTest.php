@@ -150,6 +150,21 @@ class HtmlWriterTest extends TestCase
     }
 
     #[Test]
+    public function escapesTheHeadersOfAnExampleRequestOnceInsideTheCodeFences(): void
+    {
+        $html = $this->generate(['example_languages' => ['bash', 'javascript', 'python']], [
+            $this->createGroup([
+                $this->createMockEndpointData(['headers' => ['X-Test' => "a&b 'q'"]]),
+            ]),
+        ]);
+
+        $this->assertStringNotContainsString('&amp;amp;', $html);
+        $this->assertStringNotContainsString('&amp;#039;', $html);
+        $this->assertStringContainsString('X-Test', $html);
+        $this->assertStringContainsString('a&amp;b', $html);
+    }
+
+    #[Test]
     public function rendersAnExampleRequestPerConfiguredLanguage(): void
     {
         // The example-request partials are `*.md.blade.php`, which only render
