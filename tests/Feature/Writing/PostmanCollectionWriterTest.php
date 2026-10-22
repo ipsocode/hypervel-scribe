@@ -110,6 +110,15 @@ class PostmanCollectionWriterTest extends TestCase
                     ['key' => 'key', 'value' => 'api_key', 'type' => 'string'],
                 ],
             ]],
+            // Postman's API key auth supports only header and query.
+            'query_or_body' => ['query_or_body', 'api_key', [
+                'type' => 'apikey',
+                'apikey' => [
+                    ['key' => 'in', 'value' => 'query', 'type' => 'string'],
+                    ['key' => 'key', 'value' => 'api_key', 'type' => 'string'],
+                ],
+            ]],
+            'body' => ['body', 'api_key', ['type' => 'noauth']],
         ];
     }
 
@@ -213,6 +222,27 @@ class PostmanCollectionWriterTest extends TestCase
 
         $this->assertSame('name', $query['filters[0]']['value']);
         $this->assertSame('age', $query['filters[1]']['value']);
+    }
+
+    #[Test]
+    public function nestedQueryExamplesAreFlattenedIntoBracketedKeys(): void
+    {
+        $collection = $this->generate([$this->createGroup([
+            $this->createMockEndpointData([
+                'queryParameters' => [
+                    'filter' => ['name' => 'filter', 'type' => 'object', 'description' => 'Filter.', 'required' => true, 'example' => [
+                        'date' => ['from' => '2024-01-01', 'to' => '2024-12-31'],
+                        'active' => true,
+                    ]],
+                ],
+            ]),
+        ])]);
+
+        $query = collect($collection['item'][0]['item'][0]['request']['url']['query'])->keyBy('key');
+
+        $this->assertSame('2024-01-01', $query['filter[date][from]']['value']);
+        $this->assertSame('2024-12-31', $query['filter[date][to]']['value']);
+        $this->assertSame('1', $query['filter[active]']['value']);
     }
 
     #[Test]

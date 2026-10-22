@@ -84,6 +84,9 @@ return [
 
         // Directory within `public` to store the CSS, JS and image assets in.
         // Defaults to `public/vendor/scribe`; if set, assets go to `public/{assets_directory}`.
+        // A run replaces only the theme files it wrote earlier (css/theme-*, js/theme-*, js/tryitout*)
+        // and adds its images; anything else in the directory is left alone. The page is built in
+        // `.scribe/build`, which is emptied on every run, so the directory must not be inside it.
         'assets_directory' => null,
 
         // Middleware to attach to the docs endpoint (if `add_routes` is true).

@@ -18,11 +18,18 @@ class SecurityGenerator extends OpenApiGenerator
         $location = $this->config->get('auth.in');
         $parameterName = $this->config->get('auth.name');
         $description = $this->config->get('auth.extra_info');
+        // A token sent in the body is documented as a body parameter on each
+        // authenticated endpoint; OpenAPI has no security scheme for it.
+        if ($location === 'body') {
+            return $root;
+        }
+
         $scheme = match ($location) {
-            'query', 'header' => [
+            // OpenAPI has no "query or body", and the query form is accepted.
+            'query', 'query_or_body', 'header' => [
                 'type' => 'apiKey',
                 'name' => $parameterName,
-                'in' => $location,
+                'in' => $location === 'header' ? 'header' : 'query',
                 'description' => $description,
             ],
             'bearer', 'basic' => [
