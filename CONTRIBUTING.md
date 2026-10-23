@@ -10,12 +10,12 @@ The suite needs PHP 8.4 or 8.5 with the Swoole and Redis extensions that
 `hypervel/components` requires, plus PCOV for the coverage gate. Testbench runs
 every test method inside a real coroutine, and `CoroutineSafetyTest` asserts
 against that directly; there is no fallback, so a PHP without Swoole fails
-before the first assertion. CI runs in `ghcr.io/ipsocode/hypervel/ci:<php>-latest`,
+before the first assertion. CI runs in `ghcr.io/ipsocode/hypervel/ci-alpine:<php>-latest`,
 which has all of them, and is the simplest way to match it:
 
 ```sh
 docker run --rm -it -v "$PWD":/app -w /app -e OTEL_SDK_DISABLED=true \
-    ghcr.io/ipsocode/hypervel/ci:8.4-latest bash
+    ghcr.io/ipsocode/hypervel/ci-alpine:8.4-latest bash
 composer update
 ```
 
