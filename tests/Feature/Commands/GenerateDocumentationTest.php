@@ -29,15 +29,14 @@ use Symfony\Component\Yaml\Yaml;
 use Workbench\App\Http\Controllers\HiddenController;
 use Workbench\App\Http\Controllers\UndocumentableController;
 
-use function Hypervel\Testbench\package_path;
 use function Hypervel\Testbench\workbench_path;
 
 /**
  * The whole pipeline end to end (match, extract, cache the YAML, write every
  * output), the one suite where the stages have to agree with each other.
- * Relative paths (`.scribe/`, `static.output_path`) resolve against the working
- * directory, beside the package (`package_path()`); the rest land in the
- * Testbench skeleton, which `assertFileContains()` and friends address.
+ * Relative paths (`.scribe/`, `static.output_path`) resolve against the app
+ * root (`base_path()`), inside the Testbench skeleton, which
+ * `assertFileContains()` and friends address.
  */
 class GenerateDocumentationTest extends DatabaseTestCase
 {
@@ -49,7 +48,7 @@ class GenerateDocumentationTest extends DatabaseTestCase
     {
         parent::setUp();
 
-        $this->intermediatePath = package_path('.scribe');
+        $this->intermediatePath = base_path('.scribe');
         $this->cleanUpGeneratedFiles();
     }
 
@@ -61,16 +60,15 @@ class GenerateDocumentationTest extends DatabaseTestCase
     }
 
     /**
-     * Remove every artefact a run leaves behind, in both roots.
+     * Remove every artefact a run leaves behind.
      *
      * Testbench deletes the skeleton on shutdown, so cleaning it only isolates
-     * one test from the next. The package-root artefacts have no such owner
-     * and would otherwise accumulate in the repo.
+     * one test from the next.
      */
     private function cleanUpGeneratedFiles(): void
     {
         File::deleteDirectory($this->intermediatePath);
-        File::deleteDirectory(package_path('public'));
+        File::deleteDirectory(base_path('public'));
         File::deleteDirectory($this->app->viewPath('scribe'));
         File::deleteDirectory($this->app->publicPath('vendor/scribe'));
         Storage::disk('local')->deleteDirectory('scribe');
@@ -99,6 +97,29 @@ class GenerateDocumentationTest extends DatabaseTestCase
     private function postmanCollection(): array
     {
         return json_decode(Storage::disk('local')->get('scribe/collection.json'), true);
+    }
+
+    #[Test]
+    #[WithConfig('scribe.type', 'static')]
+    public function relativePathsResolveAgainstTheAppRootNotTheWorkingDirectory(): void
+    {
+        $elsewhere = sys_get_temp_dir() . '/scribe-cwd-' . bin2hex(random_bytes(4));
+        mkdir($elsewhere);
+        $previous = getcwd();
+
+        try {
+            chdir($elsewhere);
+
+            $this->assertSame(0, $this->generate());
+            $this->assertSame(0, $this->generate(['--no-extraction' => true]));
+
+            $this->assertDirectoryExists(base_path('.scribe/endpoints'));
+            $this->assertFileExists(base_path('public/docs/index.html'));
+            $this->assertSame([], array_diff(scandir($elsewhere), ['.', '..']));
+        } finally {
+            chdir($previous);
+            File::deleteDirectory($elsewhere);
+        }
     }
 
     #[Test]
@@ -400,7 +421,7 @@ class GenerateDocumentationTest extends DatabaseTestCase
     #[Test]
     public function theIntermediateDirectoryCanBeMoved(): void
     {
-        $custom = package_path('.scribe-custom');
+        $custom = base_path('.scribe-custom');
         File::deleteDirectory($custom);
 
         try {
@@ -500,8 +521,8 @@ class GenerateDocumentationTest extends DatabaseTestCase
     {
         $this->generate();
 
-        $this->assertFileExists(package_path('public/docs/openapi.yaml'));
-        $this->assertFileExists(package_path('public/docs/collection.json'));
+        $this->assertFileExists(base_path('public/docs/openapi.yaml'));
+        $this->assertFileExists(base_path('public/docs/collection.json'));
     }
 
     #[Test]
@@ -510,7 +531,7 @@ class GenerateDocumentationTest extends DatabaseTestCase
     {
         $this->generate();
 
-        $docs = package_path('public/docs');
+        $docs = base_path('public/docs');
         $this->assertFileExists($docs . '/index.html');
         $this->assertFileExists($docs . '/css/theme-default.style.css');
         $this->assertFileExists($docs . '/images/navbar.png');
@@ -537,7 +558,7 @@ class GenerateDocumentationTest extends DatabaseTestCase
         $this->assertNotEmpty(File::glob($this->app->publicPath('vendor/scribe/js/theme-default-*.js')));
 
         // public/docs was staging, not output.
-        $this->assertDirectoryDoesNotExist(package_path('public/docs'));
+        $this->assertDirectoryDoesNotExist(base_path('public/docs'));
     }
 
     #[Test]
@@ -640,14 +661,14 @@ class GenerateDocumentationTest extends DatabaseTestCase
     #[WithConfig('scribe.static.output_path', 'public')]
     public function aHypervelRunLeavesTheStaticOutputPathAlone(): void
     {
-        $unrelated = package_path('public/robots.txt');
+        $unrelated = base_path('public/robots.txt');
         File::ensureDirectoryExists(dirname($unrelated));
         file_put_contents($unrelated, 'User-agent: *');
 
         $this->generate();
 
         $this->assertFileExists($unrelated);
-        $this->assertDirectoryDoesNotExist(package_path('public/css'));
+        $this->assertDirectoryDoesNotExist(base_path('public/css'));
     }
 
     #[Test]
@@ -683,7 +704,7 @@ class GenerateDocumentationTest extends DatabaseTestCase
     {
         $this->generate();
 
-        $docs = package_path('public/docs');
+        $docs = base_path('public/docs');
         $this->assertFileExists($docs . '/openapi.yaml');
 
         $html = (string) file_get_contents($docs . '/index.html');
@@ -704,7 +725,7 @@ class GenerateDocumentationTest extends DatabaseTestCase
 
         $this->assertTrue(Storage::disk('local')->exists('scribe/openapi.yaml'));
         $this->assertFileContains(['Scalar.createApiReference'], 'resources/views/scribe/index.blade.php');
-        $this->assertDirectoryDoesNotExist(package_path('public/docs'));
+        $this->assertDirectoryDoesNotExist(base_path('public/docs'));
     }
 
     #[Test]
@@ -723,7 +744,7 @@ class GenerateDocumentationTest extends DatabaseTestCase
 
         // Rejected in bootstrap(), so nothing was extracted and nothing written.
         $this->assertDirectoryDoesNotExist($this->intermediatePath);
-        $this->assertDirectoryDoesNotExist(package_path('public/docs'));
+        $this->assertDirectoryDoesNotExist(base_path('public/docs'));
         $this->assertFalse(Storage::disk('local')->exists('scribe/openapi.yaml'));
     }
 

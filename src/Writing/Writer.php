@@ -52,7 +52,7 @@ class Writer
         $this->isExternal = $this->config->outputIsExternal();
 
         $this->hypervelTypeOutputPath = $this->getHypervelTypeOutputPath();
-        $this->staticTypeOutputPath = mb_rtrim($this->config->get('static.output_path', 'public/docs'), '/');
+        $this->staticTypeOutputPath = Utils::resolvePath(mb_rtrim($this->config->get('static.output_path', 'public/docs'), '/'));
 
         $this->hypervelAssetsPath = $this->config->get('hypervel.assets_directory')
             ? '/' . mb_trim($this->config->get('hypervel.assets_directory'), '/')
@@ -408,7 +408,7 @@ class Writer
     {
         $this->assertDirectoriesDoNotOverlap(
             public_path() . $this->hypervelAssetsPath,
-            (getcwd() ?: '') . '/' . $this->hypervelBuildPath,
+            Utils::resolvePath($this->hypervelBuildPath),
         );
     }
 
@@ -439,12 +439,12 @@ class Writer
     }
 
     /**
-     * Make a path relative to the working directory, with forward slashes:
+     * Make a path relative to the app root, with forward slashes:
      * C:\projects\myapp\resources\views or /projects/myapp/resources/views
      * becomes resources/views.
      */
     protected function makePathFriendly(string $path): string
     {
-        return str_replace('\\', '/', str_replace(getcwd() . DIRECTORY_SEPARATOR, '', $path));
+        return str_replace('\\', '/', str_replace(base_path() . DIRECTORY_SEPARATOR, '', $path));
     }
 }
