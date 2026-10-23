@@ -84,7 +84,7 @@ class ScribeServiceProvider extends ServiceProvider
             ]);
 
             AboutCommand::add('Scribe', fn () => [
-                'Version' => Scribe::VERSION,
+                'Version' => Scribe::version(),
                 'Output Type' => (string) config('scribe.type', 'hypervel'),
             ]);
         }

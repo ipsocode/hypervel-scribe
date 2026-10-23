@@ -208,7 +208,7 @@ class WritingUtils
     {
         $index = mb_strrpos($assetPath, '.');
 
-        return substr_replace($assetPath, '-' . Scribe::VERSION, $index, 0);
+        return substr_replace($assetPath, '-' . Scribe::version(), $index, 0);
     }
 
     protected static function printSingleQueryParamAsKeyValue(
