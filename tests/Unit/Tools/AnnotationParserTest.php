@@ -51,6 +51,26 @@ class AnnotationParserTest extends TestCase
 
     #[UnitTest]
     #[Test]
+    public function aFieldNameInsideTheContentIsLeftAlone(): void
+    {
+        $body = '{"next": "/api/orders?status=paid&page=2", "total": 3}';
+        $result = AnnotationParser::parseIntoContentAndFields($body, ['status', 'scenario']);
+
+        $this->assertSame($body, $result['content']);
+        $this->assertNull($result['fields']['status']);
+
+        $quoted = AnnotationParser::parseIntoContentAndFields(
+            'scenario="first status=ok" status=201 {"a": 1}',
+            ['status', 'scenario'],
+        );
+
+        $this->assertSame('{"a": 1}', $quoted['content']);
+        $this->assertSame('201', $quoted['fields']['status']);
+        $this->assertSame('first status=ok', $quoted['fields']['scenario']);
+    }
+
+    #[UnitTest]
+    #[Test]
     public function parsesArbitraryKeyValueFields(): void
     {
         $fields = AnnotationParser::parseIntoFields('title=This message="everything good" ignored');

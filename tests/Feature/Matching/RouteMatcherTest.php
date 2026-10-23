@@ -103,6 +103,41 @@ class RouteMatcherTest extends TestCase
     }
 
     #[Test]
+    public function aRouteMatchingSeveralRulesIsMatchedOnce(): void
+    {
+        $rules = [
+            ['match' => ['prefixes' => ['api/posts*'], 'domains' => ['*']]],
+            ['match' => ['prefixes' => ['api/*'], 'domains' => ['*']]],
+        ];
+
+        // Distinct routes can share a URI (GET and POST), so compare the routes.
+        $ids = array_map(
+            fn (MatchedRoute $matched) => spl_object_id($matched->getRoute()),
+            (new RouteMatcher)->getRoutes($rules),
+        );
+
+        $this->assertNotEmpty($ids);
+        $this->assertSame(array_unique($ids), $ids);
+    }
+
+    #[Test]
+    public function aPrefixWithALeadingSlashMatchesLikeOneWithout(): void
+    {
+        $matched = $this->match([['match' => ['prefixes' => ['/api/posts*'], 'domains' => ['*']]]]);
+
+        $this->assertContains('api/posts', $matched);
+        $this->assertNotContains('api/users', $matched);
+    }
+
+    #[Test]
+    public function aLoneSlashPrefixMatchesTheRootRouteAndNothingElse(): void
+    {
+        $matched = $this->match([['match' => ['prefixes' => ['/'], 'domains' => ['*']]]]);
+
+        $this->assertSame(['/'], $matched);
+    }
+
+    #[Test]
     public function noRulesMeansNoRoutes(): void
     {
         $this->assertSame([], $this->match([]));

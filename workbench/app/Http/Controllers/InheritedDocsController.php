@@ -47,6 +47,15 @@ class InheritedDocsController extends Controller
                     ['status' => 201, 'content' => '{"ok":true}', 'description' => 'Created'],
                 ],
             ],
+            'several' => [
+                'bodyParameters' => [
+                    'title' => ['type' => 'string', 'required' => true, 'example' => 'Hello'],
+                ],
+                'responses' => [
+                    ['status' => 201, 'content' => '{"ok":true}', 'description' => 'Created'],
+                    ['status' => 200, 'content' => '{"ok":true}', 'description' => 'Fine'],
+                ],
+            ],
             'computed' => [
                 // The same four stages, worked out from the endpoint instead.
                 'headers' => fn (ExtractedEndpointData $endpointData) => ['X-Endpoint' => $endpointData->uri],
@@ -79,6 +88,14 @@ class InheritedDocsController extends Controller
      * An endpoint documented by callbacks on the base controller.
      */
     public function computed(): array
+    {
+        return [];
+    }
+
+    /**
+     * An endpoint with inherited body parameters and several inherited responses.
+     */
+    public function several(): array
     {
         return [];
     }

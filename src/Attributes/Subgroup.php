@@ -34,7 +34,7 @@ class Subgroup
         }
 
         if (interface_exists('BackedEnum') && is_a($this->name, 'BackedEnum')) {
-            return $this->name->value;
+            return (string) $this->name->value;
         }
 
         throw new InvalidArgumentException(

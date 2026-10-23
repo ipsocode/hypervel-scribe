@@ -32,6 +32,13 @@ return [
     // check fails as soon as a count stops matching, either way. Each reason is the
     // one the code's own comment gives.
     'allowed' => [
+        'namespace' => [
+            'src/Tools/Utils.php' => [5, "laravel/serializable-closure is the library Hypervel's Route uses to store a closure route under route:cache, and the only way to read one back"],
+            'tests/Feature/Tools/UtilsTest.php' => [1, 'builds the serialized closure that route:cache would have stored'],
+        ],
+        'eval-unserialize' => [
+            'src/Tools/Utils.php' => [1, "reads a closure route back from route:cache the way Route::runCallable() does, with allowed_classes limited to the serializable-closure classes"],
+        ],
         'coverage-ignore' => [
             'src/Extracting/FindsFormRequestForMethod.php' => [2, 'class_exists() has already loaded the class, so reflecting it cannot fail'],
             'src/GroupedEndpoints/GroupedEndpointsFromApp.php' => [4, 'two guards the route helpers leave nothing to catch: getRouteClassAndMethodNames() returns a usable pair or throws, and isValidRoute() has already thrown on a short one'],

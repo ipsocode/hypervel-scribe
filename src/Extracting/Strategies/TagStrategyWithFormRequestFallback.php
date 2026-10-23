@@ -28,10 +28,12 @@ abstract class TagStrategyWithFormRequestFallback extends Strategy
         // Tags on the method's FormRequest win when it has any for this strategy.
         if ($formRequestClass = $this->getFormRequestReflectionClass($method)) {
             $formRequestDocBlock = RouteDocBlocker::forClass($formRequestClass);
-            $parametersFromFormRequest = $this->getFromTags($formRequestDocBlock->getTags(), $classTags);
 
-            if (count($parametersFromFormRequest)) {
-                return $parametersFromFormRequest;
+            // Only the FormRequest's own tags count: with the class tags merged
+            // in, a controller that has any would hide the method's.
+            $formRequestTags = $formRequestDocBlock->getTags();
+            if (count($this->getFromTags($formRequestTags))) {
+                return $this->getFromTags($formRequestTags, $classTags);
             }
         }
 

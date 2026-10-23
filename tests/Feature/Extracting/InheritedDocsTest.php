@@ -26,6 +26,8 @@ class InheritedDocsTest extends DatabaseTestCase
             ->name('inherited.listed');
         $router->post('api/inherited/computed', [InheritedDocsController::class, 'computed'])
             ->name('inherited.computed');
+        $router->post('api/inherited/several', [InheritedDocsController::class, 'several'])
+            ->name('inherited.several');
     }
 
     private function extract(string $routeName): ExtractedEndpointData
@@ -62,7 +64,11 @@ class InheritedDocsTest extends DatabaseTestCase
 
         // The callback form replaces the stage rather than merging into it, and
         // is handed the endpoint so it can work from what was extracted.
-        $this->assertSame(['X-Endpoint' => 'api/inherited/computed'], $endpoint->headers);
+        // Plus the JSON default the inherited body parameter brings with it.
+        $this->assertSame(
+            ['X-Endpoint' => 'api/inherited/computed', 'Content-Type' => 'application/json'],
+            $endpoint->headers,
+        );
 
         $this->assertSame('Worked out at extraction time.', $endpoint->bodyParameters['computed']->description);
         $this->assertSame('boolean', $endpoint->responseFields['ok']->type);
@@ -70,5 +76,22 @@ class InheritedDocsTest extends DatabaseTestCase
         $responses = $endpoint->responses->toArray();
         $this->assertCount(1, $responses);
         $this->assertSame(202, $responses[0]['status']);
+    }
+
+    #[Test]
+    public function inheritedBodyParametersReachTheCleanParametersAndTheExampleRequest(): void
+    {
+        $endpoint = $this->extract('inherited.several');
+
+        $this->assertSame(['title' => 'Hello'], $endpoint->cleanBodyParameters);
+        $this->assertSame('application/json', $endpoint->headers['Content-Type']);
+    }
+
+    #[Test]
+    public function severalInheritedResponsesAreEachDocumentedOnceAndSortedByStatus(): void
+    {
+        $statuses = array_column($this->extract('inherited.several')->responses->toArray(), 'status');
+
+        $this->assertSame([200, 201], $statuses);
     }
 }

@@ -78,7 +78,7 @@ class GetFromDocBlocks extends Strategy
     protected function getEndpointGroupAndTitleDetails(ParsedDocBlock $methodDocBlock, ParsedDocBlock $controllerDocBlock)
     {
         foreach ($methodDocBlock->getTags() as $tag) {
-            if ($tag->getName() === 'group') {
+            if (mb_strtolower($tag->getName()) === 'group') {
                 $endpointGroupParts = explode("\n", mb_trim($tag->getContent()));
                 $endpointGroupName = array_shift($endpointGroupParts);
                 $endpointGroupDescription = mb_trim(implode("\n", $endpointGroupParts));
@@ -105,7 +105,7 @@ class GetFromDocBlocks extends Strategy
 
         // Fall back to the controller
         foreach ($controllerDocBlock->getTags() as $tag) {
-            if ($tag->getName() === 'group') {
+            if (mb_strtolower($tag->getName()) === 'group') {
                 $endpointGroupParts = explode("\n", mb_trim($tag->getContent()));
                 $endpointGroupName = array_shift($endpointGroupParts);
                 $endpointGroupDescription = implode("\n", $endpointGroupParts);

@@ -96,12 +96,15 @@ class GetFromLaravelAPI extends Strategy
     {
         // Eloquent models linked to a URL parameter, by parameter name.
         $modelInstances = [];
+        // The column each of them is looked up by, where the route names one.
+        $routeKeys = [];
 
         // First, models type-hinted on the method: with /users/{id} and
         // (User $user), {id} takes the type of User's key.
         $typeHintedEloquentModels = UrlParamsNormalizer::getTypeHintedEloquentModels($endpointData->method);
         foreach ($typeHintedEloquentModels as $argumentName => $modelInstance) {
-            $routeKey = $modelInstance->getRouteKeyName();
+            // {post:slug}, or a scoped() resource, names its own column.
+            $routeKey = $endpointData->route->bindingFieldFor($argumentName) ?? $modelInstance->getRouteKeyName();
 
             // In the normalized URI, argument $user may be {user}, {user_<routeKey>}
             // or {<routeKey>}.
@@ -116,12 +119,13 @@ class GetFromLaravelAPI extends Strategy
             }
 
             $modelInstances[$paramName] = $modelInstance;
+            $routeKeys[$paramName] = $routeKey;
         }
 
         // Then the model the URI names for each parameter without a type yet
-        // (so far, every one); a match replaces a type-hinted model.
+        // and without a type-hinted model, which is the better source.
         foreach ($parameters as $name => $data) {
-            if (isset($data['type'])) {
+            if (isset($data['type']) || isset($modelInstances[$name])) {
                 continue;
             }
 
@@ -135,7 +139,7 @@ class GetFromLaravelAPI extends Strategy
         foreach ($modelInstances as $paramName => $modelInstance) {
             // A route key that is the primary key takes the key's type; any
             // other route key is a string.
-            $routeKey = $modelInstance->getRouteKeyName();
+            $routeKey = $routeKeys[$paramName] ?? $modelInstance->getRouteKeyName();
             $type = $modelInstance->getKeyName() === $routeKey
                 ? static::normalizeTypeName($modelInstance->getKeyType()) : 'string';
 
@@ -204,7 +208,7 @@ class GetFromLaravelAPI extends Strategy
                 // A `where()` constraint on the parameter shapes its example.
                 $parameterRegex = $endpointData->route->wheres[$name] ?? null;
                 $parameters[$name]['example'] = $parameterRegex
-                    ? $this->castToType($this->getFaker()->regexify($parameterRegex), $parameters[$name]['type'])
+                    ? $this->castToType($this->getFaker()->regexify('(' . $parameterRegex . ')'), $parameters[$name]['type'])
                     : $this->generateDummyValue($parameters[$name]['type'], hints: ['name' => $name]);
             }
         }
@@ -254,9 +258,9 @@ class GetFromLaravelAPI extends Strategy
         $className = str_replace(['-', '_', ' '], '', Str::title($urlThing));
         $rootNamespace = app()->getNamespace();
 
-        if (class_exists($class = "{$rootNamespace}Models\\" . $className, autoload: false)
+        if (class_exists($class = "{$rootNamespace}Models\\" . $className)
             // Or directly under the root namespace, for apps without a Models directory.
-            || class_exists($class = $rootNamespace . $className, autoload: false)) {
+            || class_exists($class = $rootNamespace . $className)) {
             try {
                 $instance = new $class;
             } catch (Error) { // An enum or another class that can't be instantiated.

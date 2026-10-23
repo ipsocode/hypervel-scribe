@@ -38,9 +38,9 @@ class UseResponseAttributes extends PhpAttributeStrategy
 
     /**
      * Example models for single (non-collection) API resources, keyed by
-     * uri|model|states and reused across a path's operations, so the {id} URL
-     * parameter the OpenAPI writer takes from one operation matches the id in
-     * every operation's response body. Cleared per run.
+     * uri|model|states|with|withCount and reused across a path's operations, so
+     * the {id} URL parameter the OpenAPI writer takes from one operation matches
+     * the id in every operation's response body. Cleared per run.
      * See docs/design/run-state.md.
      *
      * @var array<string, null|Model|object>
@@ -121,7 +121,7 @@ class UseResponseAttributes extends PhpAttributeStrategy
 
     /**
      * The example model for an API resource response. A single resource is
-     * cached per uri, model and states, and its route key is written onto the
+     * cached per uri, model, states and loaded relations, and its route key is written onto the
      * bound URL parameter, so the {id} in the path matches every operation's
      * response body. A collection gets fresh models each time, so its rows stay
      * distinct and don't trip unique indexes.
@@ -132,7 +132,10 @@ class UseResponseAttributes extends PhpAttributeStrategy
             return $this->instantiateExampleModel($type, $attribute->factoryStates, $attribute->with, null, $attribute->withCount);
         }
 
-        $cacheKey = $this->endpointData->uri . '|' . $type . '|' . implode(',', $attribute->factoryStates);
+        $cacheKey = $this->endpointData->uri . '|' . $type
+            . '|' . implode(',', $attribute->factoryStates)
+            . '|' . implode(',', $attribute->with)
+            . '|' . implode(',', $attribute->withCount);
         $model = self::$singleResourceModels[$cacheKey]
             ??= $this->instantiateExampleModel($type, $attribute->factoryStates, $attribute->with, null, $attribute->withCount);
 
