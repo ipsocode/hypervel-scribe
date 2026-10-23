@@ -390,13 +390,123 @@ class HtmlWriterTest extends TestCase
     #[Test]
     public function theLastUpdatedStringResolvesItsGitToken(): void
     {
-        $metadata = $this->writer(['last_updated' => 'Built from {git:short}'])->getMetadata();
+        $sha = str_repeat('ab12', 10);
+        $this->useGitDir(['HEAD' => "ref: refs/heads/main\n", 'refs/heads/main' => "{$sha}\n"]);
 
-        $this->assertMatchesRegularExpression('/^Built from [0-9a-f]{7,}$/', $metadata['last_updated']);
+        $short = $this->writer(['last_updated' => 'Built from {git:short}'])->getMetadata();
+        $long = $this->writer(['last_updated' => 'Built from {git:long}'])->getMetadata();
 
-        // `long` is the full hash, and starts with what `short` abbreviates.
-        $long = $this->writer(['last_updated' => 'Built from {git:long}'])->getMetadata()['last_updated'];
-        $this->assertMatchesRegularExpression('/^Built from [0-9a-f]{40}$/', $long);
+        $this->assertSame('Built from ' . substr($sha, 0, 7), $short['last_updated']);
+        $this->assertSame("Built from {$sha}", $long['last_updated']);
+    }
+
+    #[Test]
+    public function aGitTokenReadsAPackedRef(): void
+    {
+        $sha = str_repeat('cd34', 10);
+        $this->useGitDir([
+            'HEAD' => "ref: refs/heads/main\n",
+            'packed-refs' => "# pack-refs\n" . str_repeat('0', 40) . " refs/heads/other\n{$sha} refs/heads/main\n",
+        ]);
+
+        $this->assertSame($sha, $this->writer(['last_updated' => '{git:long}'])->getMetadata()['last_updated']);
+    }
+
+    #[Test]
+    public function aGitTokenReadsADetachedHead(): void
+    {
+        $sha = str_repeat('ef56', 10);
+        $this->useGitDir(['HEAD' => "{$sha}\n"]);
+
+        $this->assertSame($sha, $this->writer(['last_updated' => '{git:long}'])->getMetadata()['last_updated']);
+    }
+
+    #[Test]
+    public function aGitTokenIsEmptyWhenTheRefCannotBeResolved(): void
+    {
+        $this->useGitDir(['HEAD' => "ref: refs/heads/gone\n"]);
+
+        $this->assertSame('At ', $this->writer(['last_updated' => 'At {git:long}'])->getMetadata()['last_updated']);
+    }
+
+    #[Test]
+    public function aGitTokenIsEmptyOutsideARepository(): void
+    {
+        $this->useGitDir([]);
+
+        $this->assertSame('At ', $this->writer(['last_updated' => 'At {git:short}'])->getMetadata()['last_updated']);
+    }
+
+    #[Test]
+    public function aGitTokenReadsAWorktreesHeadAndTheMainRepositorysRefs(): void
+    {
+        $sha = str_repeat('a1b2', 10);
+        $root = dirname($this->source);
+        $this->putFiles([
+            'main/.git/refs/heads/feature' => "{$sha}\n",
+            'main/.git/worktrees/app/HEAD' => "ref: refs/heads/feature\n",
+            'main/.git/worktrees/app/commondir' => "../..\n",
+            // A worktree's pointer is absolute.
+            'app/.git' => "gitdir: {$root}/main/.git/worktrees/app\n",
+        ]);
+        $this->app->setBasePath("{$root}/app");
+
+        $this->assertSame($sha, $this->writer(['last_updated' => '{git:long}'])->getMetadata()['last_updated']);
+    }
+
+    #[Test]
+    public function aGitTokenReadsASubmodulesGitDirectory(): void
+    {
+        $sha = str_repeat('c3d4', 10);
+        $this->putFiles([
+            'super/.git/modules/app/HEAD' => "{$sha}\n",
+            // A submodule's pointer is relative to the submodule.
+            'super/app/.git' => "gitdir: ../.git/modules/app\n",
+        ]);
+        $this->app->setBasePath(dirname($this->source) . '/super/app');
+
+        $this->assertSame(substr($sha, 0, 7), $this->writer(['last_updated' => '{git:short}'])->getMetadata()['last_updated']);
+    }
+
+    #[Test]
+    public function aGitTokenReadsTheRepositoryAboveTheBasePath(): void
+    {
+        $sha = str_repeat('e5f6', 10);
+        $this->putFiles(['repo/.git/HEAD' => "{$sha}\n", 'repo/apps/api/.keep' => '']);
+        $this->app->setBasePath(dirname($this->source) . '/repo/apps/api');
+
+        $this->assertSame($sha, $this->writer(['last_updated' => '{git:long}'])->getMetadata()['last_updated']);
+    }
+
+    /**
+     * Write files under the test's temporary directory, creating their directories.
+     *
+     * @param array<string, string> $files
+     */
+    private function putFiles(array $files): void
+    {
+        foreach ($files as $name => $contents) {
+            $path = dirname($this->source) . "/{$name}";
+            is_dir(dirname($path)) || mkdir(dirname($path), 0o777, true);
+            file_put_contents($path, $contents);
+        }
+    }
+
+    /**
+     * Point the application's base path at a directory whose .git holds the given files.
+     *
+     * @param array<string, string> $files
+     */
+    private function useGitDir(array $files): void
+    {
+        $base = dirname($this->source) . '/app';
+        foreach ($files as $name => $contents) {
+            is_dir(dirname("{$base}/.git/{$name}")) || mkdir(dirname("{$base}/.git/{$name}"), 0o777, true);
+            file_put_contents("{$base}/.git/{$name}", $contents);
+        }
+        is_dir($base) || mkdir($base, 0o777, true);
+
+        $this->app->setBasePath($base);
     }
 
     #[Test]

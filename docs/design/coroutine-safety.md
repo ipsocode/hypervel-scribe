@@ -27,8 +27,6 @@ Every change is held to these:
   Commands return an exit code.
 - Hypervel APIs only. Tests reach the container with `$app->get(...)`, never
   with array access.
-- `src/Reflection/` is vendored third-party code. Leave it alone unless the
-  change is about it.
 - New behaviour comes with a test. `@codeCoverageIgnore` is not a way past the
   coverage gate.
 
@@ -67,8 +65,6 @@ holds one has a `flushState()`. There are two kinds.
 **Configuration an application sets at boot**:
 
 - the `Scribe::` hooks, stored in `Tools\Globals`
-- the docblock tag handlers, registered with
-  `Ipsocode\Scribe\Reflection\DocBlock\Tag::registerTagHandler()`
 
 `Tools\RunState::flush()` clears the first kind, and `scribe:generate` calls it
 on the way in and on the way out. It leaves the second kind alone.
@@ -99,6 +95,13 @@ Spreading the routes over coroutines with `Hypervel\Coroutine\parallel()` or
 - `examples.faker_seed` only reproduces a run if the example models are built
   in route order: the model factories' Faker is seeded once per run and its
   sequence advances from one model to the next.
+
+An in-process run shares one more thing with its worker: `ResponseCalls` sets its
+`config` overrides (by default `app.debug => false`) with the worker-global
+`Config::set()` and restores them afterwards. While a response call yields on
+I/O, every other request and job coroutine in the worker sees the overrides.
+Run `scribe:generate` in a worker of its own, or through the job on a queue
+worker that serves nothing else, if that matters.
 
 Response calls do run one child coroutine each, through
 `Hypervel\Coroutine\Waiter`. That is for isolation and a timeout, not for

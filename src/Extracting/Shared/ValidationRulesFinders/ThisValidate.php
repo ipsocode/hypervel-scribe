@@ -29,7 +29,9 @@ class ThisValidate
             && $expr->var->name === 'this'
         ) {
             if ($expr->name->name === 'validate') {
-                return $expr->args[1]->value;
+                $argument = $expr->args[1] ?? null;
+
+                return $argument instanceof Node\Arg ? $argument->value : null;
             }
         }
     }

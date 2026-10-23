@@ -8,7 +8,5 @@ In src/, in order:
    flushState() is not reached from src/Testing/TestState.php (per-run caches through
    Tools\RunState::flush()); request-scoped state kept outside Hypervel\Context;
    blocking calls on that path.
-3. src/Reflection/ is re-namespaced third-party code: flag a change to it unless the
-   pull request is about it.
-4. Security: unescaped values from docblocks, config or responses in the generated
+3. Security: unescaped values from docblocks, config or responses in the generated
    HTML, and what response calls send through the application.

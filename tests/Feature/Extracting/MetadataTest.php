@@ -10,6 +10,7 @@ use Ipsocode\Scribe\Extracting\Extractor;
 use Ipsocode\Scribe\Tests\DatabaseTestCase;
 use Ipsocode\Scribe\Tools\DocumentationConfig;
 use PHPUnit\Framework\Attributes\Test;
+use Workbench\App\Http\Controllers\ClassAttributesController;
 use Workbench\App\Http\Controllers\InheritedMetadataController;
 use Workbench\App\Http\Controllers\MetadataController;
 
@@ -27,6 +28,8 @@ class MetadataTest extends DatabaseTestCase
             ->name('meta.groupNoTitle');
         $router->get('api/meta/group-with-title', [MetadataController::class, 'groupWithTitle'])
             ->name('meta.groupWithTitle');
+        $router->get('api/meta/capitalised-group', [MetadataController::class, 'capitalisedGroup'])
+            ->name('meta.capitalisedGroup');
         $router->get('api/meta/unauthenticated', [MetadataController::class, 'unauthenticated'])
             ->name('meta.unauthenticated');
         $router->get('api/meta/deprecated-bare', [MetadataController::class, 'deprecatedBare'])
@@ -35,6 +38,10 @@ class MetadataTest extends DatabaseTestCase
             ->name('meta.deprecatedReason');
         $router->get('api/meta/subgroup', [MetadataController::class, 'subgrouped'])
             ->name('meta.subgroup');
+        $router->get('api/meta/class-attributes', [ClassAttributesController::class, 'inherits'])
+            ->name('meta.classAttributes');
+        $router->get('api/meta/class-attributes-tagged', [ClassAttributesController::class, 'tagged'])
+            ->name('meta.classAttributesTagged');
         $router->get('api/meta/inherited-subgroup', [InheritedMetadataController::class, 'inheritsTheSubgroup'])
             ->name('meta.inheritedSubgroup');
     }
@@ -49,6 +56,36 @@ class MetadataTest extends DatabaseTestCase
     public function aGroupTagOnTheMethodOverridesTheControllersGroup(): void
     {
         $this->assertSame('Method group', $this->extract('meta.groupWithTitle')->metadata->groupName);
+    }
+
+    #[Test]
+    public function aMethodWithNoTagsTakesTheControllersAttributes(): void
+    {
+        $metadata = $this->extract('meta.classAttributes')->metadata;
+
+        $this->assertSame('Class group', $metadata->groupName);
+        $this->assertSame('Written on the class.', $metadata->groupDescription);
+        $this->assertSame('Class subgroup', $metadata->subgroup);
+        $this->assertTrue($metadata->authenticated);
+    }
+
+    #[Test]
+    public function tagsOnTheMethodOutrankAttributesOnTheController(): void
+    {
+        $metadata = $this->extract('meta.classAttributesTagged')->metadata;
+
+        $this->assertSame('Method group', $metadata->groupName);
+        $this->assertSame('', $metadata->groupDescription);
+        $this->assertSame('Method subgroup', $metadata->subgroup);
+        $this->assertSame('', $metadata->subgroupDescription);
+        $this->assertFalse($metadata->authenticated);
+        $this->assertTrue($metadata->deprecated);
+    }
+
+    #[Test]
+    public function aGroupTagIsReadWhateverItsCase(): void
+    {
+        $this->assertSame('Capitalised group', $this->extract('meta.capitalisedGroup')->metadata->groupName);
     }
 
     #[Test]

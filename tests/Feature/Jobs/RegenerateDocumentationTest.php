@@ -118,6 +118,18 @@ class RegenerateDocumentationTest extends DatabaseTestCase
     }
 
     #[Test]
+    public function aRunMayTakeAsLongAsTheLockIsHeld(): void
+    {
+        $job = new RegenerateDocumentation;
+        [$overlap] = $job->middleware();
+
+        // Past the worker's default 60 second timeout, and not past the lock,
+        // so a slow run is not killed while the lock is still held.
+        $this->assertGreaterThan(60, $job->timeout);
+        $this->assertSame($overlap->expiresAfter, $job->timeout);
+    }
+
+    #[Test]
     public function aRunIsHeldBackWhileAnotherHoldsTheLock(): void
     {
         $job = new RegenerateDocumentation(config: 'another-config');

@@ -104,8 +104,11 @@ the same name replaces them. When the method's FormRequest has parameter tags in
 its own docblock, those are used and the method's are ignored.
 
 URL parameters are also read from the route and the method's type hints. A
-parameter bound to an Eloquent model takes its type and an example from the
-model, and a backed enum supplies its type and its first case's value as the
+parameter bound to an Eloquent model takes its type from the model's key, and a
+generated example of that type; with `examples.url_parameters_from_database`
+on, the example is the key of the table's first row instead, which response
+calls then fetch, so turn it on only against a database with no real data. A
+backed enum supplies its type and its first case's value as the
 example. Parameter names
 are rewritten to say what they hold: on a resource route (named `*.index`,
 `*.show`, `*.store`, `*.update` or `*.destroy`), `authors/{author}/blogs/{blog}`
@@ -263,7 +266,9 @@ call on the resource before rendering it). `#[ResponseFromTransformer]` takes
 A method that type-hints a `Hypervel\Foundation\Http\FormRequest` is documented
 from its `rules()`, or from the rules of its `validator()` method when it has
 one. The parameters' types, whether they are required, and examples are
-inferred from the rules. Descriptions and examples come from `bodyParameters()`:
+inferred from the rules. Descriptions and examples come from `bodyParameters()`,
+where `'example' => 'No-example'` omits the example of an optional parameter (a
+required one keeps a generated example, which response calls send):
 
 ```php
 class StorePostRequest extends FormRequest
@@ -314,7 +319,8 @@ $validated = $this->validate($request, [...]);
   other entries in the array are skipped, and a key whose rules are written any
   other way is documented with no rules.
 - A comment above a rule is its description. `Example: <value>` in it sets the
-  example and `No-example` omits it.
+  example and `No-example` omits it, even when the rules make the parameter
+  required (unlike `bodyParameters()`, no example is generated in its place).
 - A `// Query parameters` comment above the statement makes the rules query
   parameters instead of body parameters.
 

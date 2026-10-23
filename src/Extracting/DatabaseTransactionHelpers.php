@@ -22,6 +22,21 @@ trait DatabaseTransactionHelpers
         return $this->getConfig()->get('database_connections_to_transact', []);
     }
 
+    /**
+     * Runs the callback inside a transaction that is always rolled back,
+     * including when the callback throws.
+     */
+    private function inDbTransaction(callable $callback): mixed
+    {
+        try {
+            $this->startDbTransaction();
+
+            return $callback();
+        } finally {
+            $this->endDbTransaction();
+        }
+    }
+
     private function startDbTransaction(): void
     {
         foreach ($this->connectionsToTransact() as $connection) {

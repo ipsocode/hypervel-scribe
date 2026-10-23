@@ -175,8 +175,8 @@ class HtmlWriter
         $tokens = [
             'date' => fn ($format) => date($format),
             'git' => fn ($format) => match ($format) {
-                'short' => mb_trim(shell_exec('git rev-parse --short HEAD') ?? ''),
-                'long' => mb_trim(shell_exec('git rev-parse HEAD') ?? ''),
+                'short' => mb_substr($this->gitHead(), 0, 7),
+                'long' => $this->gitHead(),
                 default => throw new InvalidArgumentException("The `git` token only supports formats 'short' and 'long', but you specified {$format}"),
             },
         ];
@@ -189,6 +189,54 @@ class HtmlWriter
         }
 
         return $lastUpdated;
+    }
+
+    /**
+     * The commit HEAD points at, read from the .git directory rather than by
+     * running git, which would block the worker. Like git, it looks for .git
+     * in the base path and then in each directory above it. Empty outside a
+     * repository.
+     */
+    protected function gitHead(): string
+    {
+        $workTree = base_path();
+        while (! file_exists($workTree . '/.git') && dirname($workTree) !== $workTree) {
+            $workTree = dirname($workTree);
+        }
+        $gitDir = $workTree . '/.git';
+
+        // In a worktree or a submodule, .git is a file naming the git directory.
+        if (is_file($gitDir) && preg_match('/^gitdir: (.+)$/m', (string) file_get_contents($gitDir), $matches)) {
+            $gitDir = $this->gitPath($workTree, mb_trim($matches[1]));
+        }
+
+        // A worktree keeps its own HEAD, but its branches are the main repository's.
+        $refsDir = is_file($gitDir . '/commondir')
+            ? $this->gitPath($gitDir, mb_trim((string) file_get_contents($gitDir . '/commondir')))
+            : $gitDir;
+
+        $head = is_file($gitDir . '/HEAD') ? mb_trim((string) file_get_contents($gitDir . '/HEAD')) : '';
+
+        if (! str_starts_with($head, 'ref: ')) {
+            return $head;
+        }
+
+        $ref = mb_substr($head, 5);
+        if (is_file($refsDir . '/' . $ref)) {
+            return mb_trim((string) file_get_contents($refsDir . '/' . $ref));
+        }
+
+        $packed = is_file($refsDir . '/packed-refs') ? (string) file_get_contents($refsDir . '/packed-refs') : '';
+
+        return preg_match('/^([0-9a-f]{40}) ' . preg_quote($ref, '/') . '$/m', $packed, $matches) ? $matches[1] : '';
+    }
+
+    /**
+     * A path from a git pointer file, which is absolute or relative to the given directory.
+     */
+    protected function gitPath(string $relativeTo, string $path): string
+    {
+        return str_starts_with($path, '/') ? $path : "{$relativeTo}/{$path}";
     }
 
     protected function getHeadings(array $headingsBeforeEndpoints, array $endpointsByGroupAndSubgroup, array $headingsAfterEndpoints): array

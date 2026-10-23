@@ -47,7 +47,8 @@ trait InstantiatesExampleModels
             throw new Exception("Couldn't detect a transformer model from your doc block. Did you remember to specify a model using @transformerModel?");
         }
 
-        $configuredStrategies = $this->config->get('examples.models_source', ['factoryCreate', 'factoryMake', 'databaseFirst']);
+        // `databaseFirst` publishes a real record, so it runs only when listed.
+        $configuredStrategies = $this->config->get('examples.models_source', ['factoryCreate', 'factoryMake']);
 
         $strategies = [
             'factoryCreate' => fn () => $this->getExampleModelFromFactoryCreate($type, $factoryStates, $relations, $withCount),
@@ -90,8 +91,9 @@ trait InstantiatesExampleModels
             return;
         }
 
+        // null or 0 means unseeded, as it does for SeededFaker.
         $seed = $this->config->get('examples.faker_seed');
-        if ($seed === null) {
+        if (! $seed) {
             return;
         }
 

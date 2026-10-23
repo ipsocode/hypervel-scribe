@@ -6,10 +6,8 @@ namespace Ipsocode\Scribe\Writing\OpenApiSpecGenerators;
 
 use Hypervel\Support\Str;
 use Ipsocode\Camel\Extraction\Response;
-use Ipsocode\Camel\Extraction\ResponseField;
 use Ipsocode\Camel\Output\OutputEndpointData;
 use Ipsocode\Camel\Output\Parameter;
-use Ipsocode\Scribe\Tools\Utils;
 use Ipsocode\Scribe\Writing\OpenAPISpecWriter;
 use stdClass;
 
@@ -35,6 +33,8 @@ class BaseGenerator extends OpenApiGenerator
      * @var array<string, true> the operation IDs handed out so far in this spec
      */
     private array $usedOperationIds = [];
+
+    private ?SchemaBuilder $schemaBuilder = null;
 
     public function root(array $root, array $groupedEndpoints): array
     {
@@ -122,95 +122,7 @@ class BaseGenerator extends OpenApiGenerator
      */
     public function generateFieldData($field): array
     {
-        if (is_array($field)) {
-            $field = new Parameter($field);
-        }
-
-        if ($field->type === 'file') {
-            // See https://swagger.io/docs/specification/describing-request-body/file-upload/
-            $fieldData = [
-                'type' => 'string',
-                'format' => 'binary',
-                'description' => $field->description ?: '',
-            ];
-            $this->applyNullable($fieldData, $field->nullable);
-
-            return $fieldData;
-        }
-        if (Utils::isArrayType($field->type)) {
-            $baseType = Utils::getBaseTypeFromArrayType($field->type);
-            $baseItem = ($baseType === 'file') ? [
-                'type' => 'string',
-                'format' => 'binary',
-            ] : ['type' => $baseType];
-
-            if (! empty($field->enumValues)) {
-                $baseItem['enum'] = $field->enumValues;
-            }
-
-            $this->applyNullable($baseItem, $field->nullable);
-
-            $fieldData = [
-                'type' => 'array',
-                'description' => $field->description ?: '',
-                'example' => $field->example,
-                'items' => Utils::isArrayType($baseType)
-                    ? $this->generateFieldData([
-                        'name' => '',
-                        'type' => $baseType,
-                        'example' => ($field->example ?: [null])[0],
-                        'nullable' => $field->nullable,
-                    ])
-                    : $baseItem,
-            ];
-            if (str_replace('[]', '', $field->type) === 'file') {
-                // File parameters get no example: there is no faithful way to express one.
-                unset($fieldData['example']);
-            }
-
-            if ($baseType === 'object' && ! empty($field->__fields)) {
-                if ($fieldData['items']['type'] === 'object') {
-                    $fieldData['items']['properties'] = [];
-                }
-                foreach ($field->__fields as $fieldSimpleName => $subfield) {
-                    $fieldData['items']['properties'][$fieldSimpleName] = $this->generateFieldData($subfield);
-                    if ($subfield['required']) {
-                        $fieldData['items']['required'][] = $fieldSimpleName;
-                    }
-                }
-            }
-
-            return $fieldData;
-        }
-        if ($field->type === 'object') {
-            $data = [
-                'type' => 'object',
-                'description' => $field->description ?: '',
-                'example' => $field->example,
-                'properties' => $this->objectIfEmpty(collect($field->__fields)->mapWithKeys(function ($subfield, $subfieldName) {
-                    return [$subfieldName => $this->generateFieldData($subfield)];
-                })->all()),
-                'required' => collect($field->__fields)->filter(fn ($f) => $f['required'])->keys()->toArray(),
-            ];
-            $this->applyNullable($data, $field->nullable);
-            // The spec doesn't allow an empty `required` array.
-            if (empty($data['required'])) {
-                unset($data['required']);
-            }
-
-            return $data;
-        }
-        $schema = [
-            'type' => static::normalizeTypeName($field->type),
-            'description' => $field->description ?: '',
-            'example' => $field->example,
-        ];
-        if (! empty($field->enumValues)) {
-            $schema['enum'] = $field->enumValues;
-        }
-        $this->applyNullable($schema, $field->nullable);
-
-        return $schema;
+        return $this->schemas()->field($field);
     }
 
     /**
@@ -222,63 +134,7 @@ class BaseGenerator extends OpenApiGenerator
      */
     public function generateSchemaForResponseValue(mixed $value, OutputEndpointData $endpoint, string $path): array
     {
-        if ($value instanceof stdClass) {
-            $value = (array) $value;
-            $properties = [];
-            foreach ($value as $subField => $subValue) {
-                $subFieldPath = sprintf('%s.%s', $path, $subField);
-                $properties[$subField] = $this->generateSchemaForResponseValue($subValue, $endpoint, $subFieldPath);
-            }
-            $required = $this->filterRequiredResponseFields($endpoint, array_keys($properties), $path);
-
-            $schema = [
-                'type' => 'object',
-                'properties' => $this->objectIfEmpty($properties),
-            ];
-            if ($required) {
-                $schema['required'] = $required;
-            }
-            $this->setDescription($schema, $endpoint, $path);
-            $this->setNullable($schema, $endpoint, $path, $value);
-
-            return $schema;
-        }
-
-        $schema = [
-            'type' => $this->convertScribeOrPHPTypeToOpenAPIType(gettype($value)),
-            'example' => $value,
-        ];
-        $this->setDescription($schema, $endpoint, $path);
-        $this->setNullable($schema, $endpoint, $path, $value);
-
-        if (! empty($endpoint->responseFields[$path]->enumValues)) {
-            $schema['enum'] = $endpoint->responseFields[$path]->enumValues;
-        }
-
-        if ($schema['type'] === 'array' && ! empty($value)) {
-            $schema['example'] = json_decode(json_encode($schema['example']), true); // Convert stdClass to array
-
-            $sample = $value[0];
-            $typeOfEachItem = $this->convertScribeOrPHPTypeToOpenAPIType(gettype($sample));
-            $schema['items']['type'] = $typeOfEachItem;
-
-            if ($typeOfEachItem === 'object') {
-                $schema['items']['properties'] = collect((array) $sample)->mapWithKeys(function ($v, $k) use ($endpoint, $path) {
-                    return [$k => $this->generateSchemaForResponseValue($v, $endpoint, "{$path}.{$k}")];
-                })->toArray();
-
-                $required = $this->filterRequiredResponseFields(
-                    $endpoint,
-                    array_keys($schema['items']['properties']),
-                    $path
-                );
-                if ($required) {
-                    $schema['items']['required'] = $required;
-                }
-            }
-        }
-
-        return $schema;
+        return $this->schemas()->schemaForResponseValue($value, $endpoint, $path);
     }
 
     /**
@@ -289,15 +145,7 @@ class BaseGenerator extends OpenApiGenerator
      */
     public function filterRequiredResponseFields(OutputEndpointData $endpoint, array $properties, string $path = ''): array
     {
-        $required = [];
-        foreach ($properties as $property) {
-            $responseField = $endpoint->responseFields["{$path}.{$property}"] ?? $endpoint->responseFields[$property] ?? null;
-            if ($responseField && $responseField->required) {
-                $required[] = $property;
-            }
-        }
-
-        return $required;
+        return $this->schemas()->requiredResponseFields($endpoint, $properties, $path);
     }
 
     protected function operationId(OutputEndpointData $endpoint): string
@@ -482,143 +330,7 @@ class BaseGenerator extends OpenApiGenerator
      */
     protected function generateResponseContentSpec(?string $responseContent, OutputEndpointData $endpoint)
     {
-        if (Str::startsWith($responseContent, '<<binary>>')) {
-            return [
-                'application/octet-stream' => [
-                    'schema' => [
-                        'type' => 'string',
-                        'format' => 'binary',
-                    ],
-                ],
-            ];
-        }
-
-        if ($responseContent === null) {
-            $schema = [
-                'type' => 'object',
-            ];
-            $this->applyNullable($schema, true);
-
-            return [
-                'application/json' => [
-                    'schema' => $schema,
-                ],
-            ];
-        }
-
-        $decoded = json_decode($responseContent);
-        if ($decoded === null) { // Not JSON, or JSON null: return the content as plain text
-            return [
-                'text/plain' => [
-                    'schema' => [
-                        'type' => 'string',
-                        'example' => $responseContent,
-                    ],
-                ],
-            ];
-        }
-
-        $response = $endpoint->responses->where('content', $responseContent)->first();
-        $contentType = $response->headers['content-type'] ?? $response->headers['Content-Type'] ?? 'application/json';
-
-        switch ($type = gettype($decoded)) {
-            case 'string':
-            case 'boolean':
-            case 'integer':
-            case 'double':
-                return [
-                    $contentType => [
-                        'schema' => [
-                            'type' => $type === 'double' ? 'number' : $type,
-                            'example' => $decoded,
-                        ],
-                    ],
-                ];
-
-            case 'array':
-                if (! count($decoded)) {
-                    // empty array
-                    return [
-                        $contentType => [
-                            'schema' => [
-                                'type' => 'array',
-                                'items' => [
-                                    'type' => 'object', // The item type is unknown
-                                ],
-                                'example' => $decoded,
-                            ],
-                        ],
-                    ];
-                }
-
-                // Non-empty array
-                if (is_object($decoded[0])) {
-                    // The first item stands in for every item.
-                    $properties = collect((array) $decoded[0])->mapWithKeys(function ($value, $key) use ($endpoint) {
-                        return [$key => $this->generateSchemaForResponseValue($value, $endpoint, $key)];
-                    })->toArray();
-
-                    $requiredFields = $this->filterRequiredResponseFields($endpoint, array_keys($properties));
-
-                    $items = [
-                        'type' => $this->convertScribeOrPHPTypeToOpenAPIType(gettype($decoded[0])),
-                        'properties' => $this->objectIfEmpty($properties),
-                    ];
-
-                    if ($requiredFields) {
-                        $items['required'] = $requiredFields;
-                    }
-
-                    return [
-                        $contentType => [
-                            'schema' => [
-                                'type' => 'array',
-                                'items' => $items,
-                                'example' => $decoded,
-                            ],
-                        ],
-                    ];
-                }
-
-                return [
-                    $contentType => [
-                        'schema' => [
-                            'type' => 'array',
-                            'items' => [
-                                'type' => $this->convertScribeOrPHPTypeToOpenAPIType(gettype($decoded[0])),
-                            ],
-                            'example' => $decoded,
-                        ],
-                    ],
-                ];
-
-            case 'object':
-                $properties = collect((array) $decoded)->mapWithKeys(function ($value, $key) use ($endpoint) {
-                    return [$key => $this->generateSchemaForResponseValue($value, $endpoint, $key)];
-                })->toArray();
-                $required = $this->filterRequiredResponseFields($endpoint, array_keys($properties));
-
-                $data = [
-                    $contentType => [
-                        'schema' => [
-                            'type' => 'object',
-                            'example' => $decoded,
-                            'properties' => $this->objectIfEmpty($properties),
-                        ],
-                    ],
-                ];
-                if ($required) {
-                    $data[$contentType]['schema']['required'] = $required;
-                }
-
-                return $data;
-                // @codeCoverageIgnoreStart
-                // json_decode() returns one of the types above or null, and a
-                // null decode has already returned further up.
-            default:
-                return [];
-                // @codeCoverageIgnoreEnd
-        }
+        return $this->schemas()->responseContent($responseContent, $endpoint);
     }
 
     /**
@@ -630,16 +342,12 @@ class BaseGenerator extends OpenApiGenerator
      */
     protected function objectIfEmpty(array $field): array|stdClass
     {
-        return count($field) > 0 ? $field : new stdClass;
+        return $this->schemas()->objectIfEmpty($field);
     }
 
     protected function convertScribeOrPHPTypeToOpenAPIType(mixed $type): mixed
     {
-        return match ($type) {
-            'float', 'double' => 'number',
-            'NULL' => 'string',
-            default => $type,
-        };
+        return $this->schemas()->openApiType($type);
     }
 
     /**
@@ -658,42 +366,16 @@ class BaseGenerator extends OpenApiGenerator
     }
 
     /**
-     * Copy the response field's description, if it has one, onto the schema.
-     *
-     * @param array<string, mixed> $schema
+     * The schema builder, wired to this generator's overridable methods.
      */
-    private function setDescription(array &$schema, OutputEndpointData $endpoint, string $path): void
+    private function schemas(): SchemaBuilder
     {
-        if (! empty($endpoint->responseFields[$path]->description)) {
-            $schema['description'] = $endpoint->responseFields[$path]->description;
-        }
-    }
-
-    /**
-     * Mark the schema nullable when the response field says so or, with no
-     * explicit setting, when the example is null.
-     *
-     * @param array<string, mixed> $schema
-     */
-    private function setNullable(array &$schema, OutputEndpointData $endpoint, string $path, mixed $value): void
-    {
-        /** @var null|ResponseField $field */
-        $field = $endpoint->responseFields[$path] ?? null;
-
-        // prefer explicit values
-        if ($field !== null && $field->nullable !== null) {
-            if ($field->nullable) {
-                $this->applyNullable($schema, true);
-            }
-
-            // false => do not set and do not use example
-            return;
-        }
-
-        // example is null
-        if ($value === null) {
-            $this->applyNullable($schema, true);
-        }
+        return $this->schemaBuilder ??= new SchemaBuilder(
+            $this->applyNullable(...),
+            $this->generateFieldData(...),
+            $this->generateSchemaForResponseValue(...),
+            static::normalizeTypeName(...),
+        );
     }
 
     /**

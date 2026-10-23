@@ -105,7 +105,4 @@ described in [SECURITY.md](.github/SECURITY.md), rather than in a public issue.
 
 ## License
 
-MIT. See [LICENSE](LICENSE). `src/Reflection/` is a re-namespaced copy of
-[`mpociot/reflection-docblock`](https://github.com/mpociot/reflection-docblock)
-under its own licence ([`src/Reflection/LICENSE`](src/Reflection/LICENSE)); see
-[`src/Reflection/README.md`](src/Reflection/README.md).
+MIT. See [LICENSE](LICENSE).

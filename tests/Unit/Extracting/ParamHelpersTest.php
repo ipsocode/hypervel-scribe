@@ -82,6 +82,34 @@ class ParamHelpersTest extends TestCase
     {
         $this->assertSame('integer[]', $this->subject::normalizeTypeName('array', [1, 2, 3]));
         $this->assertSame('object', $this->subject::normalizeTypeName('array', ['key' => 'value']));
+        $this->assertSame('object[]', $this->subject::normalizeTypeName('array', [['id' => 1]]));
+        $this->assertSame('integer[][]', $this->subject::normalizeTypeName('array', [[1, 2]]));
+    }
+
+    #[UnitTest]
+    #[Test]
+    public function anEnumExampleIsPickedWithTheSeededFaker(): void
+    {
+        $values = range('a', 'h');
+        $picks = fn () => array_map(fn () => $this->subject->dummy('string', ['enumValues' => $values]), range(1, 8));
+
+        $this->assertSame($picks(), $picks());
+    }
+
+    #[UnitTest]
+    #[Test]
+    public function enumValuesOfAListTypeAreCastToItsItemTypeAndExampledAsAList(): void
+    {
+        [, , $strings] = $this->subject->parseExample('Enum: a, b', 'string[]');
+        [, , $integers] = $this->subject->parseExample('Enum: 1, 2', 'integer[]');
+
+        $this->assertSame(['a', 'b'], $strings);
+        $this->assertSame([1, 2], $integers);
+
+        $example = $this->subject->dummy('integer[]', ['enumValues' => $integers]);
+        $this->assertIsArray($example);
+        $this->assertCount(1, $example);
+        $this->assertContains($example[0], [1, 2]);
     }
 
     #[UnitTest]
@@ -227,11 +255,13 @@ class ParamHelpersTest extends TestCase
 
     #[UnitTest]
     #[Test]
-    public function aSizedListStillGeneratesOneItem(): void
+    public function aSizedListHoldsThatManyItems(): void
     {
-        // The size constrains the item, not the list: a `size:3` on `ids.*`
-        // means each id is 3, not that there are three of them.
-        $this->assertCount(1, $this->subject->dummy('string[]', ['size' => 3]));
+        // On a list the size is the item count, as the validator reads it.
+        $example = $this->subject->dummy('string[]', ['size' => 3]);
+
+        $this->assertCount(3, $example);
+        $this->assertContainsOnlyString($example);
     }
 
     #[UnitTest]
@@ -240,8 +270,8 @@ class ParamHelpersTest extends TestCase
     {
         // `digits:5` and `size:5` mean the value itself, so a generated example
         // that ignored them would fail the rule it came from.
-        $this->assertSame(5, $this->subject->dummy('integer', ['size' => 5]));
-        $this->assertSame(5, $this->subject->dummy('number', ['size' => 5]));
+        $this->assertSame(5, $this->subject->dummy('integer', ['size' => 5.0]));
+        $this->assertEquals(5, $this->subject->dummy('number', ['size' => 5]));
     }
 
     #[UnitTest]

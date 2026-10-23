@@ -22,6 +22,7 @@ use Ipsocode\Scribe\Attributes\UrlParam;
 use Ipsocode\Scribe\Tests\Unit\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 use Workbench\App\Enums\PostStatus;
+use Workbench\App\Enums\Priority;
 
 /**
  * The attribute classes are plain value objects, but their `toArray()` output is
@@ -133,6 +134,13 @@ class AttributesTest extends TestCase
 
     #[UnitTest]
     #[Test]
+    public function groupUnwrapsAnIntBackedEnumNameToAString(): void
+    {
+        $this->assertSame('2', (new Group(Priority::High))->toArray()['groupName']);
+    }
+
+    #[UnitTest]
+    #[Test]
     public function groupRejectsANameThatIsNeitherAStringNorABackedEnum(): void
     {
         $this->expectException(InvalidArgumentException::class);
@@ -155,6 +163,13 @@ class AttributesTest extends TestCase
     public function subgroupUnwrapsAPhpBackedEnumName(): void
     {
         $this->assertSame('published', (new Subgroup(PostStatus::Published))->toArray()['subgroup']);
+    }
+
+    #[UnitTest]
+    #[Test]
+    public function subgroupUnwrapsAnIntBackedEnumNameToAString(): void
+    {
+        $this->assertSame('1', (new Subgroup(Priority::Low))->toArray()['subgroup']);
     }
 
     #[UnitTest]

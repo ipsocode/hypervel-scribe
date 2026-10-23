@@ -67,8 +67,10 @@ php artisan scribe:generate
 | `--scribe-dir=` | Where to keep the intermediate files. Defaults to `.<config name>`, so `.scribe`. A relative path resolves against the app root, whatever the working directory; an absolute one is used as given. |
 | `--verbose` | Print the full stack trace of an exception instead of a one-line summary. |
 
-A route whose extraction throws is left out and its error printed, and the
-command then exits non-zero.
+A route whose extraction throws is left out of the output and its error
+printed, and the command then exits non-zero. Its entry in `.scribe/`, with any
+edits you made to it, is kept as it was for the next run, unless the run uses
+`--force`.
 
 By default, every route whose path matches `api/*` is documented. The
 [`routes`](configuration.md#routes) setting changes that.

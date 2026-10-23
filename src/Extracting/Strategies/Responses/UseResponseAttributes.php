@@ -38,9 +38,9 @@ class UseResponseAttributes extends PhpAttributeStrategy
 
     /**
      * Example models for single (non-collection) API resources, keyed by
-     * uri|model|states and reused across a path's operations, so the {id} URL
-     * parameter the OpenAPI writer takes from one operation matches the id in
-     * every operation's response body. Cleared per run.
+     * uri|model|states|with|withCount and reused across a path's operations, so
+     * the {id} URL parameter the OpenAPI writer takes from one operation matches
+     * the id in every operation's response body. Cleared per run.
      * See docs/design/run-state.md.
      *
      * @var array<string, null|Model|object>
@@ -102,8 +102,7 @@ class UseResponseAttributes extends PhpAttributeStrategy
             $pagination = [$attributeInstance->cursorPaginate, 'cursor'];
         }
 
-        $this->startDbTransaction();
-        $content = ApiResourceResponseTools::fetch(
+        $content = $this->inDbTransaction(fn () => ApiResourceResponseTools::fetch(
             $attributeInstance->name,
             $attributeInstance->isCollection(),
             $modelInstantiator,
@@ -111,8 +110,7 @@ class UseResponseAttributes extends PhpAttributeStrategy
             $pagination,
             $attributeInstance->additional,
             $attributeInstance->call,
-        );
-        $this->endDbTransaction();
+        ));
 
         return [
             'status' => $attributeInstance->status,
@@ -123,7 +121,7 @@ class UseResponseAttributes extends PhpAttributeStrategy
 
     /**
      * The example model for an API resource response. A single resource is
-     * cached per uri, model and states, and its route key is written onto the
+     * cached per uri, model, states and loaded relations, and its route key is written onto the
      * bound URL parameter, so the {id} in the path matches every operation's
      * response body. A collection gets fresh models each time, so its rows stay
      * distinct and don't trip unique indexes.
@@ -134,7 +132,10 @@ class UseResponseAttributes extends PhpAttributeStrategy
             return $this->instantiateExampleModel($type, $attribute->factoryStates, $attribute->with, null, $attribute->withCount);
         }
 
-        $cacheKey = $this->endpointData->uri . '|' . $type . '|' . implode(',', $attribute->factoryStates);
+        $cacheKey = $this->endpointData->uri . '|' . $type
+            . '|' . implode(',', $attribute->factoryStates)
+            . '|' . implode(',', $attribute->with)
+            . '|' . implode(',', $attribute->withCount);
         $model = self::$singleResourceModels[$cacheKey]
             ??= $this->instantiateExampleModel($type, $attribute->factoryStates, $attribute->with, null, $attribute->withCount);
 
@@ -206,16 +207,14 @@ class UseResponseAttributes extends PhpAttributeStrategy
         $pagination = $attributeInstance->paginate ? [
             'perPage' => $attributeInstance->paginate[1] ?? null, 'adapter' => $attributeInstance->paginate[0],
         ] : [];
-        $this->startDbTransaction();
-        $content = TransformerResponseTools::fetch(
+        $content = $this->inDbTransaction(fn () => TransformerResponseTools::fetch(
             $attributeInstance->name,
             $attributeInstance->collection,
             $modelInstantiator,
             $pagination,
             $attributeInstance->resourceKey,
             $this->config->get('fractal.serializer'),
-        );
-        $this->endDbTransaction();
+        ));
 
         return [
             'status' => $attributeInstance->status,

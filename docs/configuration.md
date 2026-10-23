@@ -125,8 +125,9 @@ group not listed, so groups after it go last:
 
 | Key | Default | What it does |
 |---|---|---|
-| `examples.faker_seed` | `1234` | Seed for generated example values, so each run produces the same ones. `null` for different values every run. See [hooks](hooks.md#faker_seed). |
-| `examples.models_source` | `['factoryCreate', 'factoryMake', 'databaseFirst']` | How example models for API resource and transformer responses are obtained, tried in order. See [example models](hooks.md#example-models). |
+| `examples.faker_seed` | `1234` | Seed for generated example values, so each run produces the same ones. `null` or `0` for different values every run. See [hooks](hooks.md#faker_seed). |
+| `examples.models_source` | `['factoryCreate', 'factoryMake']` | How example models for API resource and transformer responses are obtained, tried in order. `databaseFirst` is also available, but documents a real record. See [example models](hooks.md#example-models). |
+| `examples.url_parameters_from_database` | `false` | Take URL parameter examples for model-bound routes from the first row in the database instead of generating them. Response calls then fetch that row, so turn it on only against a database with no real data. |
 
 ## Strategies
 
@@ -218,6 +219,9 @@ resolved to.
   `example_languages` are never reported.
 - `examples.models_source` and each `strategies` stage are compared as unordered
   lists and reported as `added ...: removed ...`.
+- `auth.use_value`, and any value under a credential-looking key (such as an
+  `Authorization` header in a strategy's settings), is reported as changed but
+  printed as `<redacted>`.
 
 The command is implemented by [`DiffConfig`](../src/Commands/DiffConfig.php) and
 [`ConfigDiffer`](../src/Tools/ConfigDiffer.php).

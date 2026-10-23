@@ -42,21 +42,20 @@ class GetFromResponseFieldTag extends GetFieldsFromTagStrategy
         // Examples:
         // @responseField text string required The text.
         // @responseField user_id integer The ID of the user.
-        preg_match('/(.+?)\s+(.+?)\s+(.+?)\s+([\s\S]*)/', $tagContent, $content);
-        if (empty($content)) {
-            // Fewer than four words: the first two are the name and type.
-            [$name, $type] = preg_split('/\s+/', $tagContent);
-            $description = '';
-            $required = false;
-        } else {
-            [$_, $name, $type, $required, $description] = $content;
-            if ($required !== 'required') {
-                $description = $required . ' ' . $description;
-            }
+        // Two, three or four words: the name and type come first, then an optional
+        // "required", then the description.
+        [$name, $type, $third, $rest] = array_pad(preg_split('/\s+/', mb_trim($tagContent), 4), 4, '');
 
-            $required = $required === 'required';
-            $description = mb_trim($description);
+        // The type left out, with "required" in its place.
+        if ($type === 'required') {
+            $data = ['name' => $name, 'type' => '', 'required' => true, 'description' => mb_trim("{$third} {$rest}")];
+            $data['type'] = ResponseFieldTools::inferTypeOfResponseField($data, $this->endpointData);
+
+            return $data;
         }
+
+        $required = $third === 'required';
+        $description = mb_trim($required ? $rest : "{$third} {$rest}");
 
         $type = static::normalizeTypeName($type);
         $data = compact('name', 'type', 'required', 'description');

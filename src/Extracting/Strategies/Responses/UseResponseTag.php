@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Ipsocode\Scribe\Extracting\Strategies\Responses;
 
 use Ipsocode\Camel\Extraction\ExtractedEndpointData;
+use Ipsocode\Scribe\Extracting\DocBlocks\DocBlockTag;
 use Ipsocode\Scribe\Extracting\RouteDocBlocker;
 use Ipsocode\Scribe\Extracting\Strategies\Strategy;
-use Ipsocode\Scribe\Reflection\DocBlock\Tag;
 use Ipsocode\Scribe\Tools\AnnotationParser as a;
 use Ipsocode\Scribe\Tools\Utils;
 
@@ -24,7 +24,7 @@ class UseResponseTag extends Strategy
     }
 
     /**
-     * @param Tag[] $tags
+     * @param DocBlockTag[] $tags
      */
     public function getDocBlockResponses(array $tags): ?array
     {
@@ -34,7 +34,7 @@ class UseResponseTag extends Strategy
             return null;
         }
 
-        return array_map(function (Tag $responseTag) {
+        return array_map(function (DocBlockTag $responseTag) {
             // An optional status code, then the response.
             preg_match('/^(\d{3})?\s?([\s\S]*)$/', $responseTag->getContent(), $result);
 
