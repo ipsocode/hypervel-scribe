@@ -30,11 +30,15 @@ class RequestValidateFacade
             && in_array($expr->class->name, ['Request', Request::class])
         ) {
             if ($expr->name->name === 'validate') {
-                return $expr->args[0]->value;
+                $argument = $expr->args[0] ?? null;
+
+                return $argument instanceof Node\Arg ? $argument->value : null;
             }
 
             if ($expr->name->name === 'validateWithBag') {
-                return $expr->args[1]->value;
+                $argument = $expr->args[1] ?? null;
+
+                return $argument instanceof Node\Arg ? $argument->value : null;
             }
         }
     }

@@ -12,8 +12,6 @@ use Ipsocode\Scribe\Extracting\RouteDocBlocker;
 use Ipsocode\Scribe\Extracting\SeededFaker;
 use Ipsocode\Scribe\Extracting\Shared\UrlParamsNormalizer;
 use Ipsocode\Scribe\Extracting\Strategies\UrlParameters\GetFromLaravelAPI;
-use Ipsocode\Scribe\Reflection\DocBlock\Tag;
-use Ipsocode\Scribe\Reflection\DocBlock\Tag\AuthorTag;
 use Ipsocode\Scribe\Scribe;
 use Ipsocode\Scribe\Tests\TestCase;
 use Ipsocode\Scribe\Tools\ConsoleOutputUtils;
@@ -50,6 +48,8 @@ class RunStateTest extends TestCase
         ConsoleOutputUtils::bootstrapOutput(new BufferedOutput);
         Globals::$shouldBeVerbose = true;
 
+        // The route-key cache fills only when examples are read from the database.
+        config(['scribe.examples.url_parameters_from_database' => true]);
         (new GetFromLaravelAPI(new DocumentationConfig(config('scribe'))))(
             ExtractedEndpointData::fromRoute($this->workbenchRoute('blogs.show')),
         );
@@ -77,11 +77,9 @@ class RunStateTest extends TestCase
     {
         $hook = fn (array $paths) => null;
         Scribe::afterGenerating($hook);
-        Tag::registerTagHandler('scribe-run-state', AuthorTag::class);
 
         RunState::flush();
 
         $this->assertSame($hook, Globals::$__afterGenerating);
-        $this->assertInstanceOf(AuthorTag::class, Tag::createInstance('@scribe-run-state Ada'));
     }
 }

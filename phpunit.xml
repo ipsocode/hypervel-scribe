@@ -34,11 +34,6 @@
                  the suite runs against, not shipped code. -->
             <directory suffix=".php">src</directory>
         </include>
-        <exclude>
-            <!-- Re-namespaced third-party code (mpociot/reflection-docblock),
-                 vendored rather than written here. See the package README. -->
-            <directory suffix=".php">src/Reflection</directory>
-        </exclude>
     </source>
 
     <extensions>

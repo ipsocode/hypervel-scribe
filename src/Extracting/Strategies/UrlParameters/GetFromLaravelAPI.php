@@ -152,10 +152,19 @@ class GetFromLaravelAPI extends Strategy
 
     /**
      * The route key of the model's first row, or null when there is no row to
-     * read (an empty table, or no table at all).
+     * read (an empty table, or no table at all) or reading one is not enabled.
+     * A null example is generated from the type like any other.
+     *
+     * Off by default (`examples.url_parameters_from_database`): a real key in
+     * public docs helps enumerate records, and a response call then fetches
+     * that row and documents its data.
      */
     protected function exampleRouteKey(Model $modelInstance, string $routeKey): mixed
     {
+        if (! $this->config->get('examples.url_parameters_from_database', false)) {
+            return null;
+        }
+
         $cacheKey = $modelInstance::class . '::' . $routeKey;
 
         if (! array_key_exists($cacheKey, self::$exampleRouteKeys)) {

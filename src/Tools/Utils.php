@@ -15,7 +15,7 @@ use Hypervel\Support\Facades\File;
 use Hypervel\Support\Str;
 use Ipsocode\Scribe\Exceptions\CouldntFindFactory;
 use Ipsocode\Scribe\Exceptions\CouldntGetRouteDetails;
-use Ipsocode\Scribe\Reflection\DocBlock\Tag;
+use Ipsocode\Scribe\Extracting\DocBlocks\DocBlockTag;
 use Ipsocode\Scribe\Tools\ConsoleOutputUtils as c;
 use Laravel\SerializableClosure\SerializableClosure;
 use Laravel\SerializableClosure\Serializers\Native as NativeSerializer;
@@ -279,8 +279,8 @@ class Utils
     /**
      * Filter a list of docblock tags to those matching the specified ones (case-insensitive).
      *
-     * @param Tag[] $tags
-     * @return Tag[]
+     * @param DocBlockTag[] $tags
+     * @return DocBlockTag[]
      */
     public static function filterDocBlockTags(array $tags, string ...$names): array
     {

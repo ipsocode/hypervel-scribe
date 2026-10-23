@@ -30,7 +30,9 @@ class ValidatorMake
         });
 
         if ($validatorNode instanceof Node\Expr\StaticCall) {
-            return $validatorNode->args[1]->value;
+            $argument = $validatorNode->args[1] ?? null;
+
+            return $argument instanceof Node\Arg ? $argument->value : null;
         }
     }
 }

@@ -127,4 +127,27 @@ class ExampleModelsTest extends DatabaseTestCase
         $seeded = new ReflectionProperty(UseApiResourceTags::class, 'factoryFakerSeeded');
         $this->assertFalse($seeded->getValue(), 'The faker was seeded despite no seed being configured.');
     }
+
+    #[Test]
+    public function theDefaultSourcesNeverDocumentARowThatIsAlreadyThere(): void
+    {
+        // `databaseFirst` publishes a real record, whatever the resource
+        // exposes, so it runs only for an application that lists it.
+        $this->assertSame(['factoryCreate', 'factoryMake'], config('scribe.examples.models_source'));
+    }
+
+    #[Test]
+    public function aSeedOfZeroLeavesTheFakerAloneToo(): void
+    {
+        // The config documents null or 0 as unseeded, which is how the
+        // parameter examples' generator reads it; the factories agree.
+        UseApiResourceTags::flushState();
+
+        config(['scribe.examples.faker_seed' => 0]);
+
+        $this->assertNotEmpty($this->body('posts.show')['data']['title']);
+
+        $seeded = new ReflectionProperty(UseApiResourceTags::class, 'factoryFakerSeeded');
+        $this->assertFalse($seeded->getValue(), 'A seed of 0 seeded the faker.');
+    }
 }

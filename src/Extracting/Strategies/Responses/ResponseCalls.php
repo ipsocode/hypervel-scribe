@@ -23,6 +23,7 @@ use Ipsocode\Scribe\Tools\ConsoleOutputUtils as c;
 use Ipsocode\Scribe\Tools\ErrorHandlingUtils as e;
 use Ipsocode\Scribe\Tools\Globals;
 use Ipsocode\Scribe\Tools\Utils;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -356,10 +357,16 @@ class ResponseCalls extends Strategy
         return $formattedHeaders;
     }
 
-    protected function getContentFromResponse(Response $response): false|string
+    protected function getContentFromResponse(Response $response): ?string
     {
+        if ($response instanceof BinaryFileResponse) {
+            return '<<binary>> ' . $response->getFile()->getFilename();
+        }
+
         if (! $response instanceof StreamedResponse) {
-            return $response->getContent();
+            $content = $response->getContent();
+
+            return $content === false ? null : $content;
         }
 
         // A streamed response echoes its content only when `sendContent()` runs,

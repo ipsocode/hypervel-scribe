@@ -50,11 +50,22 @@ class DiffConfigTest extends TestCase
     }
 
     #[Test]
+    #[WithConfig('scribe.auth.use_value', 'real-token-123')]
+    public function reportsTheAuthValueAsChangedWithoutPrintingIt(): void
+    {
+        // The command exists to be pasted into a bug report.
+        $this->artisan('scribe:config-diff')
+            ->expectsOutput('auth.use_value => "<redacted>"')
+            ->doesntExpectOutputToContain('real-token-123')
+            ->assertSuccessful();
+    }
+
+    #[Test]
     #[WithConfig('scribe.examples.models_source', ['factoryMake', 'databaseFirst'])]
     public function reportsAListByWhatJoinedAndLeftIt(): void
     {
         $this->artisan('scribe:config-diff')
-            ->expectsOutput('examples.models_source => removed factoryCreate')
+            ->expectsOutput('examples.models_source => added databaseFirst: removed factoryCreate')
             ->assertSuccessful();
     }
 

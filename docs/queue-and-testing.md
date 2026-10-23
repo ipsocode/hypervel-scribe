@@ -12,7 +12,10 @@ Artisan::call('scribe:generate');
 ```
 
 The command clears the caches it keeps between endpoints when it starts and
-again when it finishes, so it can run more than once in the same worker. It also
+again when it finishes, so it can run more than once in the same worker, one
+after the other. A run that starts while another is under way in the same
+worker fails at once with exit code 1, because the two would reset each other's
+state; use the job below, which queues them one at a time. It also
 clears the URL origin it forces to `base_url` for the run. Hooks registered on
 the `Scribe` class are kept. [Run state](design/run-state.md) lists what a run
 caches, and [coroutine safety](design/coroutine-safety.md) explains why it
@@ -48,7 +51,9 @@ other failed jobs. The job fails on the first exception, without retrying.
 **Only one regeneration runs at a time.** The job takes a lock through
 `WithoutOverlapping`, in the default cache store, whatever the config it was
 given. With a shared store (Redis, database) the lock holds across workers. It
-expires after 30 minutes in case a worker dies holding it. What happens to a
+expires after 30 minutes in case a worker dies holding it. A run may take as
+long: the job sets a 30 minute `$timeout`, so the worker's own `--timeout`
+(60 seconds by default) does not kill it half way and leave the lock held. What happens to a
 dispatch that finds the lock taken depends on the queue driver:
 
 | Driver | A dispatch that finds the lock taken |
@@ -64,7 +69,7 @@ The source is
 The package keeps its caches and the `Scribe::` hooks in worker-lifetime static
 properties, which would otherwise carry from one test into the next.
 [`Ipsocode\Scribe\Testing\TestState`](../src/Testing/TestState.php) resets them
-after every test: the per-run caches, the hooks and the docblock tag handlers.
+after every test: the per-run caches and the hooks.
 
 It is registered through `extra.hypervel.test-state` in the package's
 `composer.json`, so an application's suite picks it up without any code,

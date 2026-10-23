@@ -11,10 +11,10 @@ use Ipsocode\Scribe\Attributes\Endpoint;
 use Ipsocode\Scribe\Attributes\Group;
 use Ipsocode\Scribe\Attributes\Subgroup;
 use Ipsocode\Scribe\Attributes\Unauthenticated;
+use Ipsocode\Scribe\Extracting\DocBlocks\ParsedDocBlock;
 use Ipsocode\Scribe\Extracting\ParamHelpers;
 use Ipsocode\Scribe\Extracting\RouteDocBlocker;
 use Ipsocode\Scribe\Extracting\Strategies\PhpAttributeStrategy;
-use Ipsocode\Scribe\Reflection\DocBlock;
 
 /**
  * @extends PhpAttributeStrategy<Authenticated|Endpoint|Group|Subgroup>
@@ -68,7 +68,7 @@ class GetFromMetadataAttributes extends PhpAttributeStrategy
     {
         $methodDocBlock = RouteDocBlocker::getDocBlocksFromRoute($endpointData->route)['method'];
         $fromTags = (new GetFromDocBlocks($this->config))
-            ->getMetadataFromDocBlock($methodDocBlock, new DocBlock(''));
+            ->getMetadataFromDocBlock($methodDocBlock, new ParsedDocBlock(''));
 
         $keys = [];
         if (! is_null($fromTags['groupName'])) {

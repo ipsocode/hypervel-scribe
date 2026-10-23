@@ -102,8 +102,7 @@ class UseResponseAttributes extends PhpAttributeStrategy
             $pagination = [$attributeInstance->cursorPaginate, 'cursor'];
         }
 
-        $this->startDbTransaction();
-        $content = ApiResourceResponseTools::fetch(
+        $content = $this->inDbTransaction(fn () => ApiResourceResponseTools::fetch(
             $attributeInstance->name,
             $attributeInstance->isCollection(),
             $modelInstantiator,
@@ -111,8 +110,7 @@ class UseResponseAttributes extends PhpAttributeStrategy
             $pagination,
             $attributeInstance->additional,
             $attributeInstance->call,
-        );
-        $this->endDbTransaction();
+        ));
 
         return [
             'status' => $attributeInstance->status,
@@ -209,16 +207,14 @@ class UseResponseAttributes extends PhpAttributeStrategy
         $pagination = $attributeInstance->paginate ? [
             'perPage' => $attributeInstance->paginate[1] ?? null, 'adapter' => $attributeInstance->paginate[0],
         ] : [];
-        $this->startDbTransaction();
-        $content = TransformerResponseTools::fetch(
+        $content = $this->inDbTransaction(fn () => TransformerResponseTools::fetch(
             $attributeInstance->name,
             $attributeInstance->collection,
             $modelInstantiator,
             $pagination,
             $attributeInstance->resourceKey,
             $this->config->get('fractal.serializer'),
-        );
-        $this->endDbTransaction();
+        ));
 
         return [
             'status' => $attributeInstance->status,

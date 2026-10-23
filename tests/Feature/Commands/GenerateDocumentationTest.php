@@ -7,6 +7,7 @@ namespace Ipsocode\Scribe\Tests\Feature\Commands;
 use Hypervel\Support\Facades\File;
 use Hypervel\Support\Facades\Route as RouteFacade;
 use Hypervel\Support\Facades\Storage;
+use Hypervel\Support\Facades\URL;
 use Hypervel\Testbench\Attributes\WithConfig;
 use Hypervel\Testbench\Concerns\InteractsWithPublishedFiles;
 use InvalidArgumentException;
@@ -24,6 +25,7 @@ use ReflectionProperty;
 use Symfony\Component\Yaml\Yaml;
 use Workbench\App\Http\Controllers\HiddenController;
 use Workbench\App\Http\Controllers\UndocumentableController;
+use Workbench\App\Strategies\ThrowsAnErrorStrategy;
 
 use function Hypervel\Testbench\package_path;
 use function Hypervel\Testbench\workbench_path;
@@ -85,6 +87,34 @@ class GenerateDocumentationTest extends DatabaseTestCase
     private function renderedDocs(): string
     {
         return (string) $this->get('/docs')->assertOk()->getContent();
+    }
+
+    #[Test]
+    #[WithConfig('scribe.examples.faker_seed', 1234)]
+    public function aSeededRunLeavesTheWorkerARandomGeneratorRatherThanTheSeededOne(): void
+    {
+        // Faker seeds PHP's process-wide Mersenne Twister, so after an
+        // in-process run the worker's mt_rand(), shuffle() and the like would
+        // otherwise carry on from a seed anyone can read in the config.
+        $this->generate();
+
+        $after = [mt_rand(), mt_rand()];
+
+        mt_srand(1234);
+        $seededStream = [];
+        for ($i = 0; $i < 20000; ++$i) {
+            $seededStream[] = mt_rand();
+        }
+        mt_srand();
+
+        $continuesTheSeededStream = false;
+        for ($i = 0; $i < count($seededStream) - 1; ++$i) {
+            if ($seededStream[$i] === $after[0] && $seededStream[$i + 1] === $after[1]) {
+                $continuesTheSeededStream = true;
+                break;
+            }
+        }
+        $this->assertFalse($continuesTheSeededStream, 'mt_rand() continued the sequence of seed 1234 after the run.');
     }
 
     private function openApiSpec(): array
@@ -303,6 +333,58 @@ class GenerateDocumentationTest extends DatabaseTestCase
 
         $this->assertSame(0, $this->generate());
         $this->assertArrayHasKey('/' . $uri, $this->openApiSpec()['paths']);
+    }
+
+    #[Test]
+    public function theEditsToAnEndpointSurviveARunInWhichItFails(): void
+    {
+        RouteFacade::get('api/undocumentable/type-error', [UndocumentableController::class, 'fine'])
+            ->name('undocumentable.typeError');
+        $this->assertSame(0, $this->generate());
+
+        $edit = function (string $uri): void {
+            foreach (glob($this->intermediatePath . '/endpoints/[0-9]*.yaml') as $file) {
+                $group = Yaml::parse((string) file_get_contents($file));
+                foreach ($group['endpoints'] as &$endpoint) {
+                    if ($endpoint['uri'] === $uri) {
+                        $endpoint['metadata']['description'] = 'Hand-written description.';
+                    }
+                }
+                unset($endpoint);
+                file_put_contents($file, Yaml::dump($group, 20, 2));
+            }
+        };
+        $edit('api/undocumentable/type-error');
+
+        $metadata = config('scribe.strategies.metadata');
+        config(['scribe.strategies.metadata' => [...$metadata, ThrowsAnErrorStrategy::class]]);
+        $this->assertSame(GenerateDocumentation::INVALID, $this->generate());
+
+        $this->assertContains('api/undocumentable/type-error', $this->endpointUrisOnDisk('endpoints'));
+        $this->assertContains('api/undocumentable/type-error', $this->endpointUrisOnDisk('endpoints.cache'));
+
+        config(['scribe.strategies.metadata' => $metadata]);
+        $this->assertSame(0, $this->generate());
+
+        $this->assertSame(
+            'Hand-written description.',
+            $this->openApiSpec()['paths']['/api/undocumentable/type-error']['get']['description'],
+        );
+    }
+
+    /**
+     * @return string[] the URIs of the endpoints in one of the intermediate directories
+     */
+    private function endpointUrisOnDisk(string $directory): array
+    {
+        $uris = [];
+        foreach (glob("{$this->intermediatePath}/{$directory}/[0-9]*.yaml") as $file) {
+            foreach (Yaml::parse((string) file_get_contents($file))['endpoints'] as $endpoint) {
+                $uris[] = $endpoint['uri'];
+            }
+        }
+
+        return $uris;
     }
 
     #[Test]
@@ -565,6 +647,24 @@ class GenerateDocumentationTest extends DatabaseTestCase
             '#src="' . preg_quote(asset('/vendor/scribe/js/theme-default-'), '#') . '.+?\.js"#',
             $page,
         );
+    }
+
+    #[Test]
+    public function aWorkerThatHasRenderedTheDocsServesTheNewPageAfterARegeneration(): void
+    {
+        // The view engine stops checking a view's source once it has seen its
+        // compiled copy up to date, so a regeneration has to compile the page.
+        Scribe::afterResponseCall(fn ($request, $endpoint, $response) => $response->setContent('OLD-PAGE-BODY'));
+        $this->generate();
+        $this->assertStringContainsString('OLD-PAGE-BODY', $this->renderedDocs());
+        $this->assertStringContainsString('OLD-PAGE-BODY', $this->renderedDocs());
+
+        Scribe::afterResponseCall(fn ($request, $endpoint, $response) => $response->setContent('NEW-PAGE-BODY'));
+        $this->generate(['--force' => true]);
+
+        $page = $this->renderedDocs();
+        $this->assertStringContainsString('NEW-PAGE-BODY', $page);
+        $this->assertStringNotContainsString('OLD-PAGE-BODY', $page);
     }
 
     #[Test]
@@ -836,6 +936,38 @@ class GenerateDocumentationTest extends DatabaseTestCase
     }
 
     #[Test]
+    public function aRouteToAMissingControllerClassIsSkippedWithAWarning(): void
+    {
+        RouteFacade::get('api/undocumentable/missing-class', ['Workbench\App\Http\Controllers\NoSuchController', 'index'])
+            ->name('undocumentable.missingClass');
+
+        $this->assertSame(GenerateDocumentation::SUCCESS, $this->generate());
+
+        $documented = $this->documentedUris();
+        $this->assertNotContains('api/undocumentable/missing-class', $documented);
+        $this->assertContains('api/posts', $documented);
+    }
+
+    #[Test]
+    public function aRouteWhoseExtractionThrowsAnErrorDoesNotStopTheRun(): void
+    {
+        // A TypeError is an Error, not an Exception: it must be caught per
+        // route like any other failure instead of ending the run.
+        RouteFacade::get('api/undocumentable/type-error', [UndocumentableController::class, 'fine'])
+            ->name('undocumentable.typeError');
+        config(['scribe.strategies.metadata' => [
+            ...config('scribe.strategies.metadata'),
+            ThrowsAnErrorStrategy::class,
+        ]]);
+
+        $this->assertSame(GenerateDocumentation::INVALID, $this->generate());
+
+        $documented = $this->documentedUris();
+        $this->assertNotContains('api/undocumentable/type-error', $documented);
+        $this->assertContains('api/posts', $documented);
+    }
+
+    #[Test]
     public function aRunThatSkippedRoutesStillWritesItsOutput(): void
     {
         $this->registerUndocumentableRoutes();
@@ -873,6 +1005,17 @@ class GenerateDocumentationTest extends DatabaseTestCase
         $this->generate();
 
         $this->assertStringNotContainsString('leaked-origin.test', url('/'));
+    }
+
+    #[Test]
+    #[WithConfig('scribe.base_url', 'http://leaked-origin.test')]
+    public function theCallersForcedUrlOriginIsRestoredAfterTheRun(): void
+    {
+        URL::useOrigin('http://tenant-a.example');
+
+        $this->generate();
+
+        $this->assertStringStartsWith('http://tenant-a.example', url('/'));
     }
 
     #[Test]

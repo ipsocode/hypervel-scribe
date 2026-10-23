@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Ipsocode\Scribe\Commands;
 
 use Hypervel\Console\Command;
+use Hypervel\Context\CoroutineContext;
+use Hypervel\Routing\UrlGenerator;
 use Hypervel\Support\Arr;
 use Hypervel\Support\Facades\URL;
 use Hypervel\Support\Str;
@@ -18,6 +20,7 @@ use Ipsocode\Scribe\Tools\Globals;
 use Ipsocode\Scribe\Tools\PathConfig;
 use Ipsocode\Scribe\Tools\RunState;
 use Ipsocode\Scribe\Writing\Writer;
+use ReflectionClassConstant;
 
 class GenerateDocumentation extends Command
 {
@@ -38,11 +41,38 @@ class GenerateDocumentation extends Command
 
     protected PathConfig $paths;
 
+    /**
+     * Whether a run is under way in this worker. Its state is worker-global,
+     * so a second run starting while the first yields would reset it.
+     */
+    protected static bool $running = false;
+
+    public static function flushState(): void
+    {
+        static::$running = false;
+    }
+
     public function handle(RouteMatcherInterface $routeMatcher, GroupedEndpointsFactory $groupedEndpointsFactory): int
     {
+        // Checked and set with no yield in between, so two coroutines cannot both pass.
+        if (static::$running) {
+            $this->error('Another scribe:generate run is under way in this worker, and its state is shared. Dispatch Ipsocode\Scribe\Jobs\RegenerateDocumentation instead, which runs one at a time.');
+
+            return self::FAILURE;
+        }
+
+        // The command forces the origin below, in the caller's coroutine, so keep
+        // the caller's own to put back.
+        // UrlGenerator has no getter, so read its context key off the class. Read
+        // before the worker is claimed: a throw here must not leave it claimed.
+        $previousOrigin = CoroutineContext::get(
+            (new ReflectionClassConstant(UrlGenerator::class, 'FORCED_ROOT_CONTEXT_KEY'))->getValue()
+        );
+
         // Run in-process (Artisan::call from a job, a schedule or a request), the
         // command shares a worker whose statics outlive it, so it starts clean.
         RunState::flush();
+        static::$running = true;
 
         try {
             $this->bootstrap();
@@ -71,11 +101,17 @@ class GenerateDocumentation extends Command
             return $errored ? self::INVALID : self::SUCCESS;
         } finally {
             // The forced origin is coroutine-scoped, but an in-process run shares
-            // the caller's coroutine, so clear it before returning.
-            URL::useOrigin(null);
+            // the caller's coroutine, so put the caller's back before returning.
+            URL::useOrigin($previousOrigin);
 
             // Leave none of this run's caches behind for the rest of the worker.
             RunState::flush();
+
+            // `examples.faker_seed` seeds PHP's process-wide Mersenne Twister
+            // through Faker, so the worker's mt_rand(), shuffle() and the like
+            // would carry on from a seed anyone can read in the config. Hand it
+            // back a random one.
+            mt_srand();
         }
     }
 

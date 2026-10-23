@@ -23,7 +23,7 @@ class ResponseFieldTools
         $validResponse = collect($endpointData->responses)->first(
             fn (Response $r) => $r->status >= 200 && $r->status < 300
         );
-        if ($validResponse && ($validResponseContent = json_decode($validResponse->content, true))) {
+        if ($validResponse && is_string($validResponse->content) && ($validResponseContent = json_decode($validResponse->content, true))) {
             $nonexistent = new stdClass;
             $value = $validResponseContent[$data['name']]
                 ?? $validResponseContent['data'][$data['name']] // Maybe it's an API resource

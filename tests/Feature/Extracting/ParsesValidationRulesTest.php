@@ -6,6 +6,7 @@ namespace Ipsocode\Scribe\Tests\Feature\Extracting;
 
 use Closure;
 use Hypervel\Contracts\Validation\ValidationRule;
+use Hypervel\Http\UploadedFile;
 use Hypervel\Support\Facades\Lang;
 use Hypervel\Support\Facades\Validator;
 use Hypervel\Validation\Rule;
@@ -464,6 +465,26 @@ class ParsesValidationRulesTest extends TestCase
     }
 
     #[Test]
+    public function theNoExampleMarkerOnARequiredFieldFallsBackToAGeneratedExample(): void
+    {
+        $string = $this->parse(['required', 'string'], ['field' => ['example' => 'No-example']]);
+        $integer = $this->parse(['required', 'integer'], ['field' => ['example' => 'No-example']]);
+
+        $this->assertIsString($string['example']);
+        $this->assertNotSame('No-example', $string['example']);
+        $this->assertIsInt($integer['example']);
+        $this->assertNotSame(0, $integer['example']);
+    }
+
+    #[Test]
+    public function aRuleObjectsDocsExampleSurvivesLaterTypeAndSizeRules(): void
+    {
+        $param = $this->parse(['required', 'string', new SelfDocumentingRule, 'max:7']);
+
+        $this->assertSame('#ff9900', $param['example']);
+    }
+
+    #[Test]
     public function aDocumentedClosureRuleContributesItsDescription(): void
     {
         // A closure can't be introspected, but its docblock can — and that is
@@ -603,6 +624,291 @@ class ParsesValidationRulesTest extends TestCase
         $this->assertCount(1, $example);
         $this->assertIsString($example[0]);
     }
+
+    #[Test]
+    #[DataProvider('arrayAndItemRuleOrders')]
+    public function keepsTheParentArrayRulesWhenItAlsoHasAnItemRule(array $rules): void
+    {
+        $parameters = $this->parseAll(
+            $rules,
+            ['tags' => ['description' => 'Post tags', 'example' => ['news', 'tech']]],
+        );
+
+        $this->assertSame(['tags'], array_keys($parameters));
+        $this->assertTrue($parameters['tags']['required']);
+        $this->assertSame('string[]', $parameters['tags']['type']);
+        $this->assertSame('Post tags.', $parameters['tags']['description']);
+        $this->assertSame(['news', 'tech'], $parameters['tags']['example']);
+    }
+
+    /**
+     * @return array<string, array{array<string, string>}>
+     */
+    public static function arrayAndItemRuleOrders(): array
+    {
+        return [
+            'parent first' => [['tags' => 'required|array', 'tags.*' => 'string']],
+            'item first' => [['tags.*' => 'string', 'tags' => 'required|array']],
+        ];
+    }
+
+    #[Test]
+    public function mergesAnItemEntryThatComesBeforeItsParentArray(): void
+    {
+        $parameters = $this->parser->convertArraySubfields([
+            'tags.*' => ['name' => 'tags.*', 'required' => false, 'type' => 'string', 'description' => '', 'example' => 'news'],
+            'tags' => ['name' => 'tags', 'required' => true, 'type' => 'array', 'description' => 'Post tags.', 'example' => ['a']],
+        ]);
+
+        $this->assertSame(['tags'], array_keys($parameters));
+        $this->assertTrue($parameters['tags']['required']);
+        $this->assertSame('string[]', $parameters['tags']['type']);
+        $this->assertSame('Post tags.', $parameters['tags']['description']);
+        $this->assertSame(['a'], $parameters['tags']['example']);
+    }
+
+    #[Test]
+    public function takesTheItemExampleWhenTheParentArrayHasNone(): void
+    {
+        $parameters = $this->parseAll(['tags' => 'required|array', 'tags.*' => 'string'], ['tags.*' => ['example' => 'news']]);
+
+        $this->assertSame(['news'], $parameters['tags']['example']);
+        $this->assertTrue($parameters['tags']['required']);
+    }
+
+    #[Test]
+    public function aRegexExampleMatchesThePatternWithoutItsDelimitersOrFlags(): void
+    {
+        foreach (['/^[a-z]{3}$/i', '#^[a-z]{3}$#', '(^[a-z]{3}$)'] as $pattern) {
+            $example = $this->parse(['regex:' . $pattern])['example'];
+
+            $this->assertMatchesRegularExpression('/^[a-z]{3}$/i', $example, $pattern);
+        }
+    }
+
+    #[Test]
+    public function aRegexWithoutDelimitersIsUsedAsWritten(): void
+    {
+        $this->assertSame('abc', $this->parse(['regex:abc'])['example']);
+    }
+
+    #[Test]
+    public function anEnumRuleOnlyDocumentsTheCasesItAllows(): void
+    {
+        $only = $this->parse([Rule::enum(PostStatus::class)->only(PostStatus::Published)]);
+        $except = $this->parse([Rule::enum(PostStatus::class)->except([PostStatus::Published])]);
+
+        $this->assertSame(['published'], $only['enumValues']);
+        $this->assertSame('published', $only['example']);
+        $this->assertSame(['draft'], $except['enumValues']);
+        $this->assertSame('draft', $except['example']);
+    }
+
+    #[Test]
+    public function anEnumRuleThatAllowsNoCaseIsLeftUndocumented(): void
+    {
+        $parameter = $this->parse([Rule::enum(PostStatus::class)->except(PostStatus::cases())]);
+
+        $this->assertArrayNotHasKey('enumValues', $parameter);
+        $this->assertSame('string', $parameter['type']);
+    }
+
+    #[Test]
+    #[DataProvider('sometimesOrders')]
+    public function sometimesMakesAParameterOptionalInAnyRuleOrder(string $rules): void
+    {
+        $this->assertFalse($this->parse($rules)['required']);
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function sometimesOrders(): array
+    {
+        return [
+            'required first' => ['required|sometimes|string'],
+            'sometimes first' => ['sometimes|required|string'],
+        ];
+    }
+
+    #[Test]
+    public function aTopLevelWildcardKeyIsKept(): void
+    {
+        $parsed = $this->parser->getParametersFromValidationRules(['*.name' => 'required|string']);
+
+        $this->assertSame(['*.name'], array_keys($parsed));
+        $this->assertTrue($parsed['*.name']['required']);
+    }
+
+    #[Test]
+    public function aKeyWithUnusualCharactersIsDocumented(): void
+    {
+        $parameters = $this->parseAll(['meta' => 'array', 'meta.@type' => 'required|string']);
+
+        $this->assertSame('object', $parameters['meta']['type']);
+        $this->assertSame('string', $parameters['meta.@type']['type']);
+        $this->assertTrue($parameters['meta.@type']['required']);
+    }
+
+    #[Test]
+    public function aListWithAnExactSizeHoldsThatManyItems(): void
+    {
+        $parameter = $this->parse([new ListRule, 'size:3']);
+
+        $this->assertSame('string[]', $parameter['type']);
+        $this->assertCount(3, $parameter['example']);
+    }
+
+    #[Test]
+    public function aListOfSizedItemsHoldsOneItemOfTheRightType(): void
+    {
+        $parameters = $this->parseAll(['field' => 'array', 'field.*' => 'string|min:3']);
+
+        $this->assertSame('string[]', $parameters['field']['type']);
+        $this->assertCount(1, $parameters['field']['example']);
+        $this->assertGreaterThanOrEqual(3, mb_strlen($parameters['field']['example'][0]));
+    }
+
+    #[Test]
+    public function anExactSizeIsATypedExample(): void
+    {
+        $this->assertSame(5, $this->parse(['integer', 'size:5'])['example']);
+        $this->assertEquals(5, $this->parse(['numeric', 'size:5'])['example']);
+    }
+
+    /**
+     * @param array<int, string> $rules
+     */
+    #[Test]
+    #[DataProvider('boundedRules')]
+    public function generatesExamplesWithinEverySizeBound(array $rules, int $min, int $max, string $name = 'field'): void
+    {
+        $generated = [];
+        for ($i = 0; $i < 60; ++$i) {
+            $parameter = $this->parseAll([$name => $rules])[$name];
+            $generated[] = $parameter['example'];
+        }
+
+        foreach ($generated as $example) {
+            $size = is_string($example) ? mb_strlen($example) : $example;
+            $this->assertGreaterThanOrEqual($min, $size);
+            $this->assertLessThanOrEqual($max, $size);
+        }
+    }
+
+    /**
+     * @return array<string, array{array<int, string>, int, int, 2?: string}>
+     */
+    public static function boundedRules(): array
+    {
+        return [
+            'min and max' => [['integer', 'min:1900', 'max:2100'], 1900, 2100],
+            'max then min' => [['integer', 'max:2100', 'min:1900'], 1900, 2100],
+            'min only' => [['integer', 'min:1000'], 1000, PHP_INT_MAX],
+            'long string min' => [['string', 'min:100'], 100, PHP_INT_MAX],
+            'small range' => [['integer', 'min:10', 'max:100'], 10, 100],
+            'max only' => [['integer', 'max:5'], 1, 5],
+            'max below one' => [['integer', 'max:0'], 0, 0],
+            'between' => [['integer', 'between:5,9'], 5, 9],
+            'size' => [['integer', 'size:7'], 7, 7],
+            'password' => [['string', 'min:8'], 8, PHP_INT_MAX, 'password'],
+            'password with max' => [['string', 'min:8', 'max:10'], 8, 10, 'password'],
+            'password with max only' => [['string', 'max:3'], 1, 3, 'password'],
+            'email' => [['string', 'min:30'], 30, PHP_INT_MAX, 'email'],
+        ];
+    }
+
+    /**
+     * @param array<int, string> $rules
+     */
+    #[Test]
+    #[DataProvider('formatRulesWithBounds')]
+    public function aFormatRuleKeepsItsExampleWhenSizeBoundsAlsoApply(string $name, array $rules): void
+    {
+        for ($i = 0; $i < 30; ++$i) {
+            $example = $this->parseAll([$name => $rules])[$name]['example'];
+
+            $this->assertTrue(
+                Validator::make([$name => $example], [$name => $rules])->passes(),
+                'The example ' . json_encode($example) . " breaks the rules for {$name}."
+            );
+        }
+    }
+
+    /**
+     * @return array<string, array{string, array<int, string>}>
+     */
+    public static function formatRulesWithBounds(): array
+    {
+        return [
+            'email by name' => ['email', ['required', 'email', 'max:255']],
+            'email by rule' => ['contact', ['required', 'email', 'max:255']],
+            'url' => ['website_url', ['required', 'url', 'max:255']],
+            'uuid' => ['id', ['required', 'uuid', 'max:36']],
+            'regex with max' => ['code', ['required', 'regex:/^[a-z]{3}$/', 'max:5']],
+            'regex with exact size' => ['code', ['required', 'regex:/^[a-z]{3}$/', 'size:3']],
+        ];
+    }
+
+    #[Test]
+    public function aFormatExampleThatCannotMeetTheBoundsFallsBackToTheBoundedOne(): void
+    {
+        $tooShort = $this->parse(['required', 'regex:/^[a-z]{3}$/', 'min:6', 'max:8'])['example'];
+        $wrongSize = $this->parse(['required', 'regex:/^[a-z]{3}$/', 'size:5'])['example'];
+
+        $this->assertGreaterThanOrEqual(6, mb_strlen($tooShort));
+        $this->assertLessThanOrEqual(8, mb_strlen($tooShort));
+        $this->assertSame(5, mb_strlen($wrongSize));
+    }
+
+    #[Test]
+    public function aFileExampleIsStillBuiltByTheBoundedGenerator(): void
+    {
+        $this->assertInstanceOf(UploadedFile::class, $this->parse(['required', 'file', 'max:100'])['example']);
+    }
+
+    /**
+     * @param int|string $setterValue
+     */
+    #[Test]
+    #[DataProvider('customSetterExamples')]
+    public function aRuleObjectsSetterIsKeptOnlyWhileItFitsTheBounds(string $type, mixed $setterValue, array $bounds, bool $kept): void
+    {
+        $example = $this->parse([new FixedSetterRule($setterValue, $type), ...$bounds])['example'];
+
+        if ($kept) {
+            $this->assertSame($setterValue, $example);
+
+            return;
+        }
+
+        $this->assertNotSame($setterValue, $example);
+        if ($type === 'integer') {
+            $this->assertIsInt($example);
+            $this->assertGreaterThanOrEqual(5, $example);
+            $this->assertLessThanOrEqual(9, $example);
+        } else {
+            $this->assertIsString($example);
+            $this->assertGreaterThanOrEqual(2, mb_strlen($example));
+            $this->assertLessThanOrEqual(4, mb_strlen($example));
+        }
+    }
+
+    /**
+     * @return array<string, array{string, mixed, array<int, string>, bool}>
+     */
+    public static function customSetterExamples(): array
+    {
+        return [
+            'a number inside the bounds' => ['integer', 7, ['min:5', 'max:9'], true],
+            'a number outside the bounds' => ['integer', 100, ['min:5', 'max:9'], false],
+            'a number below the minimum' => ['integer', 1, ['min:5', 'max:9'], false],
+            'not a number' => ['integer', 'seven', ['min:5', 'max:9'], false],
+            'a string inside the bounds' => ['string', 'abc', ['min:2', 'max:4'], true],
+            'a string outside the bounds' => ['string', 'abcdefgh', ['min:2', 'max:4'], false],
+            'not a string' => ['string', 123, ['min:2', 'max:4'], false],
+        ];
+    }
 }
 
 /**
@@ -678,6 +984,25 @@ class SetterRule implements ValidationRule
     public function docs(): array
     {
         return ['setter' => fn () => 'generated'];
+    }
+}
+
+/**
+ * A rule that documents a fixed example through a `setter`, of a chosen type.
+ */
+class FixedSetterRule implements ValidationRule
+{
+    public function __construct(private mixed $value, private string $type)
+    {
+    }
+
+    public function validate(string $attribute, mixed $value, Closure $fail): void
+    {
+    }
+
+    public function docs(): array
+    {
+        return ['type' => $this->type, 'setter' => fn () => $this->value];
     }
 }
 

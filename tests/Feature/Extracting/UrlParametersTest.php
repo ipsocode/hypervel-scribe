@@ -7,6 +7,7 @@ namespace Ipsocode\Scribe\Tests\Feature\Extracting;
 use Hypervel\Database\Eloquent\Model;
 use Hypervel\Routing\Router;
 use Hypervel\Support\Facades\DB;
+use Hypervel\Testbench\Attributes\WithConfig;
 use Ipsocode\Camel\Extraction\ExtractedEndpointData;
 use Ipsocode\Scribe\Extracting\Extractor;
 use Ipsocode\Scribe\Extracting\Strategies\UrlParameters\GetFromLaravelAPI;
@@ -83,7 +84,24 @@ class UrlParametersTest extends DatabaseTestCase
     }
 
     #[Test]
-    public function aBoundModelSuppliesTheTypeAndAnExampleFromTheDatabase(): void
+    public function aBoundModelSuppliesTheTypeButNoRealRowsKey(): void
+    {
+        // A real key in public docs helps enumerate records, and it is the key
+        // a response call then fetches, so by default no row is read: the
+        // example is generated like any other.
+        \Workbench\App\Models\Post::factory()->create();
+        DB::enableQueryLog();
+
+        $param = $this->extract('params.bound')->urlParameters['post_id'];
+
+        $this->assertSame('integer', $param->type);
+        $this->assertIsInt($param->example);
+        $this->assertSame([], collect(DB::getQueryLog())->where('query', 'select * from "posts" limit 1')->all());
+    }
+
+    #[Test]
+    #[WithConfig('scribe.examples.url_parameters_from_database', true)]
+    public function aBoundModelSuppliesAnExampleFromTheDatabaseWhenAskedTo(): void
     {
         $post = \Workbench\App\Models\Post::factory()->create();
 
@@ -94,6 +112,7 @@ class UrlParametersTest extends DatabaseTestCase
     }
 
     #[Test]
+    #[WithConfig('scribe.examples.url_parameters_from_database', true)]
     public function aModelsExampleRowIsReadOncePerRun(): void
     {
         $post = \Workbench\App\Models\Post::factory()->create();
@@ -116,6 +135,7 @@ class UrlParametersTest extends DatabaseTestCase
     }
 
     #[Test]
+    #[WithConfig('scribe.examples.url_parameters_from_database', true)]
     public function aBoundModelWithNoRowsLeavesTheExampleToBeGenerated(): void
     {
         // `Model::first()` returns null on an empty table, so the example has
@@ -235,6 +255,7 @@ class UrlParametersTest extends DatabaseTestCase
     }
 
     #[Test]
+    #[WithConfig('scribe.examples.url_parameters_from_database', true)]
     public function aBindingFieldTypesAndFillsTheExampleFromThatColumn(): void
     {
         $post = \Workbench\App\Models\Post::factory()->create();
@@ -249,6 +270,7 @@ class UrlParametersTest extends DatabaseTestCase
     }
 
     #[Test]
+    #[WithConfig('scribe.examples.url_parameters_from_database', true)]
     public function aModelFoundFromTheUrlDoesNotReplaceATypeHintedOne(): void
     {
         // `/authors/{post}` names an Author model, but the method type-hints Post.

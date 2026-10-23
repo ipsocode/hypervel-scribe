@@ -15,8 +15,8 @@ use Hypervel\Pagination\LengthAwarePaginator;
 use Hypervel\Pagination\Paginator;
 use Hypervel\Support\Arr;
 use Ipsocode\Camel\Extraction\ExtractedEndpointData;
+use Ipsocode\Scribe\Extracting\DocBlocks\DocBlockTag;
 use Ipsocode\Scribe\Extracting\RouteDocBlocker;
-use Ipsocode\Scribe\Reflection\DocBlock\Tag;
 use Ipsocode\Scribe\Tools\ErrorHandlingUtils as e;
 use Ipsocode\Scribe\Tools\Utils;
 
@@ -98,8 +98,8 @@ class ApiResourceResponseTools
             // [15] : ::paginate(15)
             // [15, 'simple'] : ::simplePaginate(15)
             // [15, 'cursor'] : ::cursorPaginate(15)
+            $perPage = (int) ($paginationStrategy[0] ?? 0);
             if (count($paginationStrategy) === 1) {
-                $perPage = $paginationStrategy[0];
                 $paginator = new LengthAwarePaginator(
                     // LengthAwarePaginator expects only the current page's items
                     collect($models)->slice(0, $perPage),
@@ -108,11 +108,9 @@ class ApiResourceResponseTools
                 );
                 $list = $paginator;
             } elseif (count($paginationStrategy) === 2 && $paginationStrategy[1] === 'simple') {
-                $perPage = $paginationStrategy[0];
                 $paginator = new Paginator($models, $perPage);
                 $list = $paginator;
             } elseif (count($paginationStrategy) === 2 && $paginationStrategy[1] === 'cursor') {
-                $perPage = $paginationStrategy[0];
                 $paginator = new CursorPaginator($models, $perPage);
                 $list = $paginator;
             } else {
@@ -143,7 +141,7 @@ class ApiResourceResponseTools
     {
         $docBlock = RouteDocBlocker::forClass($apiResourceClass);
 
-        /** @var null|Tag $mixinTag */
+        /** @var null|DocBlockTag $mixinTag */
         $mixinTag = Arr::first(Utils::filterDocBlockTags($docBlock->getTags(), 'mixin'));
         if (empty($mixinTag) || empty($modelClass = mb_trim($mixinTag->getContent()))) {
             return null;
