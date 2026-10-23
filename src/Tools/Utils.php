@@ -135,7 +135,7 @@ class Utils
      */
     public static function resolvePath(string $path): string
     {
-        if ($path !== '' && ($path[0] === '/' || $path[0] === '\\' || preg_match('#^[A-Za-z]:[\/]#', $path) === 1)) {
+        if ($path !== '' && ($path[0] === '/' || $path[0] === '\\' || preg_match('#^[A-Za-z]:[\\\/]#', $path) === 1)) {
             return $path;
         }
 

@@ -153,6 +153,28 @@ class GenerateDocumentationTest extends DatabaseTestCase
     }
 
     #[Test]
+    #[WithConfig('scribe.type', 'static')]
+    public function aRelativeScribeDirResolvesAgainstTheAppRootNotTheWorkingDirectory(): void
+    {
+        $elsewhere = sys_get_temp_dir() . '/scribe-cwd-' . bin2hex(random_bytes(4));
+        mkdir($elsewhere);
+        $previous = getcwd();
+
+        try {
+            chdir($elsewhere);
+
+            $this->assertSame(0, $this->generate(['--scribe-dir' => '.scribe-relative']));
+
+            $this->assertDirectoryExists(base_path('.scribe-relative/endpoints'));
+            $this->assertSame([], array_diff(scandir($elsewhere), ['.', '..']));
+        } finally {
+            chdir($previous);
+            File::deleteDirectory($elsewhere);
+            File::deleteDirectory(base_path('.scribe-relative'));
+        }
+    }
+
+    #[Test]
     public function generatesAnOpenapiSpecAndAPostmanCollection(): void
     {
         $this->assertSame(0, $this->generate());
@@ -640,6 +662,21 @@ class GenerateDocumentationTest extends DatabaseTestCase
         // Static docs are opened as files as often as they are served, so the
         // asset links stay relative.
         $this->assertStringContainsString('href="../docs/css/theme-default.style.css"', $html);
+    }
+
+    #[Test]
+    public function filesALostRunLeftInTheBuildDirectoryAreNotPublished(): void
+    {
+        $build = base_path('.scribe/build');
+        File::ensureDirectoryExists($build . '/images');
+        file_put_contents($build . '/stale.txt', 'stale');
+        file_put_contents($build . '/images/stale.png', 'stale');
+
+        $this->assertSame(0, $this->generate());
+
+        $this->assertFileDoesNotExist($this->app->publicPath('vendor/scribe/stale.txt'));
+        $this->assertFileDoesNotExist($this->app->publicPath('vendor/scribe/images/stale.png'));
+        $this->assertFilenameExists('public/vendor/scribe/css/theme-default.style.css');
     }
 
     #[Test]

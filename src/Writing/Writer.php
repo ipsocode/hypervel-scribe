@@ -129,7 +129,7 @@ class Writer
             function () use ($assetsOutputPath, $outputPath, $groupedEndpoints) {
                 /** @var HtmlWriter $writer */
                 $writer = app()->makeWith(HtmlWriter::class, ['config' => $this->config]);
-                $writer->generate($groupedEndpoints, $this->paths->intermediateOutputPath(), $this->renderPath());
+                $writer->generate($groupedEndpoints, $this->paths->intermediateOutputPath(), $this->prepareRenderPath());
 
                 if (! $this->isStatic) {
                     $this->performFinalTasksForHypervelType();
@@ -164,7 +164,7 @@ class Writer
             function () use ($outputPath) {
                 /** @var ExternalHtmlWriter $writer */
                 $writer = app()->makeWith(ExternalHtmlWriter::class, ['config' => $this->config]);
-                $writer->generate([], $this->paths->intermediateOutputPath(), $this->renderPath());
+                $writer->generate([], $this->paths->intermediateOutputPath(), $this->prepareRenderPath());
 
                 if ($this->isStatic) {
                     $this->generatedFiles['html'] = realpath("{$outputPath}index.html");
@@ -404,6 +404,20 @@ class Writer
     protected function renderPath(): string
     {
         return $this->isStatic ? $this->staticTypeOutputPath : $this->hypervelBuildPath;
+    }
+
+    /**
+     * The render path, with the build directory emptied first for the hypervel
+     * types: a run that failed before its final tasks leaves files in it that
+     * would otherwise be copied into the public assets directory.
+     */
+    protected function prepareRenderPath(): string
+    {
+        if (! $this->isStatic) {
+            Utils::deleteDirectoryAndContents($this->hypervelBuildPath);
+        }
+
+        return $this->renderPath();
     }
 
     /**
