@@ -29,6 +29,11 @@ class BaseGenerator extends OpenApiGenerator
      */
     private array $groupNameByEndpointId = [];
 
+    /**
+     * @var array<string, true> the operation IDs handed out so far in this spec
+     */
+    private array $usedOperationIds = [];
+
     private ?SchemaBuilder $schemaBuilder = null;
 
     public function root(array $root, array $groupedEndpoints): array
@@ -146,9 +151,9 @@ class BaseGenerator extends OpenApiGenerator
     protected function operationId(OutputEndpointData $endpoint): string
     {
         if ($endpoint->metadata->title) {
-            $operationId = preg_replace('/[^\w+]/', '', Str::camel($endpoint->metadata->title));
+            $operationId = preg_replace('/[^\w]/', '', Str::camel($endpoint->metadata->title));
         } else {
-            $parts = preg_split('/[^\w+]/', $endpoint->uri, -1, PREG_SPLIT_NO_EMPTY);
+            $parts = preg_split('/[^\w]/', $endpoint->uri, -1, PREG_SPLIT_NO_EMPTY);
             $operationId = Str::lower($endpoint->httpMethods[0]) . implode('', array_map(fn ($part) => ucfirst($part), $parts));
         }
 
@@ -163,7 +168,16 @@ class BaseGenerator extends OpenApiGenerator
             ));
         }
 
-        return $operationId;
+        // OpenAPI requires operation IDs to be unique, and two endpoints can share
+        // a title. The generator is built fresh for each spec, so the IDs taken
+        // so far are those of this spec.
+        $unique = $operationId;
+        for ($suffix = 2; isset($this->usedOperationIds[$unique]); ++$suffix) {
+            $unique = $operationId . $suffix;
+        }
+        $this->usedOperationIds[$unique] = true;
+
+        return $unique;
     }
 
     /**
@@ -244,7 +258,7 @@ class BaseGenerator extends OpenApiGenerator
     }
 
     /**
-     * @return array<string, mixed>|stdClass
+     * @return array<int|string, mixed>
      */
     protected function generateEndpointResponsesSpec(OutputEndpointData $endpoint)
     {
@@ -290,7 +304,8 @@ class BaseGenerator extends OpenApiGenerator
             }
         }
 
-        return $this->objectIfEmpty($responses);
+        // OpenAPI requires an operation to have at least one response.
+        return $responses ?: ['default' => ['description' => '']];
     }
 
     protected function getResponseDescription(Response $response): string

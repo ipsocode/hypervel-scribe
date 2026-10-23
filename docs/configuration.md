@@ -52,7 +52,7 @@ wildcards. The package's own `scribe` routes are always excluded, and so is
 |---|---|---|
 | `type` | `'hypervel'` | `hypervel`, `static`, `external_hypervel` or `external_static`. Any other value is rejected. See [output types](output.md#output-types). |
 | `theme` | `'default'` | `default` or `elements` for the `hypervel` and `static` types; `scalar`, `elements` or `rapidoc` for the `external_*` types. |
-| `static.output_path` | `'public/docs'` | Where the `static` types write the page, its assets, the spec and the collection. |
+| `static.output_path` | `'public/docs'` | Where the `static` types write the page, its assets, the spec and the collection. A relative path resolves against the app root, whatever the working directory; an absolute one is used as given. |
 | `hypervel.add_routes` | `true` | Register the [docs routes](getting-started.md#the-docs-routes) for the `hypervel` and `external_hypervel` types. |
 | `hypervel.docs_url` | `'/docs'` | The page's URL. The collection and spec are served at `<docs_url>.postman` and `<docs_url>.openapi`. |
 | `hypervel.assets_directory` | `null` | Directory under `public/` for the page's CSS, JS and images. `null` means `vendor/scribe`. |

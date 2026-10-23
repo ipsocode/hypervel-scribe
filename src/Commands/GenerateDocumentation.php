@@ -19,6 +19,7 @@ use Ipsocode\Scribe\Tools\DocumentationConfig;
 use Ipsocode\Scribe\Tools\Globals;
 use Ipsocode\Scribe\Tools\PathConfig;
 use Ipsocode\Scribe\Tools\RunState;
+use Ipsocode\Scribe\Tools\Utils;
 use Ipsocode\Scribe\Writing\Writer;
 use ReflectionClassConstant;
 
@@ -143,13 +144,12 @@ class GenerateDocumentation extends Command
             throw new InvalidArgumentException("The specified config (config/{$configName}.php) doesn't exist.");
         }
 
-        $this->paths = new PathConfig($configName);
-        if ($this->hasOption('scribe-dir') && ! empty($this->option('scribe-dir'))) {
-            $this->paths = new PathConfig(
-                $configName,
-                scribeDir: $this->option('scribe-dir')
-            );
-        }
+        // Relative to the app root, not the working directory; resolved once
+        // here so every reader and writer gets an absolute path.
+        $scribeDir = $this->hasOption('scribe-dir') && ! empty($this->option('scribe-dir'))
+            ? $this->option('scribe-dir')
+            : ".{$configName}";
+        $this->paths = new PathConfig($configName, scribeDir: Utils::resolvePath($scribeDir));
 
         $this->docConfig = new DocumentationConfig(config($this->paths->configName));
 

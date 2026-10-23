@@ -13,6 +13,7 @@ use Ipsocode\Scribe\Exceptions\CouldntGetRouteDetails;
 use Ipsocode\Scribe\Tests\DatabaseTestCase;
 use Ipsocode\Scribe\Tools\Utils;
 use Laravel\SerializableClosure\SerializableClosure;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use ReflectionFunction;
 use ReflectionMethod;
@@ -47,6 +48,38 @@ class UtilsTest extends DatabaseTestCase
         File::deleteDirectory($this->scratch);
 
         parent::tearDown();
+    }
+
+    #[Test]
+    #[DataProvider('absolutePaths')]
+    public function anAbsolutePathIsUsedAsGiven(string $path): void
+    {
+        $this->assertSame($path, Utils::resolvePath($path));
+    }
+
+    public static function absolutePaths(): array
+    {
+        return [
+            'unix' => ['/var/app/.scribe'],
+            'unc' => ['\\\server\share'],
+            'drive, backslash' => ['C:\app'],
+            'drive, slash' => ['C:/app'],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('relativePaths')]
+    public function aRelativePathResolvesAgainstTheAppRoot(string $path): void
+    {
+        $this->assertSame(base_path($path), Utils::resolvePath($path));
+    }
+
+    public static function relativePaths(): array
+    {
+        return [
+            'dotted' => ['.scribe'],
+            'nested' => ['public/docs'],
+        ];
     }
 
     #[Test]

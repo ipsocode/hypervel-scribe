@@ -4,7 +4,7 @@
 @endphp
 ```javascript
 const url = new URL(
-    "{!! rtrim($baseUrl, '/') !!}/{{ ltrim($endpoint->boundUri, '/') }}"
+    "{!! rtrim($baseUrl, '/') !!}/{!! ltrim($endpoint->boundUri, '/') !!}"
 );
 @if(count($endpoint->cleanQueryParameters))
 
@@ -16,7 +16,7 @@ Object.keys(params)
 @if(!empty($endpoint->headers))
 const headers = {
 @foreach($endpoint->headers as $header => $value)
-    "{{$header}}": "{{$value}}",
+    "{!! $header !!}": "{!! $value !!}",
 @endforeach
 @empty($endpoint->headers['Accept'])
     "Accept": "application/json",

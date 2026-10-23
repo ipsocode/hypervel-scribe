@@ -64,7 +64,7 @@ php artisan scribe:generate
 | `--force` | Discard your edits to the extracted endpoints, `intro.md` and `auth.md` in `.scribe/`, and extract everything afresh. |
 | `--no-extraction` | Skip extraction and rebuild the output from the files already in `.scribe/`. Cannot be combined with `--force`. |
 | `--config=scribe` | The config file to use (`config/<name>.php`). |
-| `--scribe-dir=` | Where to keep the intermediate files. Defaults to `.<config name>`, so `.scribe`. |
+| `--scribe-dir=` | Where to keep the intermediate files. Defaults to `.<config name>`, so `.scribe`. A relative path resolves against the app root, whatever the working directory; an absolute one is used as given. |
 | `--verbose` | Print the full stack trace of an exception instead of a one-line summary. |
 
 A route whose extraction throws is left out of the output and its error
@@ -99,7 +99,7 @@ See [output](output.md) for what each type looks like.
 
 ## The `.scribe` directory
 
-Extraction writes its results to `.scribe/` before turning them into output:
+Extraction writes its results to `.scribe/` in the app root (a relative `--scribe-dir` resolves there too, whatever the working directory) before turning them into output:
 
 | Path | What it is |
 |---|---|

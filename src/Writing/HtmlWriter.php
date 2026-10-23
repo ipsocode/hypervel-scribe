@@ -13,6 +13,7 @@ use Ipsocode\Scribe\Tools\DocumentationConfig;
 use Ipsocode\Scribe\Tools\MarkdownParser;
 use Ipsocode\Scribe\Tools\Utils;
 use Ipsocode\Scribe\Tools\WritingUtils;
+use SplFileInfo;
 
 /**
  * Transforms the extracted data (endpoints YAML, API details Markdown) into an HTML site.
@@ -79,10 +80,7 @@ class HtmlWriter
         file_put_contents($destinationFolder . '/index.html', $output);
 
         $assetsFolder = __DIR__ . '/../../resources';
-        // Prune older versioned assets.
-        foreach (['css', 'js'] as $assetType) {
-            Utils::deleteDirectoryAndContents("{$destinationFolder}/{$assetType}");
-        }
+        static::pruneThemeAssets($destinationFolder);
         Utils::copyDirectory("{$assetsFolder}/images/", "{$destinationFolder}/images");
 
         $assets = [
@@ -103,6 +101,19 @@ class HtmlWriter
                 copy($path, $destination . $fileName);
             }
         }
+    }
+
+    /**
+     * Delete the theme files an earlier run wrote (versioned ones included),
+     * leaving anything else in the directory alone.
+     */
+    public static function pruneThemeAssets(string $directory): void
+    {
+        Utils::deleteFilesMatching("{$directory}/css", fn (SplFileInfo $file) => Str::startsWith($file->getFilename(), 'theme-'));
+        Utils::deleteFilesMatching(
+            "{$directory}/js",
+            fn (SplFileInfo $file) => Str::startsWith($file->getFilename(), ['theme-', 'tryitout']),
+        );
     }
 
     public function getMetadata(): array

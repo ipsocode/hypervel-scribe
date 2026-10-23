@@ -128,9 +128,23 @@ class Utils
     }
 
     /**
-     * The file helpers below go through the framework's filesystem, so an
-     * absolute path (an absolute `--scribe-dir`, say) is used as given and a
-     * relative one resolves against the working directory.
+     * Where a configured path points: an absolute path is used as given and a
+     * relative one resolves against the app root (`base_path()`), never the
+     * working directory, which Hypervel does not change and a server, queue or
+     * scheduler process may have started elsewhere.
+     */
+    public static function resolvePath(string $path): string
+    {
+        if ($path !== '' && ($path[0] === '/' || $path[0] === '\\' || preg_match('#^[A-Za-z]:[\\\/]#', $path) === 1)) {
+            return $path;
+        }
+
+        return base_path($path);
+    }
+
+    /**
+     * The file helpers below go through the framework's filesystem, so they
+     * take the absolute paths `resolvePath()` gives and use them as given.
      */
     public static function deleteDirectoryAndContents(string $dir): void
     {

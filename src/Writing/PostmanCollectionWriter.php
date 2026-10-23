@@ -69,6 +69,11 @@ class PostmanCollectionWriter
         }
 
         return match ($this->config->get('auth.in')) {
+            // Postman's API key auth supports only `header` and `query`; a body
+            // token is documented as a body parameter on each endpoint.
+            'body' => [
+                'type' => 'noauth',
+            ],
             'basic' => [
                 'type' => 'basic',
             ],
@@ -86,7 +91,7 @@ class PostmanCollectionWriter
                 'apikey' => [
                     [
                         'key' => 'in',
-                        'value' => $this->config->get('auth.in'),
+                        'value' => $this->config->get('auth.in') === 'query_or_body' ? 'query' : $this->config->get('auth.in'),
                         'type' => 'string',
                     ],
                     [
@@ -268,6 +273,27 @@ class PostmanCollectionWriter
         return $headers;
     }
 
+    /**
+     * Flatten a query value into one `name[a][b]` => value entry per leaf, the
+     * way parse_str() reads nested arrays.
+     *
+     * @param array<int|string, mixed> $values
+     * @return array<string, string>
+     */
+    protected function flattenQueryValues(string $prefix, array $values): array
+    {
+        $flat = [];
+        foreach ($values as $index => $value) {
+            if (is_array($value)) {
+                $flat += $this->flattenQueryValues("{$prefix}[{$index}]", $value);
+            } else {
+                $flat["{$prefix}[{$index}]"] = (string) $value;
+            }
+        }
+
+        return $flat;
+    }
+
     protected function generateUrlObject(OutputEndpointData $endpointData): array
     {
         $base = [
@@ -289,12 +315,12 @@ class PostmanCollectionWriter
 
             if (Str::endsWith($parameterData->type, '[]') || $parameterData->type === 'object') {
                 $values = empty($parameterData->example) ? [] : $parameterData->example;
-                foreach ($values as $index => $value) {
+                foreach ($this->flattenQueryValues($name, $values) as $key => $value) {
                     // parse_str() reads arrays as filters[0]=name&filters[1]=age or
                     // filters[]=name&filters[]=age; the indexed form also covers objects.
                     $query[] = [
-                        'key' => "{$name}[{$index}]",
-                        'value' => is_string($value) ? $value : (string) $value,
+                        'key' => $key,
+                        'value' => $value,
                         'description' => strip_tags($parameterData->description),
                         // Optional parameters without an example start disabled.
                         'disabled' => ! $parameterData->required && empty($parameterData->example),
