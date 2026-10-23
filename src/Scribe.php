@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ipsocode\Scribe;
 
 use Closure;
+use Composer\InstalledVersions;
 use Hypervel\Routing\Route;
 use Ipsocode\Camel\Extraction\ExtractedEndpointData;
 use Ipsocode\Scribe\Commands\GenerateDocumentation;
@@ -15,7 +16,35 @@ use Symfony\Component\HttpFoundation\Request;
 
 class Scribe
 {
+    /**
+     * @deprecated hard-coded and never bumped; use {@see Scribe::version()}
+     */
     public const VERSION = '0.1.0';
+
+    /**
+     * The installed package version, as Composer reports it, or `dev` when the
+     * package is not installed through Composer or runs from a branch.
+     */
+    public static function version(): string
+    {
+        return static::resolveVersion(
+            InstalledVersions::isInstalled('ipsocode/hypervel-scribe')
+                ? InstalledVersions::getPrettyVersion('ipsocode/hypervel-scribe')
+                : null
+        );
+    }
+
+    /**
+     * Maps a Composer pretty version to the one Scribe reports.
+     */
+    public static function resolveVersion(?string $prettyVersion): string
+    {
+        if ($prettyVersion === null || $prettyVersion === '' || str_starts_with($prettyVersion, 'dev-')) {
+            return 'dev';
+        }
+
+        return $prettyVersion;
+    }
 
     /**
      * Runs a callback just before a response call is made, after the environment

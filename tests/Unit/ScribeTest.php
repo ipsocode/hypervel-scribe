@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ipsocode\Scribe\Tests\Unit;
 
+use Composer\InstalledVersions;
 use Hypervel\Foundation\Testing\Attributes\UnitTest;
 use Ipsocode\Scribe\Scribe;
 use Ipsocode\Scribe\Tools\Globals;
@@ -111,5 +112,37 @@ class ScribeTest extends TestCase
         $this->assertSame('static', (Globals::$__beforeResponseCall)());
 
         $this->assertSame(['invokable', 'static'], self::$calls);
+    }
+
+    #[Test]
+    #[UnitTest]
+    public function theVersionIsTheOneComposerReportsForThePackage(): void
+    {
+        $this->assertSame(
+            Scribe::resolveVersion(InstalledVersions::getPrettyVersion('ipsocode/hypervel-scribe')),
+            Scribe::version()
+        );
+        $this->assertNotSame('0.1.0', Scribe::version());
+    }
+
+    #[Test]
+    #[UnitTest]
+    #[DataProvider('prettyVersions')]
+    public function aPrettyVersionIsReportedAsIsUnlessItIsMissingOrABranch(?string $pretty, string $expected): void
+    {
+        $this->assertSame($expected, Scribe::resolveVersion($pretty));
+    }
+
+    /**
+     * @return array<string, array{?string, string}>
+     */
+    public static function prettyVersions(): array
+    {
+        return [
+            'a release' => ['v0.2.5', 'v0.2.5'],
+            'a branch' => ['dev-main', 'dev'],
+            'not installed' => [null, 'dev'],
+            'empty' => ['', 'dev'],
+        ];
     }
 }

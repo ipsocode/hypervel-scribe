@@ -116,7 +116,7 @@ class WritingUtilsTest extends TestCase
     public function versionsAnAssetPathUsingTheScribeVersion(): void
     {
         $this->assertSame(
-            'js/tryitout-' . Scribe::VERSION . '.js',
+            'js/tryitout-' . Scribe::version() . '.js',
             WritingUtils::getVersionedAsset('js/tryitout.js'),
         );
     }

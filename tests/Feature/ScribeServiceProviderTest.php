@@ -176,7 +176,7 @@ class ScribeServiceProviderTest extends TestCase
         // `php artisan about` is where an application's maintainer looks first;
         // the callback registered at boot is only run when they do.
         $this->artisan('about')
-            ->expectsOutputToContain(Scribe::VERSION)
+            ->expectsOutputToContain(Scribe::version())
             ->assertSuccessful();
     }
 

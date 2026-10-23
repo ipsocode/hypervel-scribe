@@ -831,7 +831,7 @@ class GenerateDocumentationTest extends DatabaseTestCase
             $this->generate();
 
             $this->assertFilenameExists('public/docs/css/theme-default.style.css');
-            $this->assertFilenameExists('public/docs/js/theme-default-' . Scribe::VERSION . '.js');
+            $this->assertFilenameExists('public/docs/js/theme-default-' . Scribe::version() . '.js');
         } finally {
             File::deleteDirectory($this->app->publicPath('docs'));
         }
