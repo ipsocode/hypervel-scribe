@@ -54,7 +54,7 @@ class RouteMatcher implements RouteMatcherInterface
 
         $domainsToMatch = $routeRule['match']['domains'] ?? [];
         $pathsToMatch = array_map(
-            fn (string $prefix) => ltrim($prefix, '/'),
+            fn (string $prefix) => $prefix === '/' ? $prefix : ltrim($prefix, '/'),
             $routeRule['match']['prefixes'] ?? [],
         );
 

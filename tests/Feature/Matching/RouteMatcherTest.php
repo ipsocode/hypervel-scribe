@@ -130,6 +130,14 @@ class RouteMatcherTest extends TestCase
     }
 
     #[Test]
+    public function aLoneSlashPrefixMatchesTheRootRouteAndNothingElse(): void
+    {
+        $matched = $this->match([['match' => ['prefixes' => ['/'], 'domains' => ['*']]]]);
+
+        $this->assertSame(['/'], $matched);
+    }
+
+    #[Test]
     public function noRulesMeansNoRoutes(): void
     {
         $this->assertSame([], $this->match([]));

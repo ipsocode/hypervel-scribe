@@ -45,6 +45,15 @@ class GetFromResponseFieldTag extends GetFieldsFromTagStrategy
         // Two, three or four words: the name and type come first, then an optional
         // "required", then the description.
         [$name, $type, $third, $rest] = array_pad(preg_split('/\s+/', mb_trim($tagContent), 4), 4, '');
+
+        // The type left out, with "required" in its place.
+        if ($type === 'required') {
+            $data = ['name' => $name, 'type' => '', 'required' => true, 'description' => mb_trim("{$third} {$rest}")];
+            $data['type'] = ResponseFieldTools::inferTypeOfResponseField($data, $this->endpointData);
+
+            return $data;
+        }
+
         $required = $third === 'required';
         $description = mb_trim($required ? $rest : "{$third} {$rest}");
 

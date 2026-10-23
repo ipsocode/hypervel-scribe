@@ -6,6 +6,7 @@ namespace Ipsocode\Scribe\Tests\Unit\Extracting;
 
 use Hypervel\Foundation\Testing\Attributes\UnitTest;
 use Ipsocode\Camel\Extraction\ExtractedEndpointData;
+use Ipsocode\Camel\Extraction\Response;
 use Ipsocode\Camel\Extraction\ResponseCollection;
 use Ipsocode\Scribe\Extracting\Strategies\ResponseFields\GetFromResponseFieldTag;
 use Ipsocode\Scribe\Tests\Unit\TestCase;
@@ -23,12 +24,12 @@ class ResponseFieldTagTest extends TestCase
     /**
      * @return array<string, mixed> the field parsed from a tag with this content
      */
-    private function parse(string $content): array
+    private function parse(string $content, array $responses = []): array
     {
         $strategy = new GetFromResponseFieldTag(new DocumentationConfig([]));
         // Built without its constructor, which needs a route this test has no use for.
         $endpointData = (new ReflectionClass(ExtractedEndpointData::class))->newInstanceWithoutConstructor();
-        $endpointData->responses = new ResponseCollection([]);
+        $endpointData->responses = new ResponseCollection($responses);
         $strategy->endpointData = $endpointData;
 
         $tag = new class($content) {
@@ -90,5 +91,27 @@ class ResponseFieldTagTest extends TestCase
 
         $this->assertTrue($field['required']);
         $this->assertSame('The text.', $field['description']);
+    }
+
+    #[Test]
+    #[UnitTest]
+    public function aRequiredFlagInPlaceOfTheTypeIsTheFlagAndTheTypeIsInferred(): void
+    {
+        $field = $this->parse('id required The ID.', [new Response(['status' => 200, 'content' => '{"id": 1}'])]);
+
+        $this->assertTrue($field['required']);
+        $this->assertSame('The ID.', $field['description']);
+        $this->assertSame('integer', $field['type']);
+    }
+
+    #[Test]
+    #[UnitTest]
+    public function aRequiredFlagInPlaceOfTheTypeNeedsNoDescription(): void
+    {
+        $field = $this->parse('id required', [new Response(['status' => 200, 'content' => '{"id": 1}'])]);
+
+        $this->assertTrue($field['required']);
+        $this->assertSame('', $field['description']);
+        $this->assertSame('integer', $field['type']);
     }
 }
