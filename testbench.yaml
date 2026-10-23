@@ -30,6 +30,10 @@ env:
   # rather than once per test.
   DB_CONNECTION: sqlite
   DB_DATABASE: ":memory:"
+  # hypervel/components ships Telescope, and discovery boots it into the Workbench app.
+  # Off, or it records every query and fails at the end of each test against a table the
+  # suite never migrates; phpunit.xml says more.
+  TELESCOPE_ENABLED: false
 
 migrations:
   - workbench/database/migrations

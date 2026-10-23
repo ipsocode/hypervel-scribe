@@ -47,7 +47,7 @@
     </extensions>
 
     <php>
-        <!-- These five mirror testbench.yaml's `env` block. Testbench applies that
+        <!-- These six mirror testbench.yaml's `env` block. Testbench applies that
              block to its own CLI (`composer test`) but explicitly not to PHPUnit
              test methods, so without these a `vendor/bin/phpunit` run would boot a
              differently-configured application than `composer test` does.
@@ -59,6 +59,14 @@
         <env name="APP_URL" value="http://localhost"/>
         <env name="DB_CONNECTION" value="sqlite"/>
         <env name="DB_DATABASE" value=":memory:"/>
+        <!-- hypervel/components ships Telescope, and package discovery boots it
+             into the Workbench app, recording every command and query. At the end
+             of each test's coroutine its deferred store then fails against a
+             `telescope_entries` table the suite never migrates, and writes the
+             error and its stack trace to the log file from inside the coroutine:
+             33.9 MB over one serial run of the feature tests, on Swoole's async
+             file I/O, as the test's event loop shuts down. See #126. -->
+        <env name="TELESCOPE_ENABLED" value="false"/>
 
         <!-- Pin terminal dimensions so Symfony Console never shells out to `stty`
              to detect them. The generate command's task and warning output asks
