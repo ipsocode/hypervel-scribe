@@ -76,10 +76,10 @@ purge:
     # generation test that crashes half way leaves these behind.
     #
     # `static.output_path` (public/docs) and the intermediate `.scribe/` are
-    # deliberately absent: both are relative paths that Scribe resolves against
-    # the *working directory*, so they land beside the package, and purge can
-    # only reach the skeleton. They are gitignored and cleaned by the
-    # generation test's own teardown instead.
+    # relative paths that Scribe resolves against the app root, so they land in
+    # the skeleton too.
+    - .scribe
+    - public/docs
     - public/vendor/scribe
     - resources/views/scribe
     # Hyperf's AOP proxy cache. Regenerated on the next boot, and stale proxies

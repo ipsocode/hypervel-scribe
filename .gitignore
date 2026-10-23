@@ -9,11 +9,6 @@ composer.lock
 /tests/.cache/
 /tests/coverage/
 
-# Scribe's own output, written into the package root when the suite runs the
-# generate command with the package directory as the working directory.
-/.scribe
-/public
-
 # Claude Code's local state. The automated review's skill and brief are
 # imported into .github/claude/.
 /.claude
