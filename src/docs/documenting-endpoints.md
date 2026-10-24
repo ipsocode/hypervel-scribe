@@ -11,7 +11,7 @@ default lists, an endpoint is described by:
   config).
 
 Many of the examples below are adapted from the Workbench controllers under
-[`workbench/app/Http/Controllers`](../../workbench/app/Http/Controllers).
+[`workbench/app/Http/Controllers`](https://github.com/ipsocode/hypervel-scribe/tree/main/workbench/app/Http/Controllers).
 
 ## Title, description and group
 

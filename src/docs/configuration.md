@@ -193,7 +193,7 @@ return [
 
 The merge applies to the `scribe` config only. A file used through
 `--config=<name>` is read as written, with no defaults underneath. The reasons
-behind these rules are in [config merging](../../docs/ai/config-merging.md).
+behind these rules are in [config merging](https://github.com/ipsocode/hypervel-scribe/blob/main/docs/ai/config-merging.md).
 
 ## Several configurations
 

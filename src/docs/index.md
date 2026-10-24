@@ -20,4 +20,4 @@ in reading order, starting with installation.
 - [Hooks](hooks.md): the callbacks an application registers through the `Scribe` class.
 - [Queues and testing](queue-and-testing.md): regenerating from a queue or a running worker, and resetting the package's state between tests.
 
-Contributing: [CONTRIBUTING.md](../../CONTRIBUTING.md) has the development setup, the checks, the coroutine-safety rules and the design notes on how the package is built.
+Contributing: [CONTRIBUTING.md](https://github.com/ipsocode/hypervel-scribe/blob/main/CONTRIBUTING.md) has the development setup, the checks, the coroutine-safety rules and the design notes on how the package is built.

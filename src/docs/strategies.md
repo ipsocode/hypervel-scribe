@@ -138,7 +138,7 @@ application's exception handler and recorded like any other response; a call
 that throws past the kernel or runs out of time prints a warning and records
 nothing.
 [`Scribe::beforeResponseCall()` and `Scribe::afterResponseCall()`](hooks.md)
-run around it. [Response calls](../../docs/ai/response-calls.md) describes the call in
+run around it. [Response calls](https://github.com/ipsocode/hypervel-scribe/blob/main/docs/ai/response-calls.md) describes the call in
 detail.
 
 ## Writing a strategy

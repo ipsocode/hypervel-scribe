@@ -17,8 +17,8 @@ after the other. A run that starts while another is under way in the same
 worker fails at once with exit code 1, because the two would reset each other's
 state; use the job below, which queues them one at a time. It also
 clears the URL origin it forces to `base_url` for the run. Hooks registered on
-the `Scribe` class are kept. [Run state](../../docs/ai/run-state.md) lists what a run
-caches, and [coroutine safety](../../docs/ai/coroutine-safety.md) explains why it
+the `Scribe` class are kept. [Run state](https://github.com/ipsocode/hypervel-scribe/blob/main/docs/ai/run-state.md) lists what a run
+caches, and [coroutine safety](https://github.com/ipsocode/hypervel-scribe/blob/main/docs/ai/coroutine-safety.md) explains why it
 matters in a worker.
 
 ## The RegenerateDocumentation job
