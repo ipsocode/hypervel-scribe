@@ -89,7 +89,7 @@ class TestStateTest extends TestCase
 
     /**
      * Static properties written only at their declaration (fixed lookup tables
-     * such as attribute-class registries or a CSS-colour map), so they carry no
+     * such as attribute-class registries or a CSS-color map), so they carry no
      * worker-lifetime state and need no flushState() entry. Check that a
      * property is never reassigned before adding it here.
      *

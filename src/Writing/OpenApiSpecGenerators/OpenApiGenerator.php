@@ -12,7 +12,7 @@ use Ipsocode\Scribe\Tools\DocumentationConfig;
 /**
  * Base for the generators that build the OpenAPI spec.
  *
- * Extend it and list the class in `openapi.generators` to customise the spec.
+ * Extend it and list the class in `openapi.generators` to customize the spec.
  * Each method builds one part of the spec from what the earlier generators
  * returned, and its return value replaces that part, so to build on them add to
  * the array and return it.

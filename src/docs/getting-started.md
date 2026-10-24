@@ -121,7 +121,7 @@ Commit `.scribe/` if you edit it, so the edits survive a fresh checkout.
 ## The docs routes
 
 For the `hypervel` and `external_hypervel` types the package registers three
-routes, defined in [`routes/hypervel.php`](../routes/hypervel.php):
+routes, defined in [`routes/hypervel.php`](../../routes/hypervel.php):
 
 | Name | URL | Serves |
 |---|---|---|

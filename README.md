@@ -48,7 +48,7 @@ php artisan vendor:publish --tag=scribe-config
 Your application's `composer.json` must allow Hypervel's dev branch:
 `"minimum-stability": "dev"` together with `"prefer-stable": true`. The service
 provider and the `Scribe` alias are discovered, so there is nothing to register.
-[Getting started](docs/getting-started.md) has the details, and each release's
+[Getting started](src/docs/getting-started.md) has the details, and each release's
 notes, breaking changes first, are on the
 [Releases](https://github.com/ipsocode/hypervel-scribe/releases) page.
 
@@ -72,29 +72,29 @@ own:
 | `scribe.openapi` | `/docs.openapi` | the OpenAPI spec       |
 
 The `static` types write everything to `public/docs/` instead and register no
-routes. See [what gets written](docs/getting-started.md#what-gets-written) for
+routes. See [what gets written](src/docs/getting-started.md#what-gets-written) for
 every type.
 
 ## Documentation
 
-The pages below live in [`docs/`](docs/README.md).
+The pages below live in [`src/docs/`](src/docs/README.md).
 
 Using the package:
 
-- [Getting started](docs/getting-started.md): installing, publishing, running `scribe:generate` and what it writes.
-- [Configuration](docs/configuration.md): the options in `config/scribe.php`, and how a partial config file is merged.
-- [Documenting endpoints](docs/documenting-endpoints.md): the attributes, docblock tags and validation rules that describe an endpoint.
-- [Strategies](docs/strategies.md): the extraction stages, the built-in strategies and writing your own.
-- [Output](docs/output.md): output types, themes, external viewers, the OpenAPI spec, the Postman collection and translations.
-- [Hooks](docs/hooks.md): the callbacks an application registers through the `Scribe` class.
-- [Queues and testing](docs/queue-and-testing.md): regenerating from a queue or a running worker, and resetting the package's state between tests.
+- [Getting started](src/docs/getting-started.md): installing, publishing, running `scribe:generate` and what it writes.
+- [Configuration](src/docs/configuration.md): the options in `config/scribe.php`, and how a partial config file is merged.
+- [Documenting endpoints](src/docs/documenting-endpoints.md): the attributes, docblock tags and validation rules that describe an endpoint.
+- [Strategies](src/docs/strategies.md): the extraction stages, the built-in strategies and writing your own.
+- [Output](src/docs/output.md): output types, themes, external viewers, the OpenAPI spec, the Postman collection and translations.
+- [Hooks](src/docs/hooks.md): the callbacks an application registers through the `Scribe` class.
+- [Queues and testing](src/docs/queue-and-testing.md): regenerating from a queue or a running worker, and resetting the package's state between tests.
 
 Design notes, for contributors:
 
-- [Coroutine safety](docs/design/coroutine-safety.md): why worker-lifetime state matters under Swoole, the rules every change is held to, and why extraction is sequential.
-- [Run state](docs/design/run-state.md): what one `scribe:generate` run caches, when it is flushed, and what is left alone.
-- [Response calls](docs/design/response-calls.md): how `ResponseCalls` builds a request and dispatches it in a coroutine of its own.
-- [Config merging](docs/design/config-merging.md): how an application's partial `config/scribe.php` is merged with the package's defaults.
+- [Coroutine safety](docs/ai/coroutine-safety.md): why worker-lifetime state matters under Swoole, the rules every change is held to, and why extraction is sequential.
+- [Run state](docs/ai/run-state.md): what one `scribe:generate` run caches, when it is flushed, and what is left alone.
+- [Response calls](docs/ai/response-calls.md): how `ResponseCalls` builds a request and dispatches it in a coroutine of its own.
+- [Config merging](docs/ai/config-merging.md): how an application's partial `config/scribe.php` is merged with the package's defaults.
 
 ## Contributing
 

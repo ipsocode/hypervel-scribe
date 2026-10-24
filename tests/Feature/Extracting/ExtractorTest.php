@@ -313,7 +313,7 @@ class ExtractorTest extends DatabaseTestCase
     #[Test]
     public function aNestedResourceKeepsTheParentParameterDistinguishable(): void
     {
-        // Both parameters normalising to `{id}` would collide; the parent
+        // Both parameters normalizing to `{id}` would collide; the parent
         // becomes `{author_id}`.
         $this->assertSame(
             'api/authors/{author_id}/blogs/{id}',

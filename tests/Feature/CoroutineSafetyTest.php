@@ -38,7 +38,7 @@ use function Hypervel\Coroutine\parallel;
  * Scribe's caches are plain worker-lifetime statics rather than coroutine-scoped
  * state: each caches within a run, resets via flushState(), and is shared across
  * coroutines on the worker. A Feature suite because Testbench runs each test in
- * a real Swoole coroutine. See docs/design/coroutine-safety.md.
+ * a real Swoole coroutine. See docs/ai/coroutine-safety.md.
  */
 class CoroutineSafetyTest extends TestCase
 {

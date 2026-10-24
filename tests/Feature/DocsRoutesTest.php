@@ -40,7 +40,7 @@ class DocsRoutesTest extends TestCase
     }
 
     /**
-     * Stand in for a `scribe:generate` run, with recognisable contents.
+     * Stand in for a `scribe:generate` run, with recognizable contents.
      */
     private function writeGeneratedDocs(): void
     {

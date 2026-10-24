@@ -104,7 +104,7 @@ class UrlParamsNormalizer
      */
     public static function getTypeHintedEloquentModels(ReflectionFunctionAbstract $method): array
     {
-        // Asked two or three times per route (URL normalisation, the URL
+        // Asked two or three times per route (URL normalization, the URL
         // parameter strategy, and each API-resource response attribute), and
         // each ask instantiates every typed argument. The instances are only
         // read, for their class and route key, so one set per method serves
@@ -156,7 +156,7 @@ class UrlParamsNormalizer
     /**
      * The field a model-bound URL parameter (`/posts/{post}` with `show(Post $post)`)
      * is resolved by: the inline key in `/posts/{post:slug}`, else the model's
-     * getRouteKeyName(), else $default. Bindings customised at runtime are not seen.
+     * getRouteKeyName(), else $default. Bindings customized at runtime are not seen.
      *
      * @param string $paramName The name of the URL parameter
      * @param array<string, Model> $typeHintedEloquentModels

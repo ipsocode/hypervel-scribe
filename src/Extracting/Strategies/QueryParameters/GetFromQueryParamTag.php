@@ -41,7 +41,7 @@ class GetFromQueryParamTag extends GetFieldsFromTagStrategy
             }
 
             // Each branch above sets one flag and leaves the other as its raw
-            // regex capture, a string, so both are normalised to bool here.
+            // regex capture, a string, so both are normalized to bool here.
             $required = mb_trim((string) $required) === 'required';
             $deprecated = mb_trim((string) $deprecated) === 'deprecated';
 

@@ -32,14 +32,14 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  * Documents a response by calling the route, with no annotation needed: builds
  * a request from the extracted parameters, dispatches it through the
  * application's HTTP kernel, and records what comes back.
- * See docs/design/response-calls.md.
+ * See docs/ai/response-calls.md.
  */
 class ResponseCalls extends Strategy
 {
     use DatabaseTransactionHelpers;
 
     /**
-     * Seconds to give one response call before the coroutine running it is cancelled.
+     * Seconds to give one response call before the coroutine running it is canceled.
      *
      * The call runs in its own coroutine ({@see self::makeIsolatedCall()}), and
      * one that never returns would hang the whole generate. Raise it with the
@@ -264,7 +264,7 @@ class ResponseCalls extends Strategy
      * connections are left out of the copy and the child borrows its own, so the
      * transactions are begun and rolled back here, on the connections the hooks,
      * the call and a streamed body write through.
-     * See docs/design/response-calls.md.
+     * See docs/ai/response-calls.md.
      *
      * @return array<int, array<string, mixed>>
      *

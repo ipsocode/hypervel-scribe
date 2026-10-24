@@ -27,7 +27,7 @@ Every change is held to these:
   Commands return an exit code.
 - Hypervel APIs only. Tests reach the container with `$app->get(...)`, never
   with array access.
-- New behaviour comes with a test. `@codeCoverageIgnore` is not a way past the
+- New behavior comes with a test. `@codeCoverageIgnore` is not a way past the
   coverage gate.
 
 The conventions check enforces the rules a script can decide (framework

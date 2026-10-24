@@ -18,7 +18,7 @@ use RuntimeException;
  * Unlike `Artisan::queue('scribe:generate')`, it fails when the command does,
  * and runs one regeneration at a time whichever config each was given: two
  * runs in one Swoole worker would reset each other's worker-lifetime state,
- * which every config shares, half way through. See docs/queue-and-testing.md.
+ * which every config shares, half way through. See src/docs/queue-and-testing.md.
  */
 class RegenerateDocumentation implements ShouldQueue
 {

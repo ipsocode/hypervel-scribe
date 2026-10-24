@@ -13,12 +13,8 @@ OpenAPI spec and a Postman collection) from a Hypervel application's routes.
 - [Hooks](hooks.md): the callbacks an application registers through the `Scribe` class.
 - [Queues and testing](queue-and-testing.md): regenerating from a queue or a running worker, and resetting the package's state between tests.
 
-## Design notes
+## Contributing
 
-For contributors. [CONTRIBUTING.md](../CONTRIBUTING.md) covers the development
-setup and the checks.
-
-- [Coroutine safety](design/coroutine-safety.md): why worker-lifetime state matters under Swoole, the rules every change is held to, and why extraction is sequential.
-- [Run state](design/run-state.md): what one `scribe:generate` run caches, when it is flushed, and what is left alone.
-- [Response calls](design/response-calls.md): how `ResponseCalls` builds a request and dispatches it in a coroutine of its own.
-- [Config merging](design/config-merging.md): how an application's partial `config/scribe.php` is merged with the package's defaults.
+[CONTRIBUTING.md](../../CONTRIBUTING.md) covers the development setup, the
+checks, the coroutine-safety rules every change is held to, and the design
+notes on how the package is built.

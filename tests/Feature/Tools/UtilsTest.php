@@ -129,7 +129,7 @@ class UtilsTest extends DatabaseTestCase
     public function rejectsAnAtSyntaxActionWithNoMethod(): void
     {
         // Hypervel's own RouteAction::parse() rejects this at registration, so
-        // the action is set after the fact: the branch is Scribe's defence
+        // the action is set after the fact: the branch is Scribe's defense
         // against an action array assembled by something other than the router.
         $route = (new Route(['GET'], 'api/legacy', fn () => null))
             ->setAction(['uses' => PostController::class]);
@@ -142,7 +142,7 @@ class UtilsTest extends DatabaseTestCase
     #[Test]
     public function readsAnArrayActionSetDirectlyOnTheRoute(): void
     {
-        // Hypervel's router normalises `[Controller::class, 'method']` into the
+        // Hypervel's router normalizes `[Controller::class, 'method']` into the
         // `Controller@method` string, but an action assembled by hand — or by
         // another package — can leave the pair in place.
         $route = (new Route(['GET'], 'api/legacy', fn () => null))

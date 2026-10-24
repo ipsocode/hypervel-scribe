@@ -9,7 +9,7 @@ use Ipsocode\Scribe\Extracting\Strategies;
 use function Ipsocode\Scribe\Config\configureStrategy;
 use function Ipsocode\Scribe\Config\removeStrategies;
 
-// Only the most common configs are shown. See https://github.com/ipsocode/hypervel-scribe/blob/main/docs/configuration.md for all.
+// Only the most common configs are shown. See https://github.com/ipsocode/hypervel-scribe/blob/main/src/docs/configuration.md for all.
 
 return [
     // The HTML <title> for the generated documentation.
@@ -63,7 +63,7 @@ return [
     // Anything else is rejected.
     'type' => 'hypervel',
 
-    // See https://github.com/ipsocode/hypervel-scribe/blob/main/docs/output.md for supported options.
+    // See https://github.com/ipsocode/hypervel-scribe/blob/main/src/docs/output.md for supported options.
     // The bundled themes are "default" and "elements"; the `external_*` types instead take
     // the name of a client-side viewer: "scalar", "elements" or "rapidoc".
     'theme' => 'default',
@@ -147,7 +147,7 @@ return [
 
     // Example requests for each endpoint will be shown in each of these languages.
     // Supported options are: bash, javascript, php, python.
-    // To add a language of your own, see https://github.com/ipsocode/hypervel-scribe/blob/main/docs/output.md
+    // To add a language of your own, see https://github.com/ipsocode/hypervel-scribe/blob/main/src/docs/output.md
     // Not used by the `external_*` types.
     'example_languages' => [
         'bash',
@@ -192,7 +192,7 @@ return [
 
         // By default, Scribe sorts groups alphabetically, and endpoints in the order their routes are defined.
         // You can override this by listing the groups, subgroups and endpoints here in the order you want them.
-        // See https://github.com/ipsocode/hypervel-scribe/blob/main/docs/configuration.md for details.
+        // See https://github.com/ipsocode/hypervel-scribe/blob/main/src/docs/configuration.md for details.
         // The `external_*` types get this order only through the OpenAPI spec.
         'order' => [],
     ],

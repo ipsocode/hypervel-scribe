@@ -9,7 +9,7 @@ package's defaults underneath it:
 $this->mergeConfigFrom(__DIR__ . '/../config/scribe.php', 'scribe');
 ```
 
-For what each key does, see [configuration](../configuration.md).
+For what each key does, see [configuration](../../src/docs/configuration.md).
 
 ## Why mergeConfigFrom() alone is not enough
 

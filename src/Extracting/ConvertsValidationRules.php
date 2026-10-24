@@ -161,7 +161,7 @@ trait ConvertsValidationRules
                 case 'date':
                     $parameterData['type'] = 'string';
                     $parameterData['description'] .= ' ' . $this->getDescription($rule);
-                    // Carbon::now() honours Carbon::setTestNow(), so a consumer that
+                    // Carbon::now() honors Carbon::setTestNow(), so a consumer that
                     // freezes the clock while generating docs gets a stable example.
                     $parameterData['setter'] = fn () => Carbon::now()->format('Y-m-d\TH:i:s');
 
