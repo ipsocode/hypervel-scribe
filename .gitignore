@@ -9,7 +9,5 @@ composer.lock
 /tests/.cache/
 /tests/coverage/
 
-# Claude Code's local state, such as settings and worktrees; .claude/skills/ is
-# tracked.
-/.claude/*
-!/.claude/skills/
+# Claude Code's local state, such as its settings and worktrees.
+/.claude
