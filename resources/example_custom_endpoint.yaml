@@ -1,6 +1,6 @@
 # To include an endpoint that isn't a part of your Hypervel app (or belongs to a vendor package),
 # you can define it in a custom.*.yaml file, like this one.
-# See https://github.com/ipsocode/hypervel-scribe/blob/main/docs/documenting-endpoints.md for more options.
+# See https://github.com/ipsocode/hypervel-scribe/blob/main/src/docs/documenting-endpoints.md for more options.
 # Each custom file should contain an array of endpoints. Here's an example:
 
 #- httpMethods:

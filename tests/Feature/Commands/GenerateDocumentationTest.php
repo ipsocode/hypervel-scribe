@@ -62,7 +62,7 @@ class GenerateDocumentationTest extends DatabaseTestCase
     }
 
     /**
-     * Remove every artefact a run leaves behind.
+     * Remove every artifact a run leaves behind.
      *
      * Testbench deletes the skeleton on shutdown, so cleaning it only isolates
      * one test from the next.

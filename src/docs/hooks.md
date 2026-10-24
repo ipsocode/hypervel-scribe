@@ -1,6 +1,6 @@
 # Hooks
 
-[`Ipsocode\Scribe\Scribe`](../src/Scribe.php) has static methods that register
+[`Ipsocode\Scribe\Scribe`](../Scribe.php) has static methods that register
 callbacks into extraction and writing. Register them once, in a service
 provider's `boot()`. Each method holds one callback, and calling it again
 replaces the previous one. `scribe:generate` keeps them from one run to the
@@ -208,7 +208,7 @@ throws is reported as a warning and the next one is tried. When none returns a
 model, an empty instance of the class is used. Factory states and relations come
 from the response's tag or attribute (`states=`, `with=`, `factoryStates:`,
 `with:`). The logic is in
-[`InstantiatesExampleModels`](../src/Extracting/InstantiatesExampleModels.php).
+[`InstantiatesExampleModels`](../Extracting/InstantiatesExampleModels.php).
 
 ## faker_seed
 

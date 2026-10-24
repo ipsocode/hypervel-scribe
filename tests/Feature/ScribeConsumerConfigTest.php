@@ -13,7 +13,7 @@ use PHPUnit\Framework\Attributes\Test;
  * What a *partial* application `config/scribe.php` does to the package's
  * defaults. `#[ResolvesHypervel]` swaps the config path before configuration
  * loads; `#[WithConfig]` sets values afterwards, so it would bypass the merge.
- * See docs/design/config-merging.md.
+ * See docs/ai/config-merging.md.
  */
 #[ResolvesHypervel('useConsumerConfig')]
 class ScribeConsumerConfigTest extends TestCase

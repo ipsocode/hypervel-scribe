@@ -1,5 +1,8 @@
 # Response calls
 
+Read this before changing `ResponseCalls` or the database transactions around
+it.
+
 [`ResponseCalls`](../../src/Extracting/Strategies/Responses/ResponseCalls.php)
 (`Ipsocode\Scribe\Extracting\Strategies\Responses\ResponseCalls`) is the one
 response strategy that needs no annotation. It builds a request from the

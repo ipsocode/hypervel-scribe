@@ -33,7 +33,7 @@ class ScribeServiceProvider extends ServiceProvider
     /**
      * The option arrays whose entries merge by key, so a partial config/scribe.php
      * keeps the package's other defaults inside them. `routes` and `strategies`
-     * are replaced whole. See docs/design/config-merging.md.
+     * are replaced whole. See docs/ai/config-merging.md.
      */
     protected function mergeableOptions(string $name): array
     {

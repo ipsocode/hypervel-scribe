@@ -32,7 +32,7 @@ class ApiDetailsTest extends DatabaseTestCase
         $this->outputPath = sys_get_temp_dir() . '/scribe-api-details-' . bin2hex(random_bytes(6));
 
         // Nothing bootstraps the console output outside `scribe:generate`, and
-        // the "skipping modified file" warning is behaviour worth asserting on
+        // the "skipping modified file" warning is behavior worth asserting on
         // rather than letting it open its own handle on STDOUT.
         $this->output = new BufferedOutput;
         c::bootstrapOutput($this->output);

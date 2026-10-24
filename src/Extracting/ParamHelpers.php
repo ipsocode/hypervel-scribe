@@ -58,7 +58,7 @@ trait ParamHelpers
         $min = $hints['min'] ?? null;
         $max = $hints['max'] ?? null;
         if (! is_null($min) || ! is_null($max)) {
-            // Only a password can honour length bounds; the other fakers would ignore them.
+            // Only a password can honor length bounds; the other fakers would ignore them.
             if ($normalizedName !== 'password' && $normalizedName !== 'pwd') {
                 return null;
             }

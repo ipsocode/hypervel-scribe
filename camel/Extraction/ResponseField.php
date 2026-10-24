@@ -8,7 +8,7 @@ use Ipsocode\Camel\BaseDTO;
 
 class ResponseField extends BaseDTO
 {
-    // Not a Parameter subclass: incoming response-field data is not normalised
+    // Not a Parameter subclass: incoming response-field data is not normalized
     // enough for Parameter's typed API.
 
     /** @var string */

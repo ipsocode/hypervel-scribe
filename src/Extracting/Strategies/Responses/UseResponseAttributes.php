@@ -41,7 +41,7 @@ class UseResponseAttributes extends PhpAttributeStrategy
      * uri|model|states|with|withCount and reused across a path's operations, so
      * the {id} URL parameter the OpenAPI writer takes from one operation matches
      * the id in every operation's response body. Cleared per run.
-     * See docs/design/run-state.md.
+     * See docs/ai/run-state.md.
      *
      * @var array<string, null|Model|object>
      */
