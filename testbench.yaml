@@ -30,6 +30,10 @@ env:
   # rather than once per test.
   DB_CONNECTION: sqlite
   DB_DATABASE: ":memory:"
+  # Package discovery boots Telescope into the Workbench app, but the suite never
+  # migrates its `telescope_entries` table, so every test's deferred store would
+  # fail and log a stack trace from inside its coroutine.
+  TELESCOPE_ENABLED: false
 
 migrations:
   - workbench/database/migrations

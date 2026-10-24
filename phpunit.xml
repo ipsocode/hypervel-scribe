@@ -47,7 +47,7 @@
     </extensions>
 
     <php>
-        <!-- These five mirror testbench.yaml's `env` block. Testbench applies that
+        <!-- These six mirror testbench.yaml's `env` block. Testbench applies that
              block to its own CLI (`composer test`) but explicitly not to PHPUnit
              test methods, so without these a `vendor/bin/phpunit` run would boot a
              differently-configured application than `composer test` does.
@@ -59,6 +59,12 @@
         <env name="APP_URL" value="http://localhost"/>
         <env name="DB_CONNECTION" value="sqlite"/>
         <env name="DB_DATABASE" value=":memory:"/>
+        <!-- `hypervel/components` ships Telescope and package discovery boots it
+             into the Workbench app, but the suite never migrates its
+             `telescope_entries` table. Left on, every test's deferred store
+             fails and writes a stack trace to the log from inside the test's
+             coroutine. -->
+        <env name="TELESCOPE_ENABLED" value="false"/>
 
         <!-- Pin terminal dimensions so Symfony Console never shells out to `stty`
              to detect them. The generate command's task and warning output asks
