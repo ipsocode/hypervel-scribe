@@ -83,7 +83,7 @@ trait InstantiatesExampleModels
      * once per run. Later calls are no-ops, so the sequence keeps advancing and
      * each model, every paginated row included, gets distinct values rather than
      * tripping unique indexes. Tools\RunState::flush() resets the guard before and
-     * after each run. See docs/design/run-state.md.
+     * after each run. See docs/ai/run-state.md.
      */
     protected function seedFactoryFaker(): void
     {

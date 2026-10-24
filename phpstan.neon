@@ -30,7 +30,7 @@ parameters:
     tmpDir: tests/.cache/phpstan
 
     # src/ only. tests/ and workbench/ are fixtures — the Workbench application exists to be
-    # a deliberately shaped host app, not to be type-correct — and analysing them would
+    # a deliberately shaped host app, not to be type-correct — and analyzing them would
     # report on scaffolding rather than on shipped code.
     paths:
         - src
@@ -55,7 +55,7 @@ parameters:
           path: src/Extracting/Strategies/Responses/UseResponseAttributes.php
 
         # Trait properties reached from the consuming class's context — ParamHelpers and the
-        # OpenAPI writer read state the composing class declares. PHPStan analyses the trait in
+        # OpenAPI writer read state the composing class declares. PHPStan analyzes the trait in
         # isolation and cannot see the declaration.
         - identifier: property.notFound
           paths:

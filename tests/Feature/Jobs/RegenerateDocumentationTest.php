@@ -23,7 +23,7 @@ use Workbench\App\Http\Controllers\UndocumentableController;
  * keeps its intermediate and static output in a per-process directory, because
  * the default location beside the package is shared by every ParaTest worker,
  * including one running GenerateDocumentationTest at the same time.
- * See docs/queue-and-testing.md.
+ * See src/docs/queue-and-testing.md.
  */
 #[WithConfig('cache.default', 'array')]
 class RegenerateDocumentationTest extends DatabaseTestCase

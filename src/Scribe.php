@@ -80,7 +80,7 @@ class Scribe
     /**
      * Runs a callback once the docs are generated. It receives the absolute output
      * paths, keyed `postman`, `openapi`, `html`, `blade` and `assets` (`js`, `css`,
-     * `images`); an output that was not written is null. See docs/hooks.md.
+     * `images`); an output that was not written is null. See src/docs/hooks.md.
      *
      * @param callable(array<string, mixed>): mixed $callable
      */

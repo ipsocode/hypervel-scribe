@@ -176,7 +176,7 @@ trait ParsesValidationRules
     }
 
     /**
-     * Normalises rules the way the validator does, eg 'param1' => 'int|required'
+     * Normalizes rules the way the validator does, eg 'param1' => 'int|required'
      * becomes 'param1' => ['int', 'required'], while keeping nested array keys
      * such as 'ids.*' rather than the validator's expanded 'ids.0'.
      *
@@ -185,7 +185,7 @@ trait ParsesValidationRules
      */
     protected function normaliseRules(array $rules): array
     {
-        // Validator::make($data, $rules)->getRules() normalises the rules, but drops a
+        // Validator::make($data, $rules)->getRules() normalizes the rules, but drops a
         // nested array rule (`ids.*`) unless its key (`ids`) holds a non-empty array in
         // the data, so the test data gets a one-item array for each such key.
         $testData = [];

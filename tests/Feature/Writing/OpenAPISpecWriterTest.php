@@ -502,7 +502,7 @@ class OpenAPISpecWriterTest extends TestCase
     public function aVariantGivesWayToAUriTheApplicationRegisteredItself(): void
     {
         // `users` is served by both routes, and the one registered for it says
-        // more about it than a copy of its neighbour would.
+        // more about it than a copy of its neighbor would.
         $groups = [$this->createGroup([
             $this->createMockEndpointData([
                 'uri' => 'users/{id?}',
@@ -1179,7 +1179,7 @@ class OpenAPISpecWriterTest extends TestCase
     {
         $generator = new MarkingNullableGenerator(new DocumentationConfig($this->config));
 
-        // The schemas BaseGenerator builds honour what the subclass overrides...
+        // The schemas BaseGenerator builds honor what the subclass overrides...
         $schema = $generator->generateFieldData(['name' => 'a', 'type' => 'string', 'nullable' => true]);
         $this->assertSame('maybe', $schema['x-nullable']);
 

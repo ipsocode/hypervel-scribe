@@ -66,7 +66,7 @@ class ParsesValidationRulesTest extends TestCase
 
     /**
      * Run the full pipeline the real strategies run: parse the rules, then
-     * normalise array/object shapes and resolve the generated examples.
+     * normalize array/object shapes and resolve the generated examples.
      *
      * @return array<string, array<string, mixed>>
      */
@@ -378,7 +378,7 @@ class ParsesValidationRulesTest extends TestCase
     #[Test]
     public function aParentDeclaredAlongsideItsListSubfieldIsNotOverwritten(): void
     {
-        // `cars` is already there, so the synthesiser must leave it — and with
+        // `cars` is already there, so the synthesizer must leave it — and with
         // it the `array` rule's own (empty) example, not a fabricated `[[]]`.
         $parsed = $this->parseAll([
             'cars' => ['array'],
@@ -392,7 +392,7 @@ class ParsesValidationRulesTest extends TestCase
     #[Test]
     public function aParentDeclaredAfterItsSubfieldIsNotSynthesisedTwice(): void
     {
-        // The synthesised `address` comes first; reaching the user's own
+        // The synthesized `address` comes first; reaching the user's own
         // `address` afterwards must not replace it and lose the subfield.
         $parsed = $this->parseAll([
             'address.city' => ['string'],

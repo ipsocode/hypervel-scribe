@@ -27,7 +27,7 @@ use function Hypervel\Testbench\workbench_path;
  * it through the HTTP kernel, and records the response. The endpoints
  * ({@see ResponseCallController}) echo the request back, and are registered
  * here so the documented Workbench API keeps its shape.
- * See docs/design/response-calls.md.
+ * See docs/ai/response-calls.md.
  */
 class ResponseCallsTest extends DatabaseTestCase
 {

@@ -16,7 +16,7 @@ use PHPUnit\Framework\Attributes\Test;
 
 /**
  * BaseDTO implements construction, casting and array access itself rather than
- * through a DTO library, so that behaviour is exercised directly here.
+ * through a DTO library, so that behavior is exercised directly here.
  */
 class BaseDTOTest extends TestCase
 {

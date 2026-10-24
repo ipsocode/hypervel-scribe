@@ -25,7 +25,7 @@ use Ipsocode\Scribe\Extracting\Strategies\UrlParameters\GetFromLaravelAPI;
  * runs the command in-process would otherwise carry them into the next run.
  * The command flushes them on the way in and on the way out. Hooks and tag
  * handlers are configuration and stay; {@see \Ipsocode\Scribe\Testing\TestState}
- * clears those too. See docs/design/run-state.md.
+ * clears those too. See docs/ai/run-state.md.
  */
 final class RunState
 {

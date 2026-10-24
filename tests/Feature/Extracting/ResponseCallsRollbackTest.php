@@ -34,7 +34,7 @@ use function Hypervel\Testbench\workbench_path;
  * `RefreshDatabase` cannot wrap these tests: its transaction would hold the
  * test coroutine's connection while the call writes through another. Each test
  * migrates its own SQLite file instead, apart from the one DatabaseTestCase uses.
- * See docs/design/response-calls.md.
+ * See docs/ai/response-calls.md.
  */
 class ResponseCallsRollbackTest extends TestCase
 {

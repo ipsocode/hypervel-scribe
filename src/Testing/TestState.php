@@ -13,7 +13,7 @@ use Ipsocode\Scribe\Tools\RunState;
  *
  * Declared via `extra.hypervel.test-state` in composer.json, so consuming
  * applications' suites pick it up too, including workers that only run unit
- * tests and never boot an application. See docs/queue-and-testing.md.
+ * tests and never boot an application. See src/docs/queue-and-testing.md.
  */
 class TestState
 {

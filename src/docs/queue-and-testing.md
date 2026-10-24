@@ -17,8 +17,8 @@ after the other. A run that starts while another is under way in the same
 worker fails at once with exit code 1, because the two would reset each other's
 state; use the job below, which queues them one at a time. It also
 clears the URL origin it forces to `base_url` for the run. Hooks registered on
-the `Scribe` class are kept. [Run state](design/run-state.md) lists what a run
-caches, and [coroutine safety](design/coroutine-safety.md) explains why it
+the `Scribe` class are kept. [Run state](../../docs/ai/run-state.md) lists what a run
+caches, and [coroutine safety](../../docs/ai/coroutine-safety.md) explains why it
 matters in a worker.
 
 ## The RegenerateDocumentation job
@@ -62,13 +62,13 @@ dispatch that finds the lock taken depends on the queue driver:
 | `sync`, `background`, `deferred` | Is skipped: these run the job in the dispatching worker and have no queue to put it back on. |
 
 The source is
-[`src/Jobs/RegenerateDocumentation.php`](../src/Jobs/RegenerateDocumentation.php).
+[`src/Jobs/RegenerateDocumentation.php`](../Jobs/RegenerateDocumentation.php).
 
 ## Testing an application that uses the package
 
 The package keeps its caches and the `Scribe::` hooks in worker-lifetime static
 properties, which would otherwise carry from one test into the next.
-[`Ipsocode\Scribe\Testing\TestState`](../src/Testing/TestState.php) resets them
+[`Ipsocode\Scribe\Testing\TestState`](../Testing/TestState.php) resets them
 after every test: the per-run caches and the hooks.
 
 It is registered through `extra.hypervel.test-state` in the package's

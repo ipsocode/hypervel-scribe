@@ -20,7 +20,7 @@ use stdClass;
  * Whatever a generator may override stays with the generator and is reached
  * through the closures it hands in, so a custom generator still shapes every
  * schema: how a schema is marked nullable, how a nested field or response value
- * is built, and how a type name is normalised.
+ * is built, and how a type name is normalized.
  */
 final class SchemaBuilder
 {
@@ -368,7 +368,7 @@ final class SchemaBuilder
 
     /**
      * Turn an empty array into an object, for fields the spec requires to be
-     * objects: an empty array would serialise as [].
+     * objects: an empty array would serialize as [].
      *
      * @param array<string, mixed> $field
      * @return array<string, mixed>|stdClass
