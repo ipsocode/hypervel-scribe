@@ -1,5 +1,8 @@
 # Config merging
 
+Read this before changing `config/scribe.php` or how `ScribeServiceProvider`
+merges an application's partial copy.
+
 An application does not have to publish all of `config/scribe.php`. It can
 write a file that names only what it changes, and
 [`ScribeServiceProvider`](../../src/ScribeServiceProvider.php) merges the

@@ -1,5 +1,8 @@
 # Run state
 
+Read this before changing what a `scribe:generate` run caches or how `RunState`
+flushes it.
+
 [`Tools\RunState`](../../src/Tools/RunState.php) is the state one
 `scribe:generate` run builds up and nothing after it should see. Its one method,
 `RunState::flush()`, resets all of it. Why that matters under Swoole is in

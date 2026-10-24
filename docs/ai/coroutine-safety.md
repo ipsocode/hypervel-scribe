@@ -1,5 +1,8 @@
 # Coroutine safety
 
+Read this before adding a static, a binding or other worker-lifetime state to
+`src/`.
+
 A Hypervel worker is long-lived and serves many requests at once as Swoole
 coroutines. A `static` property, a container binding or a config value lives as
 long as the worker, and every coroutine on it sees the same one. State that
