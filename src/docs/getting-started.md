@@ -28,6 +28,11 @@ The service provider (`Ipsocode\Scribe\ScribeServiceProvider`) and the `Scribe`
 alias are discovered through the package's `extra.hypervel` block. There is
 nothing to register.
 
+Each release's notes, breaking changes first, are on the
+[Releases](https://github.com/ipsocode/hypervel-scribe/releases) page. Read them
+before you upgrade: until Hypervel 0.4 is released, a release can change the
+API, the configuration or the generated output without a deprecation period.
+
 With the default `hypervel` output type the application serves the docs itself,
 through routes this package registers, so install the package wherever the docs
 are served. The `static` types write plain files, and a `--dev` install where
