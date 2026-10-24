@@ -24,8 +24,9 @@ hypervel-porting MCP server is set up, its `read_doc` reads a page, or one secti
 | `Scribe.php`, `Tools/Globals.php`, `Tools/RunState.php`: state kept for the life of a worker | lifecycle.md › Per-Worker vs. Per-Request; packages.md › Test State Cleanup |
 | `Testing/` | packages.md › Test State Cleanup |
 
-## Every package
+## Default References
 
 - packages.md › Package Discovery
 - packages.md › Service Providers
 - packages.md › Test State Cleanup
+- coroutines.md
