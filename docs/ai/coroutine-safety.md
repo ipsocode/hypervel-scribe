@@ -1,5 +1,8 @@
 # Coroutine safety
 
+Read this before adding a static, a binding or other worker-lifetime state to
+`src/`.
+
 A Hypervel worker is long-lived and serves many requests at once as Swoole
 coroutines. A `static` property, a container binding or a config value lives as
 long as the worker, and every coroutine on it sees the same one. State that
@@ -27,7 +30,7 @@ Every change is held to these:
   Commands return an exit code.
 - Hypervel APIs only. Tests reach the container with `$app->get(...)`, never
   with array access.
-- New behaviour comes with a test. `@codeCoverageIgnore` is not a way past the
+- New behavior comes with a test. `@codeCoverageIgnore` is not a way past the
   coverage gate.
 
 The conventions check enforces the rules a script can decide (framework

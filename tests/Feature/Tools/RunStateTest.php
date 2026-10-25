@@ -29,7 +29,7 @@ use Workbench\App\Models\Post;
  * What one `scribe:generate` run caches, and what it must leave alone. An
  * in-process run keeps its Swoole worker afterwards: the run's caches go with
  * the run, while hooks registered at boot stay for the next one. See
- * docs/design/run-state.md.
+ * docs/ai/run-state.md.
  */
 class RunStateTest extends TestCase
 {

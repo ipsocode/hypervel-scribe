@@ -64,7 +64,7 @@ rejected when the page is written.
 `example_languages` lists the languages of the example requests shown for each
 endpoint. The bundled ones are `bash`, `javascript`, `php` and `python`, each a
 view in
-[`resources/views/partials/example-requests`](../resources/views/partials/example-requests).
+[`resources/views/partials/example-requests`](../../resources/views/partials/example-requests).
 
 To add one, create
 `resources/views/vendor/scribe/partials/example-requests/<language>.md.blade.php`
@@ -103,7 +103,7 @@ only written during extraction, so `--no-extraction` leaves them as they are.
 
 Level-one and level-two headings in these files appear in the page's table of
 contents. The views they are rendered from are in
-[`resources/views/markdown`](../resources/views/markdown).
+[`resources/views/markdown`](../../resources/views/markdown).
 
 ## Last updated
 
@@ -166,7 +166,7 @@ The shorter path's operation ID names what it leaves out, so it stays unique:
 ```
 
 `openapi.generators` adds classes that extend
-[`Ipsocode\Scribe\Writing\OpenApiSpecGenerators\OpenApiGenerator`](../src/Writing/OpenApiSpecGenerators/OpenApiGenerator.php).
+[`Ipsocode\Scribe\Writing\OpenApiSpecGenerators\OpenApiGenerator`](../Writing/OpenApiSpecGenerators/OpenApiGenerator.php).
 They run after the built-in generators, and each can change the root document
 (`root()`), each operation (`pathItem()`) and each path's parameters
 (`pathParameters()`):
@@ -226,7 +226,7 @@ Regenerate the docs after editing a view: the page is rendered from them when
 ## Translations
 
 The page's fixed text (headings, labels, the authentication instructions) comes
-from [`lang/en/scribe.php`](../lang/en/scribe.php), through Hypervel's
+from [`lang/en/scribe.php`](../../lang/en/scribe.php), through Hypervel's
 translator, under the `scribe::scribe.` prefix.
 
 To override strings or add a locale, create

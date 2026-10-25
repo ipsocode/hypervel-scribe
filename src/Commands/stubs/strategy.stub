@@ -20,7 +20,7 @@ class DummyClass extends Strategy
      * in the `strategies` array — `metadata`, `headers`, `urlParameters`,
      * `queryParameters`, `bodyParameters`, `responses` or `responseFields`.
      *
-     * @see https://github.com/ipsocode/hypervel-scribe/blob/main/docs/strategies.md
+     * @see https://github.com/ipsocode/hypervel-scribe/blob/main/src/docs/strategies.md
      *
      * @param ExtractedEndpointData $endpointData The endpoint being processed: its HTTP methods,
      *   controller, method, route and URL, plus the data extracted so far.

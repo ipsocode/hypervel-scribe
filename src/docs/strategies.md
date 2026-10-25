@@ -3,13 +3,13 @@
 Extraction runs in seven stages for each route. Each stage runs its list of
 strategies, in order, from `strategies` in `config/scribe.php`. A strategy is a
 class extending
-[`Ipsocode\Scribe\Extracting\Strategies\Strategy`](../src/Extracting/Strategies/Strategy.php)
+[`Ipsocode\Scribe\Extracting\Strategies\Strategy`](../Extracting/Strategies/Strategy.php)
 that looks at the endpoint and returns what it found.
 
 ## Stages and default lists
 
 The default lists are constants on
-[`Ipsocode\Scribe\Config\Defaults`](../src/Config/Defaults.php). Class names
+[`Ipsocode\Scribe\Config\Defaults`](../Config/Defaults.php). Class names
 below are relative to `Ipsocode\Scribe\Extracting\Strategies`.
 
 | Stage | Constant | Strategies |
@@ -38,7 +38,7 @@ Results from later strategies in a stage are combined with earlier ones:
 
 The `strategies` block is replaced whole when you name it in your config, so
 every stage has to be listed. Build each list from `Defaults` and adjust it with
-the helpers in [`src/Config/helpers.php`](../src/Config/helpers.php):
+the helpers in [`src/Config/helpers.php`](../Config/helpers.php):
 
 ```php
 use Ipsocode\Scribe\Config\Defaults;
@@ -138,7 +138,7 @@ application's exception handler and recorded like any other response; a call
 that throws past the kernel or runs out of time prints a warning and records
 nothing.
 [`Scribe::beforeResponseCall()` and `Scribe::afterResponseCall()`](hooks.md)
-run around it. [Response calls](design/response-calls.md) describes the call in
+run around it. [Response calls](https://github.com/ipsocode/hypervel-scribe/blob/main/docs/ai/response-calls.md) describes the call in
 detail.
 
 ## Writing a strategy
@@ -147,10 +147,10 @@ detail.
 php artisan scribe:strategy AddApiVersionHeader
 ```
 
-[`scribe:strategy`](../src/Commands/MakeStrategy.php) writes
+[`scribe:strategy`](../Commands/MakeStrategy.php) writes
 `app/Docs/Strategies/AddApiVersionHeader.php`, in the `App\Docs\Strategies`
 namespace, from
-[`stubs/strategy.stub`](../src/Commands/stubs/strategy.stub). `--force`
+[`stubs/strategy.stub`](../Commands/stubs/strategy.stub). `--force`
 overwrites an existing file. The class implements `__invoke()`, which receives
 the endpoint so far and the strategy's settings, and returns an array for its
 stage, or `null` to add nothing:

@@ -5,13 +5,13 @@ default lists, an endpoint is described by:
 
 - the route itself: its URI, methods and the controller method's type hints;
 - the controller's and the method's docblocks;
-- PHP attributes from [`src/Attributes`](../src/Attributes);
+- PHP attributes from [`src/Attributes`](../Attributes);
 - the validation rules of a FormRequest or an inline validator;
 - a call to the endpoint (a response call, `GET` routes only in the published
   config).
 
 Many of the examples below are adapted from the Workbench controllers under
-[`workbench/app/Http/Controllers`](../workbench/app/Http/Controllers).
+[`workbench/app/Http/Controllers`](https://github.com/ipsocode/hypervel-scribe/tree/main/workbench/app/Http/Controllers).
 
 ## Title, description and group
 
@@ -387,7 +387,7 @@ redefine it.
 Endpoints that are not routes of the application go in YAML files named
 `custom.*.yaml` in `.scribe/endpoints/`. When there are none,
 `scribe:generate` writes `custom.0.yaml` there, a commented-out example copied
-from [`resources/example_custom_endpoint.yaml`](../resources/example_custom_endpoint.yaml).
+from [`resources/example_custom_endpoint.yaml`](../../resources/example_custom_endpoint.yaml).
 Each file holds a list of endpoints:
 
 ```yaml

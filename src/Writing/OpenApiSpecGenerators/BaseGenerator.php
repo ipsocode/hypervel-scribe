@@ -86,7 +86,7 @@ class BaseGenerator extends OpenApiGenerator
      *
      * Asked once per operation; scanning every group each time would make the
      * spec quadratic in the number of endpoints. The writer hands every call the
-     * same array, which `!==` recognises by identity in constant time, so the
+     * same array, which `!==` recognizes by identity in constant time, so the
      * index is built once; a different array rebuilds it.
      *
      * @param array<int, array{description: string, name: string, endpoints: OutputEndpointData[]}> $groupedEndpoints
@@ -335,7 +335,7 @@ class BaseGenerator extends OpenApiGenerator
 
     /**
      * Turn an empty array into an object, for fields the spec requires to be
-     * objects: an empty array would serialise as [].
+     * objects: an empty array would serialize as [].
      *
      * @param array<string, mixed> $field
      * @return array<string, mixed>|stdClass

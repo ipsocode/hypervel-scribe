@@ -4,6 +4,17 @@ This package is development-only until Hypervel 0.4 is released — see the
 notice at the top of the [README](README.md). Changes land on `main` through
 pull requests.
 
+## Documentation
+
+User documentation lives in `src/docs/`, which ships with the package. The
+design notes on how the package is built are in `docs/ai/`, beside the other
+pages for coding agents, none of which ships:
+
+- [Coroutine safety](docs/ai/coroutine-safety.md): why worker-lifetime state matters under Swoole, the rules every change is held to, and why extraction is sequential.
+- [Run state](docs/ai/run-state.md): what one `scribe:generate` run caches, when it is flushed, and what is left alone.
+- [Response calls](docs/ai/response-calls.md): how `ResponseCalls` builds a request and dispatches it in a coroutine of its own.
+- [Config merging](docs/ai/config-merging.md): how an application's partial `config/scribe.php` is merged with the package's defaults.
+
 ## Development setup
 
 The suite needs PHP 8.4 or 8.5 with the Swoole and Redis extensions that
@@ -72,7 +83,7 @@ php-cs-fixer and PHPStan are configured like `hypervel/components`:
 `.github/php-cs-fixer-rules.php`, and `phpstan.neon` carries its level,
 analysis settings and framework extensions. Keep them in step when
 `hypervel/components` changes them, so a finding here is a finding there. Some
-of the fixer's rules are risky — they change behaviour, not only formatting —
+of the fixer's rules are risky — they change behavior, not only formatting —
 so run `composer test` after `composer lint:fix`, not just before committing.
 `.php-cs-fixer.dist.php` says which rules to watch. An inline PHPStan ignore
 names its error and says why: `@phpstan-ignore <identifier> (<reason>)`.
@@ -91,42 +102,36 @@ violation is reported on its line. This package's settings are
 guards whose comments say why the suite cannot reach them. The check fails
 once a count stops matching either way.
 
-The automated review also runs `.github/scripts/review-scan.sh`, which flags what
-a diff adds or removes. To see what it will flag on your branch:
-`git diff origin/main...HEAD | bash .github/scripts/review-scan.sh`. The
-review's instructions are the `pr-review` skill,
-`.github/claude/skills/pr-review/SKILL.md`: ask Claude Code to follow it on your
-branch to get the same review before you push.
+Reviews follow the maintainers' `pr-review` skill, with `review-scribe`, which
+says where in this package to look first; both are skills on their Claude
+accounts. Ask Claude Code to review your branch with them before you push, or a
+pull request by its number. The scan they run needs no skill:
+`bin/review-scan.sh` flags what a diff adds or removes, `git diff
+origin/main...HEAD | bash bin/review-scan.sh`. No review runs in CI.
 
 CI (`.github/workflows/tests.yml`) runs for every pull request into `main`, each
 job once the one it needs has passed: the conventions check, on the bare runner
 in seconds (`.github/workflows/initial.yml`); code style, PHPStan and the suite
-under the 100% coverage gate on PHP 8.4; then, side by side, PHPStan and the
-suite on PHP 8.5, and the automated review. A push to a branch without a pull
-request runs nothing, so open a draft pull request to get CI early; the
-automated review runs once the pull request is marked ready, on each commit that
-passes the conventions check and PHP 8.4. It keeps notes between pushes, so a
-push is reviewed for what it changed, and for whatever else in the pull request
-that reaches. A pull request into any other branch, such as an umbrella issue's
-feature branch, runs nothing: CI and the automated review run on that branch's
-own pull request into `main`, so run the checks locally before opening one.
-`main` is protected: it changes only through a pull request that is up to date
-with it, passes those checks, and has every review conversation resolved; a
-change that leaves a line of `src/` uncovered fails its own pull request. The
-review never blocks on what it finds; it comments, and each comment is a
-conversation to resolve.
+under the 100% coverage gate on PHP 8.4; then PHPStan and the suite on PHP 8.5.
+A push to a branch without a pull request runs nothing, so open a draft pull
+request to get CI early. A pull request into any other branch, such as an
+umbrella issue's feature branch, runs nothing: CI runs on that branch's own pull
+request into `main`, so run the checks locally before opening one. `main` is
+protected: it changes only through a pull request that is up to date with it,
+passes those checks, and has every review conversation resolved; a change that
+leaves a line of `src/` uncovered fails its own pull request. A review comments
+rather than blocks, and each comment is a conversation to resolve.
 
 Most of `.github/` is shared by the ipsocode/hypervel-* packages and imported
 from one copy: the workflows, the scripts, the php-cs-fixer rules, the issue and
-pull request templates, `CODEOWNERS`, `dependabot.yml`, the release-notes
-config, the security policy, and the automated review's skill and brief in
-`.github/claude/`, which the review installs on its runner for the review only.
-Each of them but the pull request template says so in its first lines. A pull
-request may still change one; the maintainer carries the change into the shared
-copy, and the next import brings it to every package. Two parts of `.github/`
-are this package's own: `conventions.php`, the check's settings, and `review/`,
-which tells the automated review what this package is and where to look. The
-package keeps no `.claude/`: `.gitignore` leaves Claude Code's local state out.
+pull request templates, `CODEOWNERS`, `dependabot.yml`, the release-notes config
+and the security policy. So are this package's guide, the root `AGENTS.md`,
+which `CLAUDE.md` imports, and the review's scan, `bin/review-scan.sh`. Each of
+them but the pull request template says so in its first lines. A pull request
+may still change one; the maintainer carries the change into the shared copy,
+and the next import brings it to every package. One part of `.github/` is this
+package's own: `conventions.php`, the check's settings. `.gitignore` leaves
+Claude Code's local state in `.claude/` out of commits.
 
 ## Coroutine safety
 
@@ -144,13 +149,13 @@ not exempt. Every change is held to these rules:
   commands return an exit code.
 - Hypervel APIs only, never `Illuminate\*`. Tests reach the container with
   `$app->get(...)`, never array access.
-- New behaviour comes with a test. `@codeCoverageIgnore` is not a way past the
+- New behavior comes with a test. `@codeCoverageIgnore` is not a way past the
   coverage gate.
 
 Where the package keeps state, how it is flushed between runs and between
 tests, and why extraction is sequential are in
-[docs/design/coroutine-safety.md](docs/design/coroutine-safety.md) and
-[docs/design/run-state.md](docs/design/run-state.md).
+[docs/ai/coroutine-safety.md](docs/ai/coroutine-safety.md) and
+[docs/ai/run-state.md](docs/ai/run-state.md).
 
 ## Pull requests
 
@@ -158,12 +163,12 @@ Fill in the pull request template and label the pull request with the type it
 ticks. There is no changelog file: each release's notes are generated from the
 titles of the pull requests it contains, grouped by those labels
 (`.github/release.yml`), so write the title for someone reading the release. A
-pull request labelled `breaking-change` makes the next release at least a minor
+pull request labeled `breaking-change` makes the next release at least a minor
 version.
 
 A change a consumer will observe, such as the generated output, a config key or
 a command's exit code, goes in the template's *Behaviour change* section, with
-the README or `docs/` update it needs in the same pull request.
+the README or `src/docs/` update it needs in the same pull request.
 
 ## Releasing
 
@@ -173,7 +178,7 @@ hook on the repository, so nothing is uploaded.
 
 Run the **publish** workflow on `main` (Actions → publish → *Run workflow*).
 Leave the bump on `auto` — minor if a pull request merged since the previous
-tag is labelled `breaking-change`, patch otherwise — or pick `patch`, `minor`
+tag is labeled `breaking-change`, patch otherwise — or pick `patch`, `minor`
 or `major`, or type an exact version. *Highlights* go at the top of the notes;
 *dry run* shows the plan without tagging.
 
@@ -183,6 +188,7 @@ generated from the pull requests merged since the previous tag. A `v*` tag
 pushed by hand goes through the same suite and gets the same Release.
 
 Composer installs a release as GitHub's archive of its tag, which leaves out
-every path `.gitattributes` marks `export-ignore`: `.github/`, the tests,
-the workbench and the development configs. A new top-level file or directory
-ships unless it is added there; `git archive HEAD | tar -t` lists what would.
+every path `.gitattributes` marks `export-ignore`: `.github/`, `AGENTS.md`,
+`bin/`, `docs/`, the tests, the workbench and the development configs. A new
+top-level file or directory ships unless it is added there; `git archive HEAD |
+tar -t` lists what would.

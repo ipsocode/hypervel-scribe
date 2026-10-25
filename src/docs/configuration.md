@@ -1,7 +1,7 @@
 # Configuration
 
 Everything is set in `config/scribe.php`, which `php artisan vendor:publish
---tag=scribe-config` copies from [`config/scribe.php`](../config/scribe.php).
+--tag=scribe-config` copies from [`config/scribe.php`](../../config/scribe.php).
 The keys below follow the file's order, with their defaults.
 
 ## Page and API details
@@ -193,7 +193,7 @@ return [
 
 The merge applies to the `scribe` config only. A file used through
 `--config=<name>` is read as written, with no defaults underneath. The reasons
-behind these rules are in [config merging](design/config-merging.md).
+behind these rules are in [config merging](https://github.com/ipsocode/hypervel-scribe/blob/main/docs/ai/config-merging.md).
 
 ## Several configurations
 
@@ -223,5 +223,5 @@ resolved to.
   `Authorization` header in a strategy's settings), is reported as changed but
   printed as `<redacted>`.
 
-The command is implemented by [`DiffConfig`](../src/Commands/DiffConfig.php) and
-[`ConfigDiffer`](../src/Tools/ConfigDiffer.php).
+The command is implemented by [`DiffConfig`](../Commands/DiffConfig.php) and
+[`ConfigDiffer`](../Tools/ConfigDiffer.php).

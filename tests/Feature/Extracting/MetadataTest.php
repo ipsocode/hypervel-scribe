@@ -123,7 +123,7 @@ class MetadataTest extends DatabaseTestCase
     #[Test]
     public function aDeprecatedTagWithProseCarriesItThrough(): void
     {
-        // The coding standard normalises the tag's wording, so the assertion
+        // The coding standard normalizes the tag's wording, so the assertion
         // is on what the tag carried rather than on its exact punctuation.
         $deprecated = $this->extract('meta.deprecatedReason')->metadata->deprecated;
 

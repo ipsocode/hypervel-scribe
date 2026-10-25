@@ -18,7 +18,7 @@ declare(strict_types=1);
 | ---------------------------------------------------------------------------
 |
 | `setRiskyAllowed(true)` is on, and `declare_strict_types` is a risky rule:
-| it changes behaviour, not formatting. Code that leans on PHP's coercive
+| it changes behavior, not formatting. Code that leans on PHP's coercive
 | typing (an int reaching `preg_replace()`'s string $replacement, a value
 | reaching `str_repeat()`'s int $times, a PhpParser Node\Name reaching
 | `mb_strpos()`) throws a TypeError once the declaration is added. `src/` is
