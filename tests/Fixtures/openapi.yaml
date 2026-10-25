@@ -1,0 +1,112 @@
+openapi: 3.0.3
+info:
+  title: Workbench API
+  description: ''
+  version: 1.0.0
+servers:
+  - url: 'https://api.example.test'
+tags:
+  - name: Users
+    description: Manage users.
+  - name: Endpoints
+    description: ''
+paths:
+  /api/users:
+    get:
+      summary: 'List users.'
+      operationId: listUsers
+      description: 'Return every user.'
+      parameters:
+        - { $ref: '#/components/parameters/Page' }
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserList' }
+              example:
+                data:
+                  - { id: 1, name: Ada }
+      tags: [Users]
+    post:
+      summary: 'Create a user.'
+      operationId: createUser
+      description: ''
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/User' }
+      responses:
+        201:
+          description: ''
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+      tags: [Users]
+      deprecated: true
+  '/api/users/{id}':
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: integer } }
+      - { in: query, name: fields, schema: { type: string } }
+    get:
+      summary: 'Show a user.'
+      operationId: showUser
+      description: ''
+      parameters:
+        - { in: query, name: fields, description: 'Overrides the shared one.', schema: { type: string } }
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+              example: { id: 1, name: Ada }
+      tags: [Users]
+  /api/health:
+    get:
+      summary: 'Health check.'
+      operationId: getApiHealth
+      description: ''
+      parameters: []
+      responses:
+        200: { description: '' }
+      tags: [Endpoints]
+      security: []
+components:
+  parameters:
+    Page:
+      in: query
+      name: page
+      schema: { type: integer }
+  schemas:
+    User:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        manager: { $ref: '#/components/schemas/User' }
+        address: { $ref: '#/components/schemas/Address' }
+        billing: { $ref: '#/components/schemas/Address' }
+    Address:
+      type: object
+      properties:
+        city: { type: string }
+    UserList:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/User' }
+  securitySchemes:
+    default:
+      type: http
+      scheme: bearer
+      description: 'Send a bearer token.'
+    key:
+      type: apiKey
+      name: X-Api-Key
+      in: header
+security:
+  - default: []
