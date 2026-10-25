@@ -9,7 +9,12 @@ use Hypervel\Mcp\Enums\CacheScope;
 use Hypervel\Mcp\Server;
 use Hypervel\Mcp\Server\Attributes\Cacheable;
 use Hypervel\Mcp\Server\Contracts\Transport;
+use Hypervel\Mcp\Server\Prompt;
+use Hypervel\Mcp\Server\Resource;
 use Hypervel\Mcp\Server\Tool;
+use Ipsocode\Scribe\Mcp\Prompts\IntegrateEndpointPrompt;
+use Ipsocode\Scribe\Mcp\Resources\OpenApiSpecResource;
+use Ipsocode\Scribe\Mcp\Resources\PostmanCollectionResource;
 use Ipsocode\Scribe\Mcp\Tools\DescribeEndpointTool;
 use Ipsocode\Scribe\Mcp\Tools\GetAuthenticationTool;
 use Ipsocode\Scribe\Mcp\Tools\ListGroupsTool;
@@ -26,6 +31,21 @@ class ScribeServer extends Server
         ListGroupsTool::class,
         DescribeEndpointTool::class,
         GetAuthenticationTool::class,
+    ];
+
+    /**
+     * @var array<int, class-string<resource>>
+     */
+    protected array $resources = [
+        OpenApiSpecResource::class,
+        PostmanCollectionResource::class,
+    ];
+
+    /**
+     * @var array<int, class-string<Prompt>>
+     */
+    protected array $prompts = [
+        IntegrateEndpointPrompt::class,
     ];
 
     /**
