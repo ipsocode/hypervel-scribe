@@ -6,6 +6,7 @@ namespace Ipsocode\Scribe;
 
 use Hypervel\Contracts\View\Factory as ViewFactoryContract;
 use Hypervel\Foundation\Console\AboutCommand;
+use Hypervel\Mcp\Facades\Mcp;
 use Hypervel\Support\ServiceProvider;
 use Hypervel\Support\Str;
 use Hypervel\View\Compilers\BladeCompiler;
@@ -14,6 +15,7 @@ use Ipsocode\Scribe\Commands\GenerateDocumentation;
 use Ipsocode\Scribe\Commands\MakeStrategy;
 use Ipsocode\Scribe\Matching\RouteMatcher;
 use Ipsocode\Scribe\Matching\RouteMatcherInterface;
+use Ipsocode\Scribe\Mcp\ScribeServer;
 use Ipsocode\Scribe\Tools\BladeMarkdownEngine;
 
 class ScribeServiceProvider extends ServiceProvider
@@ -44,6 +46,7 @@ class ScribeServiceProvider extends ServiceProvider
             'fractal',
             'groups',
             'hypervel',
+            'mcp',
             'openapi',
             'postman',
             'static',
@@ -56,6 +59,8 @@ class ScribeServiceProvider extends ServiceProvider
         $this->registerViews();
 
         $this->bootRoutes();
+
+        $this->bootMcp();
 
         // Translations back the extractor's auth and validation rule descriptions.
         $this->loadTranslationsFrom(realpath(__DIR__ . '/../lang') ?: __DIR__ . '/../lang', 'scribe');
@@ -102,6 +107,25 @@ class ScribeServiceProvider extends ServiceProvider
         if (Str::endsWith($type, 'hypervel') && config('scribe.hypervel.add_routes', true)) {
             $this->loadRoutesFrom(__DIR__ . '/../routes/hypervel.php');
         }
+    }
+
+    /**
+     * Registers the MCP servers for the generated docs, over HTTP and as a local
+     * server, when `scribe.mcp.enabled` is set. Neither exists otherwise.
+     */
+    protected function bootMcp(): void
+    {
+        $config = $this->app->get('config');
+
+        if (! $config->boolean('scribe.mcp.enabled')) {
+            return;
+        }
+
+        Mcp::web($config->string('scribe.mcp.path'), ScribeServer::class)
+            ->middleware($config->array('scribe.mcp.middleware'))
+            ->name('scribe.mcp');
+
+        Mcp::local($config->string('scribe.mcp.local_name'), ScribeServer::class);
     }
 
     /**

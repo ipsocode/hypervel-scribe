@@ -118,6 +118,21 @@ return [
         'csrf_url' => '/sanctum/csrf-cookie',
     ],
 
+    'mcp' => [
+        // Serve the generated docs to AI clients over MCP, so they can search the API and read an operation in full.
+        // It reads the generated OpenAPI spec, so run `scribe:generate` first. Off by default.
+        'enabled' => (bool) env('SCRIBE_MCP_ENABLED', false),
+
+        // The URL of the HTTP server (web servers accept POST requests only).
+        'path' => '/docs/mcp',
+
+        // The name of the local server, started with `php artisan mcp:start scribe`.
+        'local_name' => 'scribe',
+
+        // Middleware for the HTTP server, such as 'auth:sanctum' or 'throttle:mcp'.
+        'middleware' => [],
+    ],
+
     // How is your API authenticated? This information will be used in the displayed docs, generated examples and response calls.
     'auth' => [
         // Set this to true if ANY endpoints in your API use authentication.
