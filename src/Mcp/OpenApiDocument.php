@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ipsocode\Scribe\Mcp;
 
+use Closure;
 use Hypervel\Contracts\Config\Repository;
 use Hypervel\Support\Facades\Storage;
 use Ipsocode\Scribe\Exceptions\CouldntReadOpenApiSpec;
@@ -127,13 +128,29 @@ class OpenApiDocument
     }
 
     /**
+     * Return the generated spec file as written.
+     */
+    public function specContents(): string
+    {
+        return $this->contents($this->outputFile('openapi.yaml'), CouldntReadOpenApiSpec::missing(...));
+    }
+
+    /**
+     * Return the generated Postman collection file as written.
+     */
+    public function collectionContents(): string
+    {
+        return $this->contents($this->outputFile('collection.json'), CouldntReadOpenApiSpec::missingCollection(...));
+    }
+
+    /**
      * Return the parsed spec, parsing it again if the file has changed.
      *
      * @return array<string, mixed>
      */
     protected function load(): array
     {
-        $path = $this->specPath();
+        $path = $this->outputFile('openapi.yaml');
 
         if (! is_file($path)) {
             throw CouldntReadOpenApiSpec::missing($path);
@@ -158,18 +175,30 @@ class OpenApiDocument
     }
 
     /**
-     * Return where the writer put the spec: the local disk for the routed
-     * types, `static.output_path` for the static ones.
+     * Return where the writer put a generated file: the local disk for the
+     * routed types, `static.output_path` for the static ones.
      */
-    protected function specPath(): string
+    protected function outputFile(string $file): string
     {
         $documentation = new DocumentationConfig(['type' => $this->config->get('scribe.type')]);
 
         if ($documentation->outputRoutedThroughApp()) {
-            return Storage::disk('local')->path((new PathConfig)->outputPath('openapi.yaml'));
+            return Storage::disk('local')->path((new PathConfig)->outputPath($file));
         }
 
-        return Utils::resolvePath(mb_rtrim($this->config->string('scribe.static.output_path'), '/')) . '/openapi.yaml';
+        return Utils::resolvePath(mb_rtrim($this->config->string('scribe.static.output_path'), '/')) . '/' . $file;
+    }
+
+    /**
+     * @param Closure(string): CouldntReadOpenApiSpec $missing
+     */
+    protected function contents(string $path, Closure $missing): string
+    {
+        if (! is_file($path)) {
+            throw $missing($path);
+        }
+
+        return (string) file_get_contents($path);
     }
 
     /**
