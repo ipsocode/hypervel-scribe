@@ -57,6 +57,15 @@ class ScribeConsumerConfigTest extends TestCase
     }
 
     #[Test]
+    public function theMcpGroupKeepsItsDefaultsBesideTheApplicationsPath(): void
+    {
+        $this->assertSame('/consumer/mcp', config('scribe.mcp.path'));
+        $this->assertFalse(config('scribe.mcp.enabled'));
+        $this->assertSame('scribe', config('scribe.mcp.local_name'));
+        $this->assertSame([], config('scribe.mcp.middleware'));
+    }
+
+    #[Test]
     public function everyNestedOptionArrayIsCoveredByTheMerge(): void
     {
         // The option arrays are named one by one in `mergeableOptions()`, so a
