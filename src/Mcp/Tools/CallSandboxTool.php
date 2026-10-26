@@ -335,6 +335,8 @@ class CallSandboxTool extends Tool
     }
 
     /**
+     * Return the first 2xx status the operation documents, if any.
+     *
      * @param array<int, int|string> $statuses
      */
     protected function firstSuccess(array $statuses): ?int

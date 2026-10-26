@@ -97,6 +97,8 @@ class OpenApiDocument
     }
 
     /**
+     * Return the tags the API declares.
+     *
      * @return array<int, array{name: string, description?: string}>
      */
     public function tags(): array
@@ -120,6 +122,8 @@ class OpenApiDocument
     }
 
     /**
+     * Return the servers the API declares.
+     *
      * @return array<int, array{url: string, description?: string}>
      */
     public function servers(): array
@@ -190,6 +194,8 @@ class OpenApiDocument
     }
 
     /**
+     * Return a generated file as written, or throw the exception `$missing` builds.
+     *
      * @param Closure(string): CouldntReadOpenApiSpec $missing
      */
     protected function contents(string $path, Closure $missing): string
@@ -202,6 +208,8 @@ class OpenApiDocument
     }
 
     /**
+     * Return the fields of an operation the search and describe tools show.
+     *
      * @param array<string, mixed> $operation
      * @return array{id: string, method: string, path: string, summary: string, description: string, tags: array<int, string>, deprecated: bool}
      */
