@@ -275,6 +275,9 @@ class OpenApiDocument
         return array_map(fn (mixed $item) => $this->resolve($item, $resolving), $value);
     }
 
+    /**
+     * Return the value a local `$ref` points at, or throw when the spec does not define it.
+     */
     protected function lookup(string $reference): mixed
     {
         if (! str_starts_with($reference, '#/')) {
