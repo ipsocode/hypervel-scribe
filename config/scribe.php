@@ -132,10 +132,27 @@ return [
         // Middleware for the HTTP server, such as 'auth:sanctum' or 'throttle:mcp'.
         'middleware' => [],
 
-        // Add a tool that lets an AI client try an endpoint without calling the API: it checks the request against
-        // the endpoint's parameters and answers with the example the documentation shows for the response.
+        // Add a tool that lets an AI client try an endpoint: it checks the request against the endpoint's parameters
+        // and answers with the response by `mode`.
         'sandbox' => [
             'enabled' => (bool) env('SCRIBE_MCP_SANDBOX', false),
+
+            // `examples` answers with the example the documentation shows for the response and calls nothing.
+            // `http` sends the request to `base_url`, so point that at a sandbox, never at production data.
+            'mode' => env('SCRIBE_MCP_SANDBOX_MODE', 'examples'),
+
+            // [`http` mode] The only server the tool calls. Leave as null to use `try_it_out.base_url`, then the
+            // displayed URL (`base_url`). The application refuses to boot when this is the production URL in production.
+            'base_url' => env('SCRIBE_MCP_SANDBOX_URL'),
+
+            // [`http` mode] Seconds to wait for the sandbox before the tool returns an error.
+            'timeout' => (float) env('SCRIBE_MCP_SANDBOX_TIMEOUT', 10),
+
+            // [`http` mode] A response body past this many bytes is cut off, and the tool says so.
+            'max_response_bytes' => 65536,
+
+            // [`http` mode] The HTTP methods the tool may send.
+            'methods' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
         ],
     ],
 

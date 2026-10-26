@@ -13,9 +13,18 @@ use Ipsocode\Scribe\Tests\TestCase;
 use Mockery as m;
 use PHPUnit\Framework\Attributes\Test;
 
-#[WithConfig('scribe.mcp.sandbox.enabled', true)]
+#[WithConfig('scribe.mcp.sandbox', SandboxToolTest::SANDBOX)]
 class SandboxToolTest extends TestCase
 {
+    private const array SANDBOX = [
+        'enabled' => true,
+        'mode' => 'examples',
+        'base_url' => null,
+        'timeout' => 10.0,
+        'max_response_bytes' => 65536,
+        'methods' => ['GET'],
+    ];
+
     private const string FIXTURE = __DIR__ . '/../../Fixtures/openapi.yaml';
 
     protected function tearDown(): void
@@ -41,7 +50,7 @@ class SandboxToolTest extends TestCase
     }
 
     #[Test]
-    #[WithConfig('scribe.mcp.sandbox.enabled', false)]
+    #[WithConfig('scribe.mcp.sandbox', ['enabled' => false] + SandboxToolTest::SANDBOX)]
     public function isAbsentUnlessTheSandboxIsEnabled(): void
     {
         $this->assertNotContains(CallSandboxTool::class, $this->tools());
