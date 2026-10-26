@@ -15,6 +15,7 @@ use Hypervel\Mcp\Server\Tool;
 use Ipsocode\Scribe\Mcp\Prompts\IntegrateEndpointPrompt;
 use Ipsocode\Scribe\Mcp\Resources\OpenApiSpecResource;
 use Ipsocode\Scribe\Mcp\Resources\PostmanCollectionResource;
+use Ipsocode\Scribe\Mcp\Tools\CallSandboxTool;
 use Ipsocode\Scribe\Mcp\Tools\DescribeEndpointTool;
 use Ipsocode\Scribe\Mcp\Tools\GetAuthenticationTool;
 use Ipsocode\Scribe\Mcp\Tools\ListGroupsTool;
@@ -54,6 +55,10 @@ class ScribeServer extends Server
     public function __construct(Transport $transport, Repository $config)
     {
         parent::__construct($transport);
+
+        if ($config->boolean('scribe.mcp.sandbox.enabled')) {
+            $this->tools[] = CallSandboxTool::class;
+        }
 
         $this->name = $config->get('scribe.title') ?: $config->string('app.name');
         $this->version = Scribe::version();
