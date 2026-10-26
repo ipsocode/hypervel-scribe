@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ipsocode\Scribe;
 
+use Hypervel\Contracts\Config\Repository;
 use Hypervel\Contracts\View\Factory as ViewFactoryContract;
 use Hypervel\Foundation\Console\AboutCommand;
 use Hypervel\Mcp\Facades\Mcp;
@@ -13,9 +14,11 @@ use Hypervel\View\Compilers\BladeCompiler;
 use Ipsocode\Scribe\Commands\DiffConfig;
 use Ipsocode\Scribe\Commands\GenerateDocumentation;
 use Ipsocode\Scribe\Commands\MakeStrategy;
+use Ipsocode\Scribe\Exceptions\UnsafeMcpSandbox;
 use Ipsocode\Scribe\Matching\RouteMatcher;
 use Ipsocode\Scribe\Matching\RouteMatcherInterface;
 use Ipsocode\Scribe\Mcp\ScribeServer;
+use Ipsocode\Scribe\Mcp\Tools\CallSandboxTool;
 use Ipsocode\Scribe\Tools\BladeMarkdownEngine;
 
 class ScribeServiceProvider extends ServiceProvider
@@ -126,6 +129,26 @@ class ScribeServiceProvider extends ServiceProvider
             ->name('scribe.mcp');
 
         Mcp::local($config->string('scribe.mcp.local_name'), ScribeServer::class);
+
+        $this->guardSandbox($config);
+    }
+
+    /**
+     * Refuses to boot a production application whose live MCP sandbox would call the production URL itself.
+     */
+    protected function guardSandbox(Repository $config): void
+    {
+        if (! $config->boolean('scribe.mcp.sandbox.enabled')) {
+            return;
+        }
+
+        $sandbox = $this->app->make(CallSandboxTool::class);
+
+        if ($sandbox->isLive()
+            && $config->string('app.env') === 'production'
+            && $sandbox->baseUrl() === mb_rtrim($config->string('app.url'), '/')) {
+            throw UnsafeMcpSandbox::productionUrl($sandbox->baseUrl());
+        }
     }
 
     /**
