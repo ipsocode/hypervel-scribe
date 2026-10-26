@@ -56,8 +56,14 @@ selects. It is off by default:
 'sandbox' => [
     'enabled' => (bool) env('SCRIBE_MCP_SANDBOX', false),
     'mode' => env('SCRIBE_MCP_SANDBOX_MODE', 'examples'),
+    'base_url' => env('SCRIBE_MCP_SANDBOX_URL'),
+    'timeout' => (float) env('SCRIBE_MCP_SANDBOX_TIMEOUT', 10),
+    'max_response_bytes' => 65536,
+    'methods' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
 ],
 ```
+
+An application config that names `mcp.sandbox` replaces the package's block whole, so name every key in it.
 
 In `examples` mode, the default, the tool answers with the example the documentation shows for
 the response, the first 2xx unless the client asks for a `status`, and calls nothing.

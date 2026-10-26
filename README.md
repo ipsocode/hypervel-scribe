@@ -55,6 +55,12 @@ A port of [`knuckleswtf/scribe`](https://github.com/knuckleswtf/scribe) by
 Shalvah and its contributors, to [Hypervel](https://github.com/hypervel/components).
 LICENSE carries its copyright notice alongside this package's.
 
+Lasting differences from upstream:
+
+- An MCP server for the generated docs (the `scribe.mcp` config group and the
+  `Ipsocode\Scribe\Mcp\` classes), which `knuckleswtf/scribe` does not have.
+  See [MCP server](src/docs/mcp.md).
+
 ## License
 
 MIT. See [LICENSE](LICENSE).

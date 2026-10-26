@@ -99,7 +99,11 @@ class CallSandboxTool extends Tool
             'body' => ['nullable', 'array'],
             'status' => ['nullable', 'integer'],
             'token' => ['nullable', 'string'],
-            'pathParams.*' => [fn (string $attribute, mixed $value, Closure $fail) => is_scalar($value) || $fail('The :attribute must be a string or a number.')],
+            'pathParams.*' => [fn (string $attribute, mixed $value, Closure $fail) => match (true) {
+                ! is_scalar($value) => $fail('The :attribute must be a string or a number.'),
+                in_array((string) $value, ['.', '..'], true) => $fail('The :attribute cannot be a dot segment.'),
+                default => true,
+            }],
         ]);
 
         return $this->answerFromSpec(function () use ($arguments): Response|ResponseFactory {
@@ -303,7 +307,7 @@ class CallSandboxTool extends Tool
     }
 
     /**
-     * Fill the path template's placeholders, encoded so that a value cannot change the host or the path.
+     * Fill the path template's placeholders, encoded so that a value cannot change the host or the path; a dot segment is rejected by the input rules, since encoding leaves it as it is.
      *
      * @param array<string, bool|float|int|string> $parameters
      */

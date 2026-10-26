@@ -129,7 +129,7 @@ return [
         // The name of the local server, started with `php artisan mcp:start scribe`.
         'local_name' => 'scribe',
 
-        // Middleware for the HTTP server, such as 'auth:sanctum' or 'throttle:mcp'.
+        // Middleware for the HTTP server, such as 'auth:sanctum' or 'throttle:scribe-mcp'.
         'middleware' => [],
 
         // Add a tool that lets an AI client try an endpoint: it checks the request against the endpoint's parameters

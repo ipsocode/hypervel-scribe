@@ -150,6 +150,17 @@ class SandboxHttpToolTest extends TestCase
     }
 
     #[Test]
+    public function rejectsAPathParameterThatIsADotSegment(): void
+    {
+        Http::fake();
+
+        ScribeServer::tool(CallSandboxTool::class, ['operationId' => 'showUser', 'pathParams' => ['id' => '..']])
+            ->assertHasErrors(['cannot be a dot segment']);
+
+        Http::assertNothingSent();
+    }
+
+    #[Test]
     public function doesNotFollowARedirect(): void
     {
         Http::fake(['*' => Http::response('', 302, ['Location' => 'https://evil.test/'])]);
