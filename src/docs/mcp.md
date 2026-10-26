@@ -87,7 +87,8 @@ these safeguards apply:
   own user. Neither is stored.
 - Redirects are not followed.
 - The call stops after `mcp.sandbox.timeout` seconds without a response or a chunk of the body, and
-  after that many seconds in all once the body is being read. The tool returns an error.
+  stops reading the body once that many seconds have passed in all; a read already waiting can take
+  up to `timeout` more. The tool returns an error.
 - A response body past `mcp.sandbox.max_response_bytes` is cut off, and the tool says so.
 
 | Key | Default | What it does |

@@ -170,6 +170,15 @@ class SandboxToolTest extends TestCase
     }
 
     #[Test]
+    public function rejectsHeadersThatAreNotAnObject(): void
+    {
+        foreach (['X-A: 1', 5, true] as $headers) {
+            ScribeServer::tool(CallSandboxTool::class, ['operationId' => 'listUsers', 'headers' => $headers])
+                ->assertHasErrors(['headers']);
+        }
+    }
+
+    #[Test]
     public function returnsAToolErrorWhenTheSpecIsMissing(): void
     {
         ScribeServer::tool(CallSandboxTool::class, ['operationId' => 'listUsers'])->assertHasErrors(['scribe:generate']);

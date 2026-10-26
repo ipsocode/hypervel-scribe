@@ -115,7 +115,7 @@ class CallSandboxTool extends Tool
             'operationId' => ['required', 'string'],
             'pathParams' => ['nullable', 'array'],
             'query' => ['nullable', 'array'],
-            'headers' => ['nullable', 'array', fn (string $attribute, mixed $value, Closure $fail) => $this->hasValidHeaderNames($value)
+            'headers' => ['bail', 'nullable', 'array', fn (string $attribute, mixed $value, Closure $fail) => $this->hasValidHeaderNames($value)
                 ?: $fail('The :attribute must be named by HTTP header names.')],
             'headers.*' => ['string'],
             'body' => ['nullable', 'array'],
@@ -175,7 +175,7 @@ class CallSandboxTool extends Tool
         if ($this->isLive()) {
             return $input + [
                 'token' => $schema->string()
-                    ->description('Your API token for the sandbox, sent as a Bearer token. Needed only when the request to this server carries no Authorization header, as with a local server.'),
+                    ->description('Your API credential for the sandbox, sent where the API\'s authentication puts it (see get-authentication). When given, it is used instead of the Authorization header of the request to this server.'),
             ];
         }
 
@@ -384,8 +384,10 @@ class CallSandboxTool extends Tool
 
     /**
      * Determine whether every key is an HTTP header name.
+     *
+     * @param array<array-key, mixed> $headers
      */
-    protected function hasValidHeaderNames(mixed $headers): bool
+    protected function hasValidHeaderNames(array $headers): bool
     {
         foreach (array_keys($headers) as $name) {
             if (! is_string($name) || preg_match("/^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/", $name) !== 1) {

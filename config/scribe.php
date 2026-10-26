@@ -147,7 +147,8 @@ return [
             'base_url' => env('SCRIBE_MCP_SANDBOX_URL'),
 
             // [`http` mode] Seconds to wait for the sandbox, for its response and then for its body, before the tool
-            // returns an error. A float, such as 10.0.
+            // returns an error. A read already waiting when the body's time runs out can take up to this much more.
+            // A float, such as 10.0.
             'timeout' => (float) env('SCRIBE_MCP_SANDBOX_TIMEOUT', 10),
 
             // [`http` mode] A response body past this many bytes is cut off, and the tool says so.
