@@ -77,8 +77,9 @@ wildcards. The package's own `scribe` routes are always excluded, and so is
 | `mcp.path` | `'/docs/mcp'` | The URL of the HTTP server, which accepts `POST` requests only. |
 | `mcp.local_name` | `'scribe'` | The name of the local server, started with `php artisan mcp:start scribe`. |
 | `mcp.middleware` | `[]` | Middleware applied to the HTTP server, such as `auth:sanctum`. |
+| `mcp.sandbox.*` | Off | The opt-in `call-sandbox` tool: `enabled`, `mode`, `base_url`, `timeout`, `max_response_bytes` and `methods`. See [the sandbox](mcp.md#the-sandbox). |
 
-The server reads the generated `openapi.yaml`, so run `scribe:generate` first.
+The server reads the generated `openapi.yaml`, so run `scribe:generate` first. See [MCP server](mcp.md).
 
 ## Authentication
 

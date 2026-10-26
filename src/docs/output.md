@@ -155,6 +155,8 @@ and `/countries/list/{id}`, each with only the parameters its own path names.
 The shorter path's operation ID names what it leaves out, so it stays unique:
 `listCountriesWithoutId`. The full path keeps `listCountries`.
 
+The spec is also what the [MCP server](mcp.md) serves to AI clients, once `mcp.enabled` is on.
+
 ### Overrides and generators
 
 `openapi.overrides` sets values on the spec's root by dotted key:

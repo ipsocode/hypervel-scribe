@@ -41,7 +41,8 @@ Your application's `composer.json` must allow Hypervel's dev branch:
 ## Documentation
 
 Start with [getting started](src/docs/getting-started.md); the
-[documentation index](src/docs/index.md) lists every page.
+[documentation index](src/docs/index.md) lists every page. To serve the
+generated docs to AI clients, see the [MCP server](src/docs/mcp.md).
 
 ## Contributing
 

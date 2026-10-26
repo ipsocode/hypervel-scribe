@@ -17,6 +17,7 @@ in reading order, starting with installation.
 
 ## Integrating with your application
 
+- [MCP server](mcp.md): serving the generated docs to AI clients, the opt-in sandbox, protecting the route and connecting a client.
 - [Hooks](hooks.md): the callbacks an application registers through the `Scribe` class.
 - [Queues and testing](queue-and-testing.md): regenerating from a queue or a running worker, and resetting the package's state between tests.
 
