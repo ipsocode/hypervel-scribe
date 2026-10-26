@@ -131,6 +131,12 @@ return [
 
         // Middleware for the HTTP server, such as 'auth:sanctum' or 'throttle:mcp'.
         'middleware' => [],
+
+        // Add a tool that lets an AI client try an endpoint without calling the API: it checks the request against
+        // the endpoint's parameters and answers with the example the documentation shows for the response.
+        'sandbox' => [
+            'enabled' => (bool) env('SCRIBE_MCP_SANDBOX', false),
+        ],
     ],
 
     // How is your API authenticated? This information will be used in the displayed docs, generated examples and response calls.
