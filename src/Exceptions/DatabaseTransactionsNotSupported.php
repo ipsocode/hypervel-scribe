@@ -8,7 +8,7 @@ use RuntimeException;
 
 class DatabaseTransactionsNotSupported extends RuntimeException implements ScribeException
 {
-    public static function create(string $connectionName, string $driverName)
+    public static function create(string $connectionName, string $driverName): self
     {
         return new self(
             "Database driver [{$driverName}] for connection [{$connectionName}] does not support transactions."

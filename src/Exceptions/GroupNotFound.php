@@ -8,7 +8,7 @@ use RuntimeException;
 
 class GroupNotFound extends RuntimeException implements ScribeException
 {
-    public static function forTag(string $groupName, string $tag)
+    public static function forTag(string $groupName, string $tag): self
     {
         return new self(
             <<<MESSAGE
