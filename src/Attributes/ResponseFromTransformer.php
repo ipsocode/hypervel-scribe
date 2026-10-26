@@ -9,6 +9,11 @@ use Attribute;
 #[Attribute(Attribute::IS_REPEATABLE | Attribute::TARGET_FUNCTION | Attribute::TARGET_METHOD | Attribute::TARGET_CLASS)]
 class ResponseFromTransformer
 {
+    /**
+     * @param array<int, string> $factoryStates
+     * @param array<int, string> $with
+     * @param array{0: string, 1?: int}|array{} $paginate
+     */
     public function __construct(
         public string $name,
         public ?string $model = null,
