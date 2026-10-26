@@ -42,7 +42,7 @@ class DescribeEndpointTool extends Tool
         ]);
 
         return $this->answerFromSpec(function () use ($arguments): Response|ResponseFactory {
-            $operation = isset($arguments['operationId'])
+            $operation = filled($arguments['operationId'] ?? null)
                 ? $this->document->operation($arguments['operationId'])
                 : $this->document->operation($arguments['method'], $arguments['path']);
 
@@ -50,7 +50,7 @@ class DescribeEndpointTool extends Tool
                 return Response::error('No such endpoint. Use search-endpoints to find its operationId.');
             }
 
-            return Response::make(Response::text(Yaml::dump($operation, 12, 2)))
+            return Response::make(Response::text(Yaml::dump($operation, 12, 2, Yaml::DUMP_OBJECT_AS_MAP | Yaml::DUMP_EMPTY_ARRAY_AS_SEQUENCE)))
                 ->withStructuredContent(['operation' => $operation]);
         });
     }

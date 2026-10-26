@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Ipsocode\Scribe\Tests\Feature\Mcp;
 
+use GuzzleHttp\Psr7\StreamDecoratorTrait;
+use GuzzleHttp\Psr7\Utils;
 use Hypervel\Context\RequestContext;
+use Hypervel\Contracts\Foundation\Application;
 use Hypervel\Http\Client\Request as ClientRequest;
 use Hypervel\Http\Request;
-use Hypervel\Mcp\Server\Contracts\Transport;
 use Hypervel\Support\Facades\Http;
 use Hypervel\Support\Facades\Storage;
 use Hypervel\Testbench\Attributes\WithConfig;
@@ -16,8 +18,9 @@ use Ipsocode\Scribe\Mcp\ScribeServer;
 use Ipsocode\Scribe\Mcp\Tools\CallSandboxTool;
 use Ipsocode\Scribe\ScribeServiceProvider;
 use Ipsocode\Scribe\Tests\TestCase;
-use Mockery as m;
 use PHPUnit\Framework\Attributes\Test;
+use Psr\Http\Message\StreamInterface;
+use RuntimeException;
 
 use function Hypervel\Coroutine\parallel;
 
@@ -28,9 +31,8 @@ class SandboxHttpToolTest extends TestCase
 
     /**
      * Name the whole sandbox group, as an application does: the group below `mcp` is replaced whole.
-     * @param mixed $app
      */
-    protected function defineEnvironment($app): void
+    protected function defineEnvironment(Application $app): void
     {
         $app->get('config')->set('scribe.mcp.sandbox', $this->sandboxConfig());
     }
@@ -130,11 +132,11 @@ class SandboxHttpToolTest extends TestCase
 
         ScribeServer::tool(CallSandboxTool::class, [
             'operationId' => 'showUser',
-            'pathParams' => ['id' => '//evil.test/../x?y=1'],
+            'pathParams' => ['id' => 'a b?c#d%'],
             'headers' => ['host' => 'evil.test', 'Authorization' => 'Bearer stolen', 'Content-Length' => '1'],
         ])->assertOk();
 
-        Http::assertSent(fn (ClientRequest $request): bool => $request->url() === 'https://sandbox.test/api/users/%2F%2Fevil.test%2F..%2Fx%3Fy%3D1'
+        Http::assertSent(fn (ClientRequest $request): bool => $request->url() === 'https://sandbox.test/api/users/a%20b%3Fc%23d%25'
             && $request->header('Host') === ['sandbox.test']
             && ! $request->hasHeader('Authorization')
             && ! $request->hasHeader('Content-Length'));
@@ -161,6 +163,90 @@ class SandboxHttpToolTest extends TestCase
     }
 
     #[Test]
+    public function rejectsAPathParameterThatCouldChangeTheRoute(): void
+    {
+        Http::fake();
+
+        foreach (['7/admin-notes', '', true, false] as $value) {
+            ScribeServer::tool(CallSandboxTool::class, ['operationId' => 'showUser', 'pathParams' => ['id' => $value]])
+                ->assertHasErrors();
+        }
+
+        Http::assertNothingSent();
+    }
+
+    #[Test]
+    public function reservesTheHeadersThatOverrideTheMethodOrTheHost(): void
+    {
+        Http::fake(['*' => Http::response('ok')]);
+
+        ScribeServer::tool(CallSandboxTool::class, [
+            'operationId' => 'listUsers',
+            'headers' => [
+                'X-HTTP-Method-Override' => 'DELETE',
+                'X-Method-Override' => 'DELETE',
+                'X-HTTP-Method' => 'DELETE',
+                'Forwarded' => 'host=evil.test',
+                'X-Forwarded-Host' => 'evil.test',
+                'X-Tenant' => 'acme',
+            ],
+        ])->assertOk();
+
+        Http::assertSent(fn (ClientRequest $request): bool => $request->header('X-Tenant') === ['acme']
+            && ! $request->hasHeader('X-HTTP-Method-Override')
+            && ! $request->hasHeader('X-Method-Override')
+            && ! $request->hasHeader('X-HTTP-Method')
+            && ! $request->hasHeader('Forwarded')
+            && ! $request->hasHeader('X-Forwarded-Host'));
+    }
+
+    #[Test]
+    public function refusesAMethodOverrideInTheQueryOrTheBody(): void
+    {
+        Http::fake();
+
+        ScribeServer::tool(CallSandboxTool::class, ['operationId' => 'listUsers', 'query' => ['_method' => 'DELETE']])
+            ->assertHasErrors(['cannot override its method']);
+        ScribeServer::tool(CallSandboxTool::class, ['operationId' => 'createUser', 'body' => ['name' => 'Ada', '_method' => 'PATCH']])
+            ->assertHasErrors(['cannot override its method']);
+
+        Http::assertNothingSent();
+    }
+
+    #[Test]
+    public function rejectsHeadersThatCannotBeSent(): void
+    {
+        Http::fake();
+
+        foreach ([['X-A: 1'], ['bad name' => '1'], ['X-A' => ['nested']]] as $headers) {
+            ScribeServer::tool(CallSandboxTool::class, ['operationId' => 'listUsers', 'headers' => $headers])
+                ->assertHasErrors();
+        }
+
+        Http::assertNothingSent();
+    }
+
+    #[Test]
+    public function treatsEmptyStringsAsInputsNotGiven(): void
+    {
+        Http::fake(['*' => Http::response('ok')]);
+
+        ScribeServer::tool(CallSandboxTool::class, ['operationId' => 'listUsers', 'query' => '', 'headers' => '', 'body' => '', 'token' => ''])
+            ->assertOk();
+
+        Http::assertSent(fn (ClientRequest $request): bool => $request->url() === 'https://sandbox.test/api/users');
+    }
+
+    #[Test]
+    public function rejectsAStatusThatIsNotAnInteger(): void
+    {
+        foreach (['404', 404.5, true] as $status) {
+            ScribeServer::tool(CallSandboxTool::class, ['operationId' => 'listUsers', 'status' => $status])
+                ->assertHasErrors();
+        }
+    }
+
+    #[Test]
     public function doesNotFollowARedirect(): void
     {
         Http::fake(['*' => Http::response('', 302, ['Location' => 'https://evil.test/'])]);
@@ -178,9 +264,65 @@ class SandboxHttpToolTest extends TestCase
         Http::fake(['*' => Http::response('ok')]);
         $this->withAuthorization('Bearer customer-token');
 
-        ScribeServer::tool(CallSandboxTool::class, ['operationId' => 'listUsers', 'token' => 'ignored'])->assertOk();
+        ScribeServer::tool(CallSandboxTool::class, ['operationId' => 'listUsers'])->assertOk();
 
         Http::assertSent(fn (ClientRequest $request): bool => $request->header('Authorization') === ['Bearer customer-token']);
+    }
+
+    #[Test]
+    public function sendsTheTokenInputInPlaceOfTheAuthorizationOfTheRequestToTheServer(): void
+    {
+        Http::fake(['*' => Http::response('ok')]);
+        $this->withAuthorization('Bearer customer-token');
+
+        ScribeServer::tool(CallSandboxTool::class, ['operationId' => 'listUsers', 'token' => 'sandbox-token'])->assertOk();
+
+        Http::assertSent(fn (ClientRequest $request): bool => $request->header('Authorization') === ['Bearer sandbox-token']);
+    }
+
+    #[Test]
+    #[WithConfig('scribe.auth', ['enabled' => true, 'in' => 'basic', 'name' => 'key'])]
+    public function sendsTheTokenAsBasicAuthorizationWhenTheApiUsesIt(): void
+    {
+        Http::fake(['*' => Http::response('ok')]);
+
+        ScribeServer::tool(CallSandboxTool::class, ['operationId' => 'listUsers', 'token' => 'dXNlcjpwYXNz'])->assertOk();
+
+        Http::assertSent(fn (ClientRequest $request): bool => $request->header('Authorization') === ['Basic dXNlcjpwYXNz']);
+    }
+
+    #[Test]
+    #[WithConfig('scribe.auth', ['enabled' => true, 'in' => 'header', 'name' => 'X-Api-Key'])]
+    public function sendsTheTokenInTheHeaderTheApiNames(): void
+    {
+        Http::fake(['*' => Http::response('ok')]);
+
+        ScribeServer::tool(CallSandboxTool::class, ['operationId' => 'listUsers', 'token' => 'secret'])->assertOk();
+
+        Http::assertSent(fn (ClientRequest $request): bool => $request->header('X-Api-Key') === ['secret']
+            && ! $request->hasHeader('Authorization'));
+    }
+
+    #[Test]
+    #[WithConfig('scribe.auth', ['enabled' => true, 'in' => 'query', 'name' => 'api_key'])]
+    public function sendsTheTokenAsTheQueryParameterTheApiNames(): void
+    {
+        Http::fake(['*' => Http::response('ok')]);
+
+        ScribeServer::tool(CallSandboxTool::class, ['operationId' => 'listUsers', 'token' => 'secret'])->assertOk();
+
+        Http::assertSent(fn (ClientRequest $request): bool => $request->url() === 'https://sandbox.test/api/users?api_key=secret');
+    }
+
+    #[Test]
+    #[WithConfig('scribe.auth', ['enabled' => true, 'in' => 'body', 'name' => 'api_key'])]
+    public function sendsTheTokenAsTheBodyParameterTheApiNames(): void
+    {
+        Http::fake(['*' => Http::response('ok')]);
+
+        ScribeServer::tool(CallSandboxTool::class, ['operationId' => 'createUser', 'body' => ['name' => 'Ada'], 'token' => 'secret'])->assertOk();
+
+        Http::assertSent(fn (ClientRequest $request): bool => $request->data() === ['name' => 'Ada', 'api_key' => 'secret']);
     }
 
     #[Test]
@@ -222,6 +364,70 @@ class SandboxHttpToolTest extends TestCase
 
         ScribeServer::tool(CallSandboxTool::class, ['operationId' => 'listUsers'])
             ->assertHasErrors(['The sandbox could not be reached', 'timed out']);
+    }
+
+    #[Test]
+    public function returnsAToolErrorWhenTheBodyCannotBeRead(): void
+    {
+        Http::fake(['*' => Http::response(new class implements StreamInterface {
+            use StreamDecoratorTrait;
+
+            public function __construct()
+            {
+            }
+
+            protected function createStream(): StreamInterface
+            {
+                return Utils::streamFor('');
+            }
+
+            public function eof(): bool
+            {
+                return false;
+            }
+
+            public function read(int $length): string
+            {
+                throw new RuntimeException('The streaming response read timed out.');
+            }
+        })]);
+
+        ScribeServer::tool(CallSandboxTool::class, ['operationId' => 'listUsers'])
+            ->assertHasErrors(['The sandbox could not be reached', 'read timed out']);
+    }
+
+    #[Test]
+    public function stopsReadingABodyThatOutlastsTheTimeout(): void
+    {
+        $this->sandbox(['timeout' => 0.05]);
+
+        Http::fake(['*' => Http::response(new class implements StreamInterface {
+            use StreamDecoratorTrait;
+
+            public function __construct()
+            {
+            }
+
+            protected function createStream(): StreamInterface
+            {
+                return Utils::streamFor('');
+            }
+
+            public function eof(): bool
+            {
+                return false;
+            }
+
+            public function read(int $length): string
+            {
+                usleep(20000);
+
+                return 'x';
+            }
+        })]);
+
+        ScribeServer::tool(CallSandboxTool::class, ['operationId' => 'listUsers'])
+            ->assertHasErrors(['did not finish responding within 0.05 seconds']);
     }
 
     #[Test]
@@ -279,36 +485,6 @@ class SandboxHttpToolTest extends TestCase
     }
 
     #[Test]
-    #[WithConfig('scribe.try_it_out.base_url', 'https://try.test')]
-    public function fallsBackToTheTryItOutUrl(): void
-    {
-        $this->sandbox(['base_url' => null]);
-
-        $this->assertSame('https://try.test', $this->app->make(CallSandboxTool::class)->baseUrl());
-    }
-
-    #[Test]
-    #[WithConfig('scribe.try_it_out.base_url', null)]
-    #[WithConfig('scribe.base_url', 'https://docs.test/')]
-    public function fallsBackToTheDisplayedUrl(): void
-    {
-        $this->sandbox(['base_url' => null]);
-
-        $this->assertSame('https://docs.test', $this->app->make(CallSandboxTool::class)->baseUrl());
-    }
-
-    #[Test]
-    #[WithConfig('scribe.try_it_out.base_url', null)]
-    #[WithConfig('scribe.base_url', null)]
-    #[WithConfig('app.url', 'https://app.test/')]
-    public function fallsBackToTheApplicationUrl(): void
-    {
-        $this->sandbox(['base_url' => null]);
-
-        $this->assertSame('https://app.test', $this->app->make(CallSandboxTool::class)->baseUrl());
-    }
-
-    #[Test]
     public function warnsClientsThatItCallsALiveSandbox(): void
     {
         $definition = $this->app->make(CallSandboxTool::class)->toArray();
@@ -335,7 +511,37 @@ class SandboxHttpToolTest extends TestCase
     #[Test]
     public function refusesToBootWhenTheSandboxIsTheProductionUrl(): void
     {
+        $this->expectException(UnsafeMcpSandbox::class);
+        $this->expectExceptionMessage('https://sandbox.test');
+
         $this->bootInProduction('https://sandbox.test/', []);
+    }
+
+    #[Test]
+    #[WithConfig('scribe.base_url', 'https://docs.test')]
+    public function refusesToBootWhenTheSandboxIsTheDisplayedUrlInAnotherSpelling(): void
+    {
+        $this->expectException(UnsafeMcpSandbox::class);
+
+        $this->bootInProduction('https://app.test', ['base_url' => 'HTTPS://Docs.test:443/sandbox']);
+    }
+
+    #[Test]
+    #[WithConfig('scribe.try_it_out.base_url', 'http://try.test:8080')]
+    public function refusesToBootWhenTheSandboxIsTheTryItOutUrl(): void
+    {
+        $this->expectException(UnsafeMcpSandbox::class);
+
+        $this->bootInProduction('https://app.test', ['base_url' => 'http://try.test:8080']);
+    }
+
+    #[Test]
+    public function refusesToBootWithoutASandboxUrl(): void
+    {
+        $this->expectException(UnsafeMcpSandbox::class);
+        $this->expectExceptionMessage('scribe.mcp.sandbox.base_url');
+
+        $this->bootInProduction('https://app.test', ['base_url' => null]);
     }
 
     #[Test]
@@ -347,9 +553,20 @@ class SandboxHttpToolTest extends TestCase
     }
 
     #[Test]
+    public function bootsOutsideProductionWithTheApplicationAsTheSandbox(): void
+    {
+        $this->sandbox(['base_url' => 'https://app.test']);
+        $this->app->get('config')->set('app.url', 'https://app.test');
+
+        (new ScribeServiceProvider($this->app))->boot();
+
+        $this->assertSame('https://app.test', $this->app->make(CallSandboxTool::class)->baseUrl());
+    }
+
+    #[Test]
     public function bootsInProductionInTheExamplesMode(): void
     {
-        $this->bootInProduction('https://sandbox.test', ['mode' => 'examples']);
+        $this->bootInProduction('https://sandbox.test', ['mode' => 'examples', 'base_url' => null]);
 
         $this->assertFalse($this->app->make(CallSandboxTool::class)->isLive());
     }
@@ -369,13 +586,9 @@ class SandboxHttpToolTest extends TestCase
      */
     private function bootInProduction(string $appUrl, array $sandbox): void
     {
-        $this->app->get('config')->set(['app.env' => 'production', 'app.url' => $appUrl]);
+        $this->app->instance('env', 'production');
+        $this->app->get('config')->set('app.url', $appUrl);
         $this->sandbox($sandbox);
-
-        if ($appUrl === 'https://sandbox.test/') {
-            $this->expectException(UnsafeMcpSandbox::class);
-            $this->expectExceptionMessage('https://sandbox.test');
-        }
 
         (new ScribeServiceProvider($this->app))->boot();
     }
@@ -383,8 +596,6 @@ class SandboxHttpToolTest extends TestCase
     #[Test]
     public function isAdvertisedByTheServer(): void
     {
-        $server = $this->app->make(ScribeServer::class, ['transport' => m::mock(Transport::class)]);
-
-        $this->assertContains(CallSandboxTool::class, (fn (): array => $this->tools)->call($server));
+        ScribeServer::tools()->assertRegistered(CallSandboxTool::class);
     }
 }

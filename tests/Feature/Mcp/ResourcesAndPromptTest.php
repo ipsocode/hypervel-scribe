@@ -108,4 +108,13 @@ class ResourcesAndPromptTest extends TestCase
         $this->assertSame(['operationId', 'language'], array_column($definition['arguments'], 'name'));
         $this->assertSame([true, true], array_column($definition['arguments'], 'required'));
     }
+
+    #[Test]
+    public function namesAnEndpointWithoutASummaryByItsOperationId(): void
+    {
+        Storage::disk('local')->put('scribe/openapi.yaml', "openapi: 3.0.3\npaths:\n  /health:\n    get:\n      operationId: health\n      summary: ''\n");
+
+        ScribeServer::prompt(IntegrateEndpointPrompt::class, ['operationId' => 'health', 'language' => 'PHP'])
+            ->assertSee('the "health" endpoint');
+    }
 }

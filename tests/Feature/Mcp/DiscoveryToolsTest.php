@@ -85,4 +85,25 @@ class DiscoveryToolsTest extends TestCase
         ScribeServer::tool(SearchEndpointsTool::class, ['query' => 'users'])->assertHasErrors(['scribe:generate']);
         ScribeServer::tool(ListGroupsTool::class)->assertHasErrors(['scribe:generate']);
     }
+
+    #[Test]
+    public function readsEmptyFiltersAsNotGiven(): void
+    {
+        $this->writeSpec();
+
+        ScribeServer::tool(SearchEndpointsTool::class, ['query' => 'users', 'group' => '', 'method' => ''])
+            ->assertOk()
+            ->assertSee('/api/users');
+    }
+
+    #[Test]
+    public function listsAnOperationWithoutAnOperationId(): void
+    {
+        Storage::disk('local')->put('scribe/openapi.yaml', "openapi: 3.0.3\npaths:\n  /health:\n    get:\n      summary: Health.\n");
+
+        ScribeServer::tool(SearchEndpointsTool::class, ['query' => 'health'])
+            ->assertOk()
+            ->assertSee('get /health');
+        ScribeServer::tool(ListGroupsTool::class)->assertOk();
+    }
 }

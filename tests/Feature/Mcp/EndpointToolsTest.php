@@ -89,6 +89,7 @@ class EndpointToolsTest extends TestCase
     }
 
     #[Test]
+    #[WithConfig('scribe.auth.enabled', true)]
     #[WithConfig('scribe.auth.extra_info', 'Generate a token on your dashboard.')]
     #[WithConfig('scribe.auth.placeholder', '{YOUR_AUTH_KEY}')]
     public function describesTheSchemesServersAndInstructions(): void
@@ -105,6 +106,19 @@ class EndpointToolsTest extends TestCase
                     ->where('instructions', 'Generate a token on your dashboard.')
                     ->where('placeholder', '{YOUR_AUTH_KEY}');
             });
+    }
+
+    #[Test]
+    #[WithConfig('scribe.auth.enabled', false)]
+    #[WithConfig('scribe.auth.extra_info', 'Generate a token on your dashboard.')]
+    #[WithConfig('scribe.auth.placeholder', '{YOUR_AUTH_KEY}')]
+    public function givesNoInstructionsWhenTheApiIsNotAuthenticated(): void
+    {
+        $this->writeSpec();
+
+        ScribeServer::tool(GetAuthenticationTool::class)
+            ->assertOk()
+            ->assertStructuredContent(fn ($json) => $json->where('instructions', '')->where('placeholder', '')->etc());
     }
 
     #[Test]
@@ -138,5 +152,26 @@ class EndpointToolsTest extends TestCase
     public function returnsAToolErrorForAMissingSpecWhenAskedForAuthentication(): void
     {
         ScribeServer::tool(GetAuthenticationTool::class)->assertHasErrors(['scribe:generate']);
+    }
+
+    #[Test]
+    public function dumpsEmptyListsAsListsAndEmptyMappingsAsMappings(): void
+    {
+        $this->writeSpec("openapi: 3.0.3\npaths:\n  /health:\n    get:\n      operationId: health\n      security: []\n      responses:\n        200:\n          description: ''\n          content:\n            application/json:\n              schema: { type: object, properties: {} }\n");
+
+        ScribeServer::tool(DescribeEndpointTool::class, ['operationId' => 'health'])
+            ->assertOk()
+            ->assertSee('security: []')
+            ->assertSee('properties: {}');
+    }
+
+    #[Test]
+    public function readsAnEmptyOperationIdAsNotGiven(): void
+    {
+        $this->writeSpec();
+
+        ScribeServer::tool(DescribeEndpointTool::class, ['operationId' => '', 'method' => 'GET', 'path' => '/api/users/{id}'])
+            ->assertOk()
+            ->assertStructuredContent(fn ($json) => $json->where('operation.method', 'get')->etc());
     }
 }

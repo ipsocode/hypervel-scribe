@@ -113,7 +113,7 @@ class ScribeServiceProvider extends ServiceProvider
     }
 
     /**
-     * Registers the MCP servers for the generated docs, over HTTP and as a local
+     * Register the MCP servers for the generated docs, over HTTP and as a local
      * server, when `scribe.mcp.enabled` is set. Neither exists otherwise.
      */
     protected function bootMcp(): void
@@ -134,21 +134,40 @@ class ScribeServiceProvider extends ServiceProvider
     }
 
     /**
-     * Refuses to boot a production application whose live MCP sandbox would call the production URL itself.
+     * Refuse to boot a live MCP sandbox that has no URL of its own, or that would call the production application.
      */
     protected function guardSandbox(Repository $config): void
     {
-        if (! $config->boolean('scribe.mcp.sandbox.enabled')) {
+        $sandbox = $this->app->make(CallSandboxTool::class);
+
+        if (! $sandbox->shouldRegister($config) || ! $sandbox->isLive()) {
             return;
         }
 
-        $sandbox = $this->app->make(CallSandboxTool::class);
+        if (blank($config->get('scribe.mcp.sandbox.base_url'))) {
+            throw UnsafeMcpSandbox::missingBaseUrl();
+        }
 
-        if ($sandbox->isLive()
-            && $config->string('app.env') === 'production'
-            && $sandbox->baseUrl() === mb_rtrim($config->string('app.url'), '/')) {
+        $production = array_map($this->origin(...), array_filter([
+            $config->get('app.url'),
+            $config->get('scribe.base_url'),
+            $config->get('scribe.try_it_out.base_url'),
+        ]));
+
+        if ($this->app->isProduction() && in_array($this->origin($sandbox->baseUrl()), $production, true)) {
             throw UnsafeMcpSandbox::productionUrl($sandbox->baseUrl());
         }
+    }
+
+    /**
+     * Get the scheme, host and port of a URL, so that two spellings of one server compare equal.
+     */
+    protected function origin(string $url): string
+    {
+        $parts = parse_url($url) + ['scheme' => 'http', 'host' => $url];
+        $scheme = mb_strtolower($parts['scheme']);
+
+        return $scheme . '://' . mb_strtolower($parts['host']) . ':' . ($parts['port'] ?? ($scheme === 'https' ? 443 : 80));
     }
 
     /**

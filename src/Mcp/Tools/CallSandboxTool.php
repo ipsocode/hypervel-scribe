@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ipsocode\Scribe\Mcp\Tools;
 
 use Closure;
+use GuzzleHttp\Exception\TransferException;
 use Hypervel\Context\RequestContext;
 use Hypervel\Contracts\Config\Repository;
 use Hypervel\Contracts\JsonSchema\JsonSchema;
@@ -19,9 +20,11 @@ use Hypervel\Mcp\Server\Tool;
 use Hypervel\Mcp\Server\Tools\Annotations\IsIdempotent;
 use Hypervel\Mcp\Server\Tools\Annotations\IsReadOnly;
 use Hypervel\Support\Facades\Http;
+use Hypervel\Support\Json;
 use Ipsocode\Scribe\Mcp\Concerns\AnswersFromSpec;
 use Ipsocode\Scribe\Mcp\OpenApiDocument;
 use Psr\Http\Message\StreamInterface;
+use RuntimeException;
 
 #[Name('call-sandbox')]
 #[Description('Try an endpoint before you write client code: check the request you built against the endpoint\'s parameters, and get back the response the sandbox gives for it, which is either the example the documentation shows or a live sandbox\'s answer. Give its operationId and the request.')]
@@ -32,11 +35,26 @@ class CallSandboxTool extends Tool
     use AnswersFromSpec;
 
     /**
-     * The request headers the caller cannot set: the host is the sandbox's, and the credentials come from the token.
+     * The request headers the caller cannot set: the host is the sandbox's, the credentials come from the token, and
+     * the method is the one the spec documents.
      *
      * @var array<int, string>
      */
-    protected const array RESERVED_HEADERS = ['authorization', 'content-length', 'host', 'proxy-authorization'];
+    protected const array RESERVED_HEADERS = [
+        'authorization',
+        'content-length',
+        'forwarded',
+        'host',
+        'proxy-authorization',
+        'x-http-method',
+        'x-http-method-override',
+        'x-method-override',
+    ];
+
+    /**
+     * The query and body parameter that overrides the request method.
+     */
+    protected const string METHOD_OVERRIDE = '_method';
 
     public function __construct(protected OpenApiDocument $document, protected Repository $config)
     {
@@ -65,17 +83,19 @@ class CallSandboxTool extends Tool
     }
 
     /**
-     * Get the server the `http` mode calls: the sandbox's, then the Try It Out URL, then the displayed one.
+     * Determine whether the tool is offered to clients.
+     */
+    public function shouldRegister(Repository $config): bool
+    {
+        return $config->boolean('scribe.mcp.sandbox.enabled');
+    }
+
+    /**
+     * Get the server the `http` mode calls, which is the sandbox's own.
      */
     public function baseUrl(): string
     {
-        return mb_rtrim(
-            $this->config->get('scribe.mcp.sandbox.base_url')
-                ?: $this->config->get('scribe.try_it_out.base_url')
-                ?: $this->config->get('scribe.base_url')
-                ?: $this->config->string('app.url'),
-            '/',
-        );
+        return mb_rtrim($this->config->string('scribe.mcp.sandbox.base_url'), '/');
     }
 
     /**
@@ -95,16 +115,22 @@ class CallSandboxTool extends Tool
             'operationId' => ['required', 'string'],
             'pathParams' => ['nullable', 'array'],
             'query' => ['nullable', 'array'],
-            'headers' => ['nullable', 'array'],
+            'headers' => ['nullable', 'array', fn (string $attribute, mixed $value, Closure $fail) => $this->hasValidHeaderNames($value)
+                ?: $fail('The :attribute must be named by HTTP header names.')],
+            'headers.*' => ['string'],
             'body' => ['nullable', 'array'],
-            'status' => ['nullable', 'integer'],
+            'status' => ['nullable', 'integer:strict'],
             'token' => ['nullable', 'string'],
-            'pathParams.*' => [fn (string $attribute, mixed $value, Closure $fail) => match (true) {
-                ! is_scalar($value) => $fail('The :attribute must be a string or a number.'),
+            'pathParams.*' => ['required', fn (string $attribute, mixed $value, Closure $fail) => match (true) {
+                ! is_string($value) && ! is_int($value) && ! is_float($value) => $fail('The :attribute must be a string or a number.'),
                 in_array((string) $value, ['.', '..'], true) => $fail('The :attribute cannot be a dot segment.'),
+                str_contains((string) $value, '/') => $fail('The :attribute cannot contain a slash.'),
                 default => true,
             }],
         ]);
+
+        // MCP requests do not turn empty strings into null, and clients often fill optional inputs with one.
+        $arguments = array_filter($arguments, fn (mixed $value): bool => $value !== '');
 
         return $this->answerFromSpec(function () use ($arguments): Response|ResponseFactory {
             $operation = $this->document->operation($arguments['operationId']);
@@ -190,13 +216,17 @@ class CallSandboxTool extends Tool
     protected function missing(array $operation, array $arguments): array
     {
         $inputs = ['path' => 'pathParams', 'query' => 'query', 'header' => 'headers'];
+        $headers = array_change_key_case($arguments['headers'] ?? []);
         $missing = [];
 
         foreach ($operation['parameters'] ?? [] as $parameter) {
             $input = $inputs[$parameter['in']] ?? null;
             $required = $parameter['in'] === 'path' || ($parameter['required'] ?? false);
+            $given = $parameter['in'] === 'header'
+                ? isset($headers[mb_strtolower($parameter['name'])])
+                : isset($arguments[$input][$parameter['name']]);
 
-            if ($input !== null && $required && ! isset($arguments[$input][$parameter['name']])) {
+            if ($input !== null && $required && ! $given) {
                 $missing[] = "{$parameter['in']} parameter {$parameter['name']}";
             }
         }
@@ -218,18 +248,22 @@ class CallSandboxTool extends Tool
         $responses = $operation['responses'] ?? [];
 
         $status ??= $this->firstSuccess(array_keys($responses));
+        $response = $status === null ? null : ($responses[$status] ?? $responses[intdiv($status, 100) . 'XX'] ?? null);
 
-        if ($status === null || ! isset($responses[$status])) {
+        if ($response === null) {
             return Response::error('The endpoint documents no response for ' . ($status ?? 'a 2xx status') . '. Describe it to see its responses.');
         }
 
-        foreach ($responses[$status]['content'] ?? [] as $media) {
-            $example = array_key_exists('example', $media)
-                ? $media['example']
-                : (array_values($media['examples'] ?? [])[0]['value'] ?? null);
+        if (($response['content'] ?? []) === []) {
+            return Response::make(Response::text('The response has no body.'))
+                ->withStructuredContent(['status' => $status, 'example' => '']);
+        }
+
+        foreach ($response['content'] as $media) {
+            $example = $this->exampleOf($media);
 
             if ($example !== null) {
-                $json = (string) json_encode($example, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                $json = Json::encode($example, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
                 return Response::make(Response::text($json))
                     ->withStructuredContent(['status' => $status, 'example' => $json]);
@@ -237,6 +271,28 @@ class CallSandboxTool extends Tool
         }
 
         return Response::error("The endpoint documents no example for {$status}. Describe it to see its responses.");
+    }
+
+    /**
+     * Return the example a media type documents, as the writer puts it in the schema or as a hand-written spec puts it beside it.
+     *
+     * @param array<string, mixed> $media
+     */
+    protected function exampleOf(array $media): mixed
+    {
+        $schema = $media['schema'] ?? [];
+
+        $example = $media['example']
+            ?? array_values($media['examples'] ?? [])[0]['value']
+            ?? $schema['example']
+            ?? $schema['examples'][0]
+            ?? null;
+
+        foreach ($schema['oneOf'] ?? [] as $alternative) {
+            $example ??= $alternative['example'] ?? null;
+        }
+
+        return $example;
     }
 
     /**
@@ -253,81 +309,108 @@ class CallSandboxTool extends Tool
             return Response::error("The sandbox does not allow {$method} requests.");
         }
 
+        if (array_key_exists(self::METHOD_OVERRIDE, $arguments['query'] ?? []) || array_key_exists(self::METHOD_OVERRIDE, $arguments['body'] ?? [])) {
+            return Response::error('The request cannot override its method with `' . self::METHOD_OVERRIDE . '`.');
+        }
+
         $headers = array_filter(
             $arguments['headers'] ?? [],
-            fn (string $name): bool => ! in_array(mb_strtolower($name), self::RESERVED_HEADERS, true),
+            fn (string $name): bool => ! in_array(mb_strtolower($name), self::RESERVED_HEADERS, true) && ! str_starts_with(mb_strtolower($name), 'x-forwarded-'),
             ARRAY_FILTER_USE_KEY,
         );
 
-        if (($authorization = $this->authorization($arguments['token'] ?? null)) !== null) {
-            $headers['Authorization'] = $authorization;
-        }
+        $query = $arguments['query'] ?? [];
+        $body = $arguments['body'] ?? null;
+
+        [$headers, $query, $body] = $this->authenticate($headers, $query, $body, $arguments['token'] ?? null);
+
+        $timeout = $this->config->float('scribe.mcp.sandbox.timeout');
+        $limit = $this->config->integer('scribe.mcp.sandbox.max_response_bytes');
 
         try {
             $response = Http::withHeaders($headers)
-                ->withQueryParameters($arguments['query'] ?? [])
-                ->timeout($this->config->float('scribe.mcp.sandbox.timeout'))
+                ->withQueryParameters($query)
+                ->withUrlParameters($arguments['pathParams'] ?? [])
+                ->timeout($timeout)
                 ->withoutRedirecting()
-                ->withOptions(['stream' => true])
-                ->send(
-                    $method,
-                    $this->baseUrl() . $this->expandPath($operation['path'], $arguments['pathParams'] ?? []),
-                    isset($arguments['body']) ? ['json' => $arguments['body']] : [],
-                );
-        } catch (ConnectionException $exception) {
+                ->withOptions(['stream' => true, 'read_timeout' => $timeout])
+                ->send($method, $this->baseUrl() . $operation['path'], $body === null ? [] : ['json' => $body]);
+
+            $contents = $this->readUpTo($response->toPsrResponse()->getBody(), $limit + 1, $timeout);
+        } catch (ConnectionException|TransferException|RuntimeException $exception) {
             return Response::error('The sandbox could not be reached: ' . $exception->getMessage());
         }
 
-        $limit = $this->config->integer('scribe.mcp.sandbox.max_response_bytes');
-        $body = $this->readUpTo($response->toPsrResponse()->getBody(), $limit + 1);
-        $truncated = mb_strlen($body, '8bit') > $limit;
+        $truncated = strlen($contents) > $limit;
+        $contents = $truncated ? mb_strcut($contents, 0, $limit) : $contents;
 
-        if ($truncated) {
-            $body = mb_strcut($body, 0, $limit);
-        }
-
-        return Response::make(Response::text($truncated ? "{$body}\n[Truncated at {$limit} bytes.]" : $body))
-            ->withStructuredContent(['status' => $response->status(), 'body' => $body, 'truncated' => $truncated]);
+        return Response::make(Response::text($truncated ? "{$contents}\n[Truncated at {$limit} bytes.]" : $contents))
+            ->withStructuredContent(['status' => $response->status(), 'body' => $contents, 'truncated' => $truncated]);
     }
 
     /**
-     * Return the Authorization header of the request to this server, or else the token given as input.
+     * Add the caller's credential to the request: the token given as input, placed as `auth.in` says, or else the
+     * Authorization header of the request to this server.
      *
      * It is read on every call and kept nowhere, since the server serves many customers at once.
+     *
+     * @param array<string, string> $headers
+     * @param array<string, mixed> $query
+     * @param null|array<string, mixed> $body
+     * @return array{0: array<string, string>, 1: array<string, mixed>, 2: null|array<string, mixed>}
      */
-    protected function authorization(?string $token): ?string
+    protected function authenticate(array $headers, array $query, ?array $body, ?string $token): array
     {
+        if ($token !== null) {
+            $in = $this->config->boolean('scribe.auth.enabled') ? $this->config->string('scribe.auth.in') : 'bearer';
+            $name = $this->config->string('scribe.auth.name');
+
+            return match ($in) {
+                'query' => [$headers, [...$query, $name => $token], $body],
+                'body' => [$headers, $query, [...($body ?? []), $name => $token]],
+                'header' => [[...$headers, $name => $token], $query, $body],
+                default => [[...$headers, 'Authorization' => ucfirst($in) . " {$token}"], $query, $body],
+            };
+        }
+
         $header = RequestContext::getOrNull()?->header('Authorization');
 
         if (is_string($header) && $header !== '') {
-            return $header;
+            $headers['Authorization'] = $header;
         }
 
-        return $token === null ? null : "Bearer {$token}";
+        return [$headers, $query, $body];
     }
 
     /**
-     * Fill the path template's placeholders, encoded so that a value cannot change the host or the path; a dot segment is rejected by the input rules, since encoding leaves it as it is.
+     * Determine whether every key is an HTTP header name.
+     */
+    protected function hasValidHeaderNames(mixed $headers): bool
+    {
+        foreach (array_keys($headers) as $name) {
+            if (! is_string($name) || preg_match("/^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/", $name) !== 1) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Read at most the given number of bytes from the stream, within the given number of seconds.
      *
-     * @param array<string, bool|float|int|string> $parameters
+     * @throws RuntimeException When the stream does not end in time
      */
-    protected function expandPath(string $path, array $parameters): string
+    protected function readUpTo(StreamInterface $stream, int $bytes, float $timeout): string
     {
-        return (string) preg_replace_callback(
-            '/\{(\w+)\}/',
-            fn (array $match): string => rawurlencode((string) $parameters[$match[1]]),
-            $path,
-        );
-    }
-
-    /**
-     * Read at most the given number of bytes from the stream.
-     */
-    protected function readUpTo(StreamInterface $stream, int $bytes): string
-    {
+        $deadline = hrtime(true) + (int) ($timeout * 1_000_000_000);
         $contents = '';
 
         while (! $stream->eof() && strlen($contents) < $bytes) {
+            if (hrtime(true) > $deadline) {
+                throw new RuntimeException("The sandbox did not finish responding within {$timeout} seconds.");
+            }
+
             $contents .= $stream->read($bytes - strlen($contents));
         }
 
@@ -335,15 +418,19 @@ class CallSandboxTool extends Tool
     }
 
     /**
-     * Return the first 2xx status the operation documents, if any.
+     * Return the first 2xx status the operation documents, if any; the range `2XX` stands for 200.
      *
      * @param array<int, int|string> $statuses
      */
     protected function firstSuccess(array $statuses): ?int
     {
         foreach ($statuses as $status) {
-            if ($status >= 200 && $status < 300) {
-                return (int) $status;
+            if (is_int($status) && $status >= 200 && $status < 300) {
+                return $status;
+            }
+
+            if (mb_strtoupper((string) $status) === '2XX') {
+                return 200;
             }
         }
 

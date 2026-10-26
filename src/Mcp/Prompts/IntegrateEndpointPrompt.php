@@ -41,7 +41,7 @@ class IntegrateEndpointPrompt extends Prompt
                 return Response::error('No such endpoint. Use search-endpoints to find its operationId.');
             }
 
-            $summary = $operation['summary'] ?? $arguments['operationId'];
+            $summary = ($operation['summary'] ?? '') ?: $arguments['operationId'];
 
             return Response::text(
                 "Write a {$arguments['language']} client call for the \"{$summary}\" endpoint "

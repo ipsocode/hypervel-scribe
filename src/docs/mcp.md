@@ -72,25 +72,30 @@ In `http` mode it sends the request to `mcp.sandbox.base_url`. Point that at a s
 environment, never at production data. The tool tells the client it is not read-only, and
 these safeguards apply:
 
-- It calls only one server. `mcp.sandbox.base_url` is used, then `try_it_out.base_url`, then `base_url`. The
-  client cannot name another, and path values are encoded so they cannot change the host.
-- When the application runs with `app.env` set to `production` and the sandbox would call
-  `app.url` itself, the application refuses to boot.
-- Only the methods in `mcp.sandbox.methods` are sent.
-- The `Authorization`, `Proxy-Authorization`, `Host` and `Content-Length` headers cannot be set by the client.
-  The credential is the `Authorization` header of the request to the MCP server, so the
-  client acts as its own user. A local server has no such request, so the client passes a `token` instead,
-  which is sent as a Bearer token. Neither is stored.
+- It calls only one server, `mcp.sandbox.base_url`, which `http` mode needs: without it the
+  application refuses to boot. The client cannot name another server, and a path value cannot
+  be empty, a dot segment or contain a slash, so it cannot change the host or the route.
+- When the application runs in production and the sandbox would call `app.url`, `base_url` or
+  `try_it_out.base_url`, the application refuses to boot.
+- Only the methods in `mcp.sandbox.methods` are sent, and the request cannot override its method
+  with a `_method` parameter or an `X-HTTP-Method-Override` header.
+- The `Authorization`, `Proxy-Authorization`, `Forwarded`, `X-Forwarded-*`, `Host` and `Content-Length`
+  headers, and the method override headers, cannot be set by the client.
+  The credential is the `token` the client passes, placed where `auth.in` says (a Bearer or Basic
+  `Authorization` header, another header, or a query or body parameter named `auth.name`), or
+  else the `Authorization` header of the request to the MCP server, so the client acts as its
+  own user. Neither is stored.
 - Redirects are not followed.
-- The call stops after `mcp.sandbox.timeout` seconds, and the tool returns an error.
+- The call stops after `mcp.sandbox.timeout` seconds without a response or a chunk of the body, and
+  after that many seconds in all once the body is being read. The tool returns an error.
 - A response body past `mcp.sandbox.max_response_bytes` is cut off, and the tool says so.
 
 | Key | Default | What it does |
 |---|---|---|
 | `mcp.sandbox.enabled` | `false` (`SCRIBE_MCP_SANDBOX`) | Add the `call-sandbox` tool. |
 | `mcp.sandbox.mode` | `'examples'` (`SCRIBE_MCP_SANDBOX_MODE`) | `'examples'` or `'http'`. |
-| `mcp.sandbox.base_url` | `null` (`SCRIBE_MCP_SANDBOX_URL`) | The one server `http` mode calls. `null` means `try_it_out.base_url`, then `base_url`. |
-| `mcp.sandbox.timeout` | `10` (`SCRIBE_MCP_SANDBOX_TIMEOUT`) | Seconds to wait for the sandbox. |
+| `mcp.sandbox.base_url` | `null` (`SCRIBE_MCP_SANDBOX_URL`) | The one server `http` mode calls. Required in `http` mode. |
+| `mcp.sandbox.timeout` | `10.0` (`SCRIBE_MCP_SANDBOX_TIMEOUT`) | Seconds to wait for the sandbox. A float: `10` in your own config file fails, so write `10.0`. |
 | `mcp.sandbox.max_response_bytes` | `65536` | The size at which a response body is cut off. |
 | `mcp.sandbox.methods` | `['GET', 'POST', 'PUT', 'PATCH', 'DELETE']` | The HTTP methods the tool may send. |
 

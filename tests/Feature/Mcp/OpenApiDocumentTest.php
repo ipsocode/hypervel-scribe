@@ -12,6 +12,10 @@ use Ipsocode\Scribe\Exceptions\CouldntReadOpenApiSpec;
 use Ipsocode\Scribe\Mcp\OpenApiDocument;
 use Ipsocode\Scribe\Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use stdClass;
+use Symfony\Component\Yaml\Exception\ParseException;
+
+use function Hypervel\Coroutine\parallel;
 
 /**
  * The generated spec read back for the MCP tools. The fixture is a spec in the
@@ -57,9 +61,7 @@ class OpenApiDocumentTest extends TestCase
             'summary' => 'Create a user.',
             'description' => '',
             'tags' => ['Users'],
-            'deprecated' => true,
         ], $operations[1]);
-        $this->assertFalse($operations[0]['deprecated']);
     }
 
     #[Test]
@@ -229,7 +231,7 @@ class OpenApiDocumentTest extends TestCase
         $mtime = filemtime($path);
 
         $document->operations();
-        file_put_contents($path, "paths: {}\n");
+        file_put_contents($path, str_pad("paths: {}\n", filesize($path)));
         touch($path, $mtime);
 
         $this->assertCount(4, $document->operations());
@@ -271,5 +273,76 @@ class OpenApiDocumentTest extends TestCase
         $this->writeSpec();
 
         $this->assertCount(4, $this->document()->operations());
+    }
+
+    #[Test]
+    public function throwsTheSpecExceptionForYamlThatDoesNotParse(): void
+    {
+        Storage::disk('local')->put('scribe/openapi.yaml', "paths: [unclosed\n");
+
+        try {
+            $this->document()->operations();
+            $this->fail('A spec that is not YAML was read.');
+        } catch (CouldntReadOpenApiSpec $exception) {
+            $this->assertStringContainsString('scribe:generate', $exception->getMessage());
+            $this->assertInstanceOf(ParseException::class, $exception->getPrevious());
+        }
+    }
+
+    #[Test]
+    public function keepsAnEmptyMappingApartFromAnEmptyList(): void
+    {
+        Storage::disk('local')->put('scribe/openapi.yaml', <<<'YAML'
+            paths:
+              /api/health:
+                get:
+                  operationId: health
+                  parameters: []
+                  security: []
+                  responses:
+                    200:
+                      description: ''
+                      content:
+                        application/json:
+                          schema: { type: object, properties: {} }
+            YAML);
+
+        $operation = $this->document()->operation('health');
+
+        $this->assertSame([], $operation['parameters']);
+        $this->assertSame([], $operation['security']);
+        $this->assertEquals(new stdClass, $operation['responses'][200]['content']['application/json']['schema']['properties']);
+        $this->assertStringContainsString('"properties":{}', (string) json_encode($operation));
+    }
+
+    #[Test]
+    public function identifiesAnOperationWithoutAnOperationIdByItsMethodAndPath(): void
+    {
+        Storage::disk('local')->put('scribe/openapi.yaml', "paths:\n  /health:\n    get:\n      summary: Health.\n");
+
+        $this->assertSame(['get /health'], array_column($this->document()->operations(), 'id'));
+        $this->assertSame('/health', $this->document()->operation('get /health')['path']);
+    }
+
+    #[Test]
+    public function parsesTheSpecOnceForCoroutinesThatFindItStaleTogether(): void
+    {
+        $this->writeSpec();
+        $document = new class($this->app->get('config')) extends OpenApiDocument {
+            public int $parses = 0;
+
+            protected function parse(string $path): mixed
+            {
+                ++$this->parses;
+                usleep(5000);
+
+                return parent::parse($path);
+            }
+        };
+
+        $counts = parallel(array_fill(0, 4, fn (): int => count($document->operations())));
+
+        $this->assertSame([4, 4, 4, 4], $counts);
+        $this->assertSame(1, $document->parses);
     }
 }

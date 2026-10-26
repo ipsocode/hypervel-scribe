@@ -69,7 +69,7 @@ class ScribeServerTest extends TestCase
         $tools = (fn (): array => $this->tools)->call($this->server());
 
         $this->assertSame(
-            ['search-endpoints', 'list-groups', 'describe-endpoint', 'get-authentication'],
+            ['search-endpoints', 'list-groups', 'describe-endpoint', 'get-authentication', 'call-sandbox'],
             array_map(fn (string $tool): string => $this->app->make($tool)->name(), $tools),
         );
     }

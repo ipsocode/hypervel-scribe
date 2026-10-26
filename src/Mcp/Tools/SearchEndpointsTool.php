@@ -45,11 +45,11 @@ class SearchEndpointsTool extends Tool
             $endpoints = [];
 
             foreach ($this->document->operations() as $operation) {
-                if (($arguments['group'] ?? null) !== null && ! in_array($arguments['group'], $operation['tags'], true)) {
+                if (filled($arguments['group'] ?? null) && ! in_array($arguments['group'], $operation['tags'], true)) {
                     continue;
                 }
 
-                if (($arguments['method'] ?? null) !== null && mb_strtolower($arguments['method']) !== $operation['method']) {
+                if (filled($arguments['method'] ?? null) && mb_strtolower($arguments['method']) !== $operation['method']) {
                     continue;
                 }
 

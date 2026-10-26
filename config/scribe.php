@@ -141,11 +141,13 @@ return [
             // `http` sends the request to `base_url`, so point that at a sandbox, never at production data.
             'mode' => env('SCRIBE_MCP_SANDBOX_MODE', 'examples'),
 
-            // [`http` mode] The only server the tool calls. Leave as null to use `try_it_out.base_url`, then the
-            // displayed URL (`base_url`). The application refuses to boot when this is the production URL in production.
+            // [`http` mode] The only server the tool calls, which `http` mode needs: the application refuses to boot
+            // without it, and in production when it is the URL of the application itself (`app.url`, `base_url` or
+            // `try_it_out.base_url`).
             'base_url' => env('SCRIBE_MCP_SANDBOX_URL'),
 
-            // [`http` mode] Seconds to wait for the sandbox before the tool returns an error.
+            // [`http` mode] Seconds to wait for the sandbox, for its response and then for its body, before the tool
+            // returns an error. A float, such as 10.0.
             'timeout' => (float) env('SCRIBE_MCP_SANDBOX_TIMEOUT', 10),
 
             // [`http` mode] A response body past this many bytes is cut off, and the tool says so.

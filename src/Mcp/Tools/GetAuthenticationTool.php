@@ -39,13 +39,14 @@ class GetAuthenticationTool extends Tool
     {
         return $this->answerFromSpec(function (): ResponseFactory {
             $security = $this->document->security();
+            $authenticated = $this->config->boolean('scribe.auth.enabled');
 
             return Response::structured([
                 'schemes' => (object) $security['schemes'],
                 'requirements' => $security['requirements'],
                 'servers' => $this->document->servers(),
-                'instructions' => $this->config->get('scribe.auth.extra_info') ?? '',
-                'placeholder' => $this->config->get('scribe.auth.placeholder') ?? '',
+                'instructions' => $authenticated ? $this->config->get('scribe.auth.extra_info') ?? '' : '',
+                'placeholder' => $authenticated ? $this->config->get('scribe.auth.placeholder') ?? '' : '',
             ]);
         });
     }

@@ -10,7 +10,7 @@ use Hypervel\Mcp\Server;
 use Hypervel\Mcp\Server\Attributes\Cacheable;
 use Hypervel\Mcp\Server\Contracts\Transport;
 use Hypervel\Mcp\Server\Prompt;
-use Hypervel\Mcp\Server\Resource;
+use Hypervel\Mcp\Server\Resource as McpResource;
 use Hypervel\Mcp\Server\Tool;
 use Ipsocode\Scribe\Mcp\Prompts\IntegrateEndpointPrompt;
 use Ipsocode\Scribe\Mcp\Resources\OpenApiSpecResource;
@@ -32,10 +32,11 @@ class ScribeServer extends Server
         ListGroupsTool::class,
         DescribeEndpointTool::class,
         GetAuthenticationTool::class,
+        CallSandboxTool::class,
     ];
 
     /**
-     * @var array<int, class-string<resource>>
+     * @var array<int, class-string<McpResource>>
      */
     protected array $resources = [
         OpenApiSpecResource::class,
@@ -55,10 +56,6 @@ class ScribeServer extends Server
     public function __construct(Transport $transport, Repository $config)
     {
         parent::__construct($transport);
-
-        if ($config->boolean('scribe.mcp.sandbox.enabled')) {
-            $this->tools[] = CallSandboxTool::class;
-        }
 
         $this->name = $config->get('scribe.title') ?: $config->string('app.name');
         $this->version = Scribe::version();

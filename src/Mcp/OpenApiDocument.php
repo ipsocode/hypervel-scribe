@@ -6,19 +6,23 @@ namespace Ipsocode\Scribe\Mcp;
 
 use Closure;
 use Hypervel\Contracts\Config\Repository;
+use Hypervel\Coroutine\Locker;
+use Hypervel\Support\Facades\File;
 use Hypervel\Support\Facades\Storage;
 use Ipsocode\Scribe\Exceptions\CouldntReadOpenApiSpec;
 use Ipsocode\Scribe\Tools\DocumentationConfig;
 use Ipsocode\Scribe\Tools\PathConfig;
 use Ipsocode\Scribe\Tools\Utils;
+use stdClass;
+use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 
 /**
  * The OpenAPI spec `scribe:generate` wrote, read back for the MCP tools.
  *
  * The parsed spec is worker-owned and read-only. It is keyed by the file's
- * modification time, so a `scribe:generate` run on a live worker is picked up
- * on the next call without a restart.
+ * modification time and size, so a `scribe:generate` run on a live worker is
+ * picked up on the next call without a restart.
  */
 class OpenApiDocument
 {
@@ -34,9 +38,7 @@ class OpenApiDocument
      */
     protected array $spec = [];
 
-    protected ?string $loadedPath = null;
-
-    protected int $loadedAt = 0;
+    protected ?string $loadedStamp = null;
 
     public function __construct(protected Repository $config)
     {
@@ -45,7 +47,7 @@ class OpenApiDocument
     /**
      * List every operation, without its parameters, request body or responses.
      *
-     * @return array<int, array{id: string, method: string, path: string, summary: string, description: string, tags: array<int, string>, deprecated: bool}>
+     * @return array<int, array{id: string, method: string, path: string, summary: string, description: string, tags: array<int, string>}>
      */
     public function operations(): array
     {
@@ -81,7 +83,7 @@ class OpenApiDocument
                 }
 
                 $matches = $path === null
-                    ? ($operation['operationId'] ?? null) === $idOrMethod
+                    ? $this->operationId($candidatePath, $method, $operation) === $idOrMethod
                     : $method === mb_strtolower($idOrMethod) && $candidatePath === $path;
 
                 if ($matches) {
@@ -162,20 +164,67 @@ class OpenApiDocument
 
         // PHP caches the stat of the last file it looked at for the life of the worker.
         clearstatcache(true, $path);
-        $modifiedAt = (int) filemtime($path);
+        $stamp = filemtime($path) . ':' . filesize($path);
 
-        if ($path !== $this->loadedPath || $modifiedAt !== $this->loadedAt) {
-            $spec = Yaml::parseFile($path);
-
-            if (! is_array($spec)) {
-                throw CouldntReadOpenApiSpec::unreadable($path);
+        // The coroutines that find the spec stale wait for one of them to parse it, then take its result.
+        while ($stamp !== $this->loadedStamp) {
+            if (! Locker::lock(self::class)) {
+                continue;
             }
 
-            // Assigned together, after the parse, so a reader never sees a half-loaded spec.
-            [$this->spec, $this->loadedPath, $this->loadedAt] = [$spec, $path, $modifiedAt];
+            try {
+                $spec = $this->arrays($this->parse($path));
+
+                if (! is_array($spec)) {
+                    throw CouldntReadOpenApiSpec::unreadable($path);
+                }
+
+                // Assigned together, after the parse, so a reader never sees a half-loaded spec.
+                [$this->spec, $this->loadedStamp] = [$spec, $stamp];
+            } finally {
+                Locker::unlock(self::class);
+            }
         }
 
         return $this->spec;
+    }
+
+    /**
+     * Parse the spec file, with its empty mappings kept apart from its empty lists.
+     *
+     * The writer may be rewriting the file, so it is read under a shared lock.
+     */
+    protected function parse(string $path): mixed
+    {
+        try {
+            return Yaml::parse(File::get($path, lock: true), Yaml::PARSE_OBJECT_FOR_MAP);
+        } catch (ParseException $exception) {
+            throw CouldntReadOpenApiSpec::unreadable($path, $exception);
+        }
+    }
+
+    /**
+     * Turn the parsed mappings into arrays, except the empty ones, which stay objects so that they dump and encode as `{}`.
+     */
+    protected function arrays(mixed $value): mixed
+    {
+        if ($value instanceof stdClass) {
+            $array = (array) $value;
+
+            return $array === [] ? $value : array_map($this->arrays(...), $array);
+        }
+
+        return is_array($value) ? array_map($this->arrays(...), $value) : $value;
+    }
+
+    /**
+     * Get the operation's id, which OpenAPI makes optional, so a spec without one is still searchable by method and path.
+     *
+     * @param array<string, mixed> $operation
+     */
+    protected function operationId(string $path, string $method, array $operation): string
+    {
+        return $operation['operationId'] ?? "{$method} {$path}";
     }
 
     /**
@@ -184,7 +233,7 @@ class OpenApiDocument
      */
     protected function outputFile(string $file): string
     {
-        $documentation = new DocumentationConfig(['type' => $this->config->get('scribe.type')]);
+        $documentation = new DocumentationConfig(['type' => $this->config->string('scribe.type')]);
 
         if ($documentation->outputRoutedThroughApp()) {
             return Storage::disk('local')->path((new PathConfig)->outputPath($file));
@@ -211,18 +260,17 @@ class OpenApiDocument
      * Return the fields of an operation the search and describe tools show.
      *
      * @param array<string, mixed> $operation
-     * @return array{id: string, method: string, path: string, summary: string, description: string, tags: array<int, string>, deprecated: bool}
+     * @return array{id: string, method: string, path: string, summary: string, description: string, tags: array<int, string>}
      */
     protected function summarize(string $path, string $method, array $operation): array
     {
         return [
-            'id' => $operation['operationId'],
+            'id' => $this->operationId($path, $method, $operation),
             'method' => $method,
             'path' => $path,
             'summary' => $operation['summary'] ?? '',
             'description' => $operation['description'] ?? '',
             'tags' => $operation['tags'] ?? [],
-            'deprecated' => $operation['deprecated'] ?? false,
         ];
     }
 
