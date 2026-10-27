@@ -9,8 +9,12 @@ use InvalidArgumentException;
 
 class DocumentationConfig
 {
+    /** @var array<string, mixed> */
     public array $data;
 
+    /**
+     * @param array<string, mixed> $config
+     */
     public function __construct(array $config = [])
     {
         $this->data = $config;
