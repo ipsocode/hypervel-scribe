@@ -188,6 +188,7 @@ class GetFromLaravelAPI extends Strategy
             $parameters[$argumentName]['type'] = static::normalizeTypeName((string) $enum->getBackingType());
 
             try {
+                // @phpstan-ignore method.notFound (a pure enum's cases have no value: the call throws and the catch records null)
                 $parameters[$argumentName]['example'] = $enum->getCases()[0]->getBackingValue();
             } catch (Throwable) {
                 $parameters[$argumentName]['example'] = null;
