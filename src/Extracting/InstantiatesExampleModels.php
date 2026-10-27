@@ -21,6 +21,7 @@ trait InstantiatesExampleModels
      * @param string[] $factoryStates
      * @param string[] $relations
      * @param null|ReflectionFunctionAbstract $transformationMethod a method whose first parameter is typed with the model class, used when `$type` is null
+     * @param string[] $withCount
      * @return null|Model|object
      */
     protected function instantiateExampleModel(
@@ -46,6 +47,9 @@ trait InstantiatesExampleModels
         if ($type === null) {
             throw new Exception("Couldn't detect a transformer model from your doc block. Did you remember to specify a model using @transformerModel?");
         }
+
+        // An unknown class fails in the strategies below, and falls back to `new $type`.
+        /** @var class-string $type */
 
         // `databaseFirst` publishes a real record, so it runs only when listed.
         $configuredStrategies = $this->config->get('examples.models_source', ['factoryCreate', 'factoryMake']);
@@ -126,21 +130,28 @@ trait InstantiatesExampleModels
 
         $factory = Utils::getModelFactory($type, $factoryStates, $allRelations);
 
-        $factory = $quietly ? Model::withoutEvents(fn () => $factory->create()) : $factory->create();
+        // The factory has no count, so it creates a single model.
+        /** @var Model $model */
+        $model = $quietly ? Model::withoutEvents(fn () => $factory->create()) : $factory->create();
 
-        return $factory->refresh()->load($relations)->loadCount($withCount);
+        return $model->refresh()->load($relations)->loadCount($withCount);
     }
 
     /**
      * @param class-string $type
      * @param string[] $factoryStates
+     * @param string[] $relations
      * @return null|Model
      */
     protected function getExampleModelFromFactoryMake(string $type, array $factoryStates = [], array $relations = [])
     {
         $factory = Utils::getModelFactory($type, $factoryStates, $relations);
 
-        return $factory->make();
+        // The factory has no count, so it makes a single model.
+        /** @var Model $model */
+        $model = $factory->make();
+
+        return $model;
     }
 
     /**

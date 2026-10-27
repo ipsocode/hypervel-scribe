@@ -16,6 +16,10 @@ use Ipsocode\Scribe\Tools\Utils;
  */
 class UseResponseTag extends Strategy
 {
+    /**
+     * @param array<string, mixed> $routeRules
+     * @return null|array<int, array{content: string, status: int, description: string}>
+     */
     public function __invoke(ExtractedEndpointData $endpointData, array $routeRules = []): ?array
     {
         $docBlocks = RouteDocBlocker::getDocBlocksFromRoute($endpointData->route);
@@ -25,6 +29,7 @@ class UseResponseTag extends Strategy
 
     /**
      * @param DocBlockTag[] $tags
+     * @return null|array<int, array{content: string, status: int, description: string}>
      */
     public function getDocBlockResponses(array $tags): ?array
     {
@@ -38,6 +43,7 @@ class UseResponseTag extends Strategy
             // An optional status code, then the response.
             preg_match('/^(\d{3})?\s?([\s\S]*)$/', $responseTag->getContent(), $result);
 
+            // @phpstan-ignore offsetAccess.notFound (the pattern matches any string, so both groups are set)
             $status = $result[1] ?: 200;
             $content = $result[2] ?: '{}';
 
