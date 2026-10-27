@@ -16,6 +16,7 @@ use Ipsocode\Camel\Extraction\ResponseCollection;
 use Ipsocode\Camel\Extraction\ResponseField;
 use Ipsocode\Camel\Output\OutputEndpointData;
 use Ipsocode\Scribe\Extracting\Strategies\StaticData;
+use Ipsocode\Scribe\Extracting\Strategies\Strategy;
 use Ipsocode\Scribe\Tools\DocumentationConfig;
 use Ipsocode\Scribe\Tools\Globals;
 use Ipsocode\Scribe\Tools\RoutePatternMatcher;
@@ -51,6 +52,7 @@ class Extractor
 
             $inheritedDocsOverrides = [];
             if ($endpointData->controller->hasMethod('inheritedDocsOverrides')) {
+                // @phpstan-ignore argument.type (hasMethod() has just confirmed the controller declares the static method)
                 $inheritedDocsOverrides = call_user_func([$endpointData->controller->getName(), 'inheritedDocsOverrides']);
                 $inheritedDocsOverrides = $inheritedDocsOverrides[$endpointData->method->getName()] ?? [];
             }
@@ -104,7 +106,11 @@ class Extractor
         }
     }
 
-    public function shouldSkipRoute($route, array $routesToExclude, array $routesToInclude): bool
+    /**
+     * @param array<int, string> $routesToExclude
+     * @param array<int, string> $routesToInclude
+     */
+    public function shouldSkipRoute(Route $route, array $routesToExclude, array $routesToInclude): bool
     {
         if (! empty($routesToExclude) && RoutePatternMatcher::matches($route, $routesToExclude)) {
             return true;
@@ -124,6 +130,7 @@ class Extractor
      * file, and nests dotted names into arrays.
      *
      * @param array<string,Parameter> $parameters
+     * @return array<string, mixed>
      */
     public static function cleanParams(array $parameters): array
     {
@@ -176,7 +183,11 @@ class Extractor
         return $cleanParameters;
     }
 
-    public static function setObject(array &$results, string $path, $value, array $source, bool $isRequired)
+    /**
+     * @param array<int|string, mixed> $results
+     * @param array<string, Parameter> $source
+     */
+    public static function setObject(array &$results, string $path, mixed $value, array $source, bool $isRequired): void
     {
         $parts = explode('.', $path);
 
@@ -358,6 +369,7 @@ class Extractor
     {
         $this->iterateThroughStrategies('responseFields', $endpointData, function ($results) use ($endpointData) {
             foreach ($results as $key => $item) {
+                // @phpstan-ignore assign.propertyType (the slot is typed ResponseField, but moving to ResponseField::create() would change the type and required defaults every response field gets)
                 $endpointData->responseFields[$key] = Parameter::create($item, $endpointData->responseFields[$key] ?? []);
             }
         });
@@ -413,6 +425,7 @@ class Extractor
                 continue;
             }
 
+            /** @var Strategy $strategy */
             $strategy = new $strategyClass($this->config);
             $results = $strategy($endpointData, $settings);
             if (is_array($results)) {
@@ -425,9 +438,13 @@ class Extractor
     {
         $fileName = basename($filePath);
 
+        // @phpstan-ignore argument.type (the caller read the path from the example of a file parameter, which the strategy that built it checked exists)
         return new File($fileName, fopen($filePath, 'r'));
     }
 
+    /**
+     * @param array<string, mixed> $inheritedDocsOverrides
+     */
     protected function mergeInheritedMethodsData(string $stage, ExtractedEndpointData $endpointData, array $inheritedDocsOverrides = []): void
     {
         $overrides = $inheritedDocsOverrides[$stage] ?? [];
@@ -458,6 +475,7 @@ class Extractor
                 }
             }
         } elseif (is_callable($overrides)) {
+            /** @var array<string, array<string, mixed>> $results */
             $results = $overrides($endpointData);
 
             $endpointData->{$stage} = match ($stage) {

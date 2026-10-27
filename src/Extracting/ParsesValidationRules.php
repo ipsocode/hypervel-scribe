@@ -201,7 +201,8 @@ trait ParsesValidationRules
         // The complete ruleset, with '*' in nested array keys replaced by '0'.
         $newRules = Validator::make($testData, $rules)->getRules();
 
-        return collect($newRules)->mapWithKeys(function ($val, $paramName) use ($rules) {
+        /** @var array<string, array<mixed>> $normalisedRules */
+        $normalisedRules = collect($newRules)->mapWithKeys(function ($val, $paramName) use ($rules) {
             // Turn encoded asterisks back into '*'. The validator encodes an escaped '*'
             // in a key as "__asterisk__" followed by a random placeholder hash (eg
             // "__asterisk__dkjiu78gujjhb"); the pattern also matches a bare "__asterisk__".
@@ -221,6 +222,8 @@ trait ParsesValidationRules
 
             return [$paramName => $val];
         })->toArray();
+
+        return $normalisedRules;
     }
 
     /**
@@ -267,6 +270,7 @@ trait ParsesValidationRules
         // Users can define a custom "docs" method on a rule to give Scribe more info.
         if (method_exists($rule, 'docs')) {
             /** @var array<string, mixed> $customData */
+            // @phpstan-ignore argument.type (method_exists() has just confirmed the rule declares docs())
             $customData = call_user_func_array([$rule, 'docs'], []) ?: [];
 
             if (isset($customData['description'])) {
@@ -291,10 +295,9 @@ trait ParsesValidationRules
      * Splits a string rule of the form {rule}:{arguments} into its lowercased name
      * and comma-separated arguments, eg "in:1,2" becomes ["in", ["1", "2"]].
      *
-     * @param Rule|string $rule
      * @return array{string, array<int, string>}
      */
-    protected function parseStringRuleIntoRuleAndArguments($rule): array
+    protected function parseStringRuleIntoRuleAndArguments(string $rule): array
     {
         $ruleArguments = [];
 
@@ -340,6 +343,7 @@ trait ParsesValidationRules
         }
 
         // Convert messages from failure type ("The :attribute is not a valid date.") to info ("The :attribute must be a valid date.")
+        /** @var string $description a leaf translation key is a string, and the per-type array is resolved above */
         $description = str_replace(['is not', 'does not'], ['must be', 'must'], $description);
         $description = str_replace('may not', 'must not', $description);
 

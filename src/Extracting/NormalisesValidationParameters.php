@@ -158,6 +158,7 @@ trait NormalisesValidationParameters
             } elseif (preg_match('/.+\.[^*]+$/', $details['name'])) {
                 // An object field (eg 'data.details.title') takes its example from its parent's, if recorded.
                 $dot = mb_strrpos($details['name'], '.');
+                // @phpstan-ignore argument.type (the regex above has matched, so the name holds a dot)
                 $parentName = mb_substr($details['name'], 0, $dot);
                 $fieldName = mb_substr($details['name'], $dot + 1);
                 if (array_key_exists($parentName, $examples) && is_array($examples[$parentName])
