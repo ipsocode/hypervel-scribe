@@ -22,6 +22,9 @@ abstract class TagStrategyWithFormRequestFallback extends Strategy
         return $this->getParametersFromDocBlockInFormRequestOrMethod($endpointData->route, $endpointData->method);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getParametersFromDocBlockInFormRequestOrMethod(Route $route, ReflectionFunctionAbstract $method): array
     {
         $classTags = RouteDocBlocker::getDocBlocksFromRoute($route)['class']?->getTags() ?: [];
@@ -45,6 +48,7 @@ abstract class TagStrategyWithFormRequestFallback extends Strategy
     /**
      * @param DocBlockTag[] $tagsOnMethod
      * @param DocBlockTag[] $tagsOnClass
+     * @return array<string, mixed>
      */
     abstract public function getFromTags(array $tagsOnMethod, array $tagsOnClass = []): array;
 }

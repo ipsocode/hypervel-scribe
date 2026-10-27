@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ipsocode\Scribe\Extracting\Strategies\ResponseFields;
 
+use Ipsocode\Scribe\Extracting\DocBlocks\DocBlockTag;
 use Ipsocode\Scribe\Extracting\RouteDocBlocker;
 use Ipsocode\Scribe\Extracting\Shared\ResponseFieldTools;
 use Ipsocode\Scribe\Extracting\Strategies\GetFieldsFromTagStrategy;
@@ -19,6 +20,10 @@ class GetFromResponseFieldTag extends GetFieldsFromTagStrategy
      * Reads @responseField tags from the controller class and method, and from
      * the toArray() docblock of the resource named by the method's
      * `@apiResource` or `@apiResourceCollection` tag.
+     *
+     * @param DocBlockTag[] $tagsOnMethod
+     * @param DocBlockTag[] $tagsOnClass
+     * @return array<string, array<string, mixed>>
      */
     public function getFromTags(array $tagsOnMethod, array $tagsOnClass = []): array
     {
@@ -35,6 +40,9 @@ class GetFromResponseFieldTag extends GetFieldsFromTagStrategy
         return $className;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function parseTag(string $tagContent): array
     {
         // Format:
@@ -44,6 +52,7 @@ class GetFromResponseFieldTag extends GetFieldsFromTagStrategy
         // @responseField user_id integer The ID of the user.
         // Two, three or four words: the name and type come first, then an optional
         // "required", then the description.
+        // @phpstan-ignore argument.type (preg_split() fails only on a PCRE error, and the pattern is a constant)
         [$name, $type, $third, $rest] = array_pad(preg_split('/\s+/', mb_trim($tagContent), 4), 4, '');
 
         // The type left out, with "required" in its place.
@@ -73,6 +82,10 @@ class GetFromResponseFieldTag extends GetFieldsFromTagStrategy
         return $data;
     }
 
+    /**
+     * @param DocBlockTag[] $tagsOnMethod
+     * @return array<string, array<string, mixed>>
+     */
     protected function getApiResourceFields(array $tagsOnMethod): array
     {
         $apiResourceClassName = $this->getApiResourceClassName($tagsOnMethod);
@@ -84,6 +97,9 @@ class GetFromResponseFieldTag extends GetFieldsFromTagStrategy
         return $this->extractFieldsFromApiResource($apiResourceClassName);
     }
 
+    /**
+     * @param DocBlockTag[] $tagsOnMethod
+     */
     protected function getApiResourceClassName(array $tagsOnMethod): ?string
     {
         $apiResourceTags = array_values(
@@ -99,6 +115,9 @@ class GetFromResponseFieldTag extends GetFieldsFromTagStrategy
         return $this->getClassNameFromApiResourceTag($apiResourceTags[0]->getContent());
     }
 
+    /**
+     * @return array<string, array<string, mixed>>
+     */
     protected function extractFieldsFromApiResource(string $className): array
     {
         $method = u::getReflectedRouteMethod([$className, 'toArray']);
@@ -111,6 +130,10 @@ class GetFromResponseFieldTag extends GetFieldsFromTagStrategy
         return $this->applyWrapKeyPrefix($fields, $wrapKey);
     }
 
+    /**
+     * @param array<string, array<string, mixed>> $fields
+     * @return array<string, array<string, mixed>>
+     */
     protected function applyWrapKeyPrefix(array $fields, ?string $wrapKey): array
     {
         if ($wrapKey === null) {

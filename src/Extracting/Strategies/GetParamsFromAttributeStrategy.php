@@ -31,6 +31,10 @@ class GetParamsFromAttributeStrategy extends PhpAttributeStrategy
         return array_map([$this, 'normalizeParameterData'], $parameters);
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
     protected function normalizeParameterData(array $data): array
     {
         $data['type'] = static::normalizeTypeName($data['type']);
