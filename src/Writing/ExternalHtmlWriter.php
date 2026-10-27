@@ -6,6 +6,7 @@ namespace Ipsocode\Scribe\Writing;
 
 use Hypervel\Support\Facades\View;
 use InvalidArgumentException;
+use Ipsocode\Camel\Output\OutputEndpointData;
 
 /**
  * Writes a mostly empty page that hands the OpenAPI spec's URL to a client-side
@@ -26,6 +27,9 @@ class ExternalHtmlWriter extends HtmlWriter
      */
     public const THEMES = ['scalar', 'elements', 'rapidoc'];
 
+    /**
+     * @param array<int, array{description: string, name: string, endpoints: array<int, OutputEndpointData>}> $groupedEndpoints
+     */
     public function generate(array $groupedEndpoints, string $sourceFolder, string $destinationFolder): void
     {
         $template = $this->config->get('theme');
@@ -61,6 +65,9 @@ class ExternalHtmlWriter extends HtmlWriter
         file_put_contents($destinationFolder . '/index.html', $output);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getMetadata(): array
     {
         // These relative paths suit the static types; for the hypervel types Writer
