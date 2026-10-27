@@ -11,6 +11,10 @@ use Hypervel\Support\Arr;
 
 /**
  * Remove one or more strategies from a list of strategies.
+ *
+ * @param array<int, array{0: string, 1: array<string, mixed>}|string> $strategiesList
+ * @param array<int, string> $strategyNamesToRemove
+ * @return array<int, array{0: string, 1: array<string, mixed>}|string>
  */
 function removeStrategies(array $strategiesList, array $strategyNamesToRemove): array
 {
@@ -31,9 +35,12 @@ function removeStrategies(array $strategiesList, array $strategyNamesToRemove): 
  * Add a strategy with its settings to a list of strategies, replacing the
  * strategy's existing entry if there is one.
  *
- * @param array $configurationTuple Tuple of [strategyName, settingsArray].
- *                                  Every strategy supports the "only" and "except" settings, to apply it to specific endpoints.
- *                                  Strategy::wrapWithSettings(only: [], except: []) builds the tuple.
+ * Every strategy supports the "only" and "except" settings, to apply it to specific endpoints.
+ * Strategy::wrapWithSettings(only: [], except: []) builds the tuple.
+ *
+ * @param array<int, array{0: string, 1: array<string, mixed>}|string> $strategiesList
+ * @param array{0: string, 1: array<string, mixed>} $configurationTuple Tuple of [strategyName, settingsArray]
+ * @return array<int, array{0: string, 1: array<string, mixed>}|string>
  */
 function configureStrategy(array $strategiesList, array $configurationTuple): array
 {
