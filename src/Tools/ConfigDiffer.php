@@ -27,13 +27,13 @@ class ConfigDiffer
     protected const string REDACTED = '<redacted>';
 
     /**
-     * @param array $original the baseline to compare against — the package's own defaults
-     * @param array $changed the array being described, whose keys drive the walk
-     * @param array $ignorePaths dotted paths to skip, as `Str::is()` patterns. For prose and
-     *                           per-application lists, where "differs from the default" is the
-     *                           normal state and reporting it is only noise.
-     * @param array $asList dotted paths to compare as unordered lists rather than by key,
-     *                      reported as `added x: removed y`
+     * @param array<string, mixed> $original the baseline to compare against — the package's own defaults
+     * @param array<string, mixed> $changed the array being described, whose keys drive the walk
+     * @param string[] $ignorePaths dotted paths to skip, as `Str::is()` patterns. For prose and
+     *                              per-application lists, where "differs from the default" is the
+     *                              normal state and reporting it is only noise.
+     * @param string[] $asList dotted paths to compare as unordered lists rather than by key,
+     *                         reported as `added x: removed y`
      * @param string[] $redactPaths dotted paths, as `Str::is()` patterns, whose values are reported
      *                              as changed but never printed, besides any key matching
      *                              SENSITIVE_KEY. The output is meant for a public bug report.
@@ -56,6 +56,7 @@ class ConfigDiffer
     }
 
     /**
+     * @param array<int|string, mixed> $new
      * @return array<string, string>
      */
     protected function recursiveItemDiff(mixed $old, array $new, string $prefix = ''): array
@@ -88,11 +89,14 @@ class ConfigDiffer
             }
         }
 
+        // @phpstan-ignore return.type (json_encode() fails only on invalid UTF-8 or non-finite floats, which a config file's scalar values do not hold)
         return $diff;
     }
 
     /**
      * Describe a list by what joined and left it, ignoring order.
+     *
+     * @param array<int|string, mixed> $value
      */
     protected function diffList(mixed $oldValue, array $value): string
     {
@@ -126,6 +130,8 @@ class ConfigDiffer
      * The comparison uses the real values, so a rotated credential still counts
      * as a change; only what is returned for printing is redacted.
      *
+     * @param array<int|string, mixed> $a
+     * @param array<int|string, mixed> $b
      * @return array<int|string, string>
      */
     protected function subtractArraysFlat(array $a, array $b): array
