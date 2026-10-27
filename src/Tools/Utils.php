@@ -322,9 +322,8 @@ class Utils
      * Hypervel renders the translation key; this renders the EN version instead.
      *
      * @param array<string, mixed> $replace
-     * @return string
      */
-    public static function trans(string $key, array $replace = [])
+    public static function trans(string $key, array $replace = []): string
     {
         // The service provider registers the `scribe` namespace with
         // loadTranslationsFrom(), and the framework's FileLoader merges an
@@ -332,7 +331,7 @@ class Utils
         /** @var string $translation */
         $translation = trans($key, $replace);
 
-        if ($translation === $key || $translation === null) {
+        if ($translation === $key) {
             /** @var string $translation */
             $translation = trans($key, $replace, 'en');
         }
