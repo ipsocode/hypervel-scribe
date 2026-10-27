@@ -171,13 +171,18 @@ class GenerateDocumentation extends Command
         $this->runBootstrapHook();
     }
 
-    protected function runBootstrapHook()
+    protected function runBootstrapHook(): void
     {
         if (Globals::$__bootstrap !== null) {
             call_user_func_array(Globals::$__bootstrap, [$this]);
         }
     }
 
+    /**
+     * @param array<string, array<string, mixed>> $groupedEndpoints
+     * @param array<int, array<string, mixed>> $userDefinedEndpoints
+     * @return array<string, array<string, mixed>>
+     */
     protected function mergeUserDefinedEndpoints(array $groupedEndpoints, array $userDefinedEndpoints): array
     {
         foreach ($userDefinedEndpoints as $endpoint) {
@@ -216,10 +221,12 @@ class GenerateDocumentation extends Command
 
         if ($this->docConfig->outputRoutedThroughApp()) {
             if ($this->docConfig->get('hypervel.add_routes')) {
+                /** @var string $url */
                 $url = url($this->docConfig->get('hypervel.docs_url'));
             }
         } elseif (Str::endsWith(base_path('public'), 'public') && Str::startsWith($this->docConfig->get('static.output_path'), 'public/')) {
-            $url = url(str_replace('public/', '', $this->docConfig->get('static.output_path')));
+            /** @var string $url */
+            $url = url(str_replace('public/', '', $this->docConfig->get('static.output_path'))); // @phpstan-ignore argument.type (static.output_path is a string)
         }
 
         $this->newLine();

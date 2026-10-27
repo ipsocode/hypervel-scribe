@@ -14,6 +14,9 @@ class GroupedEndpointsFromCamelDir implements GroupedEndpointsContract
     {
     }
 
+    /**
+     * @return array<string, array<string, mixed>>
+     */
     public function get(): array
     {
         if (! is_dir(Camel::camelDir($this->paths))) {
