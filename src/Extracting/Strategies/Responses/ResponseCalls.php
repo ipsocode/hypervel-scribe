@@ -101,6 +101,7 @@ class ResponseCalls extends Strategy
                 ->map(fn (string $filePath) => new UploadedFile(
                     $filePath,
                     basename($filePath),
+                    // @phpstan-ignore argument.type (the configured file exists, so its MIME type is read; false would mean an unreadable file)
                     mime_content_type($filePath),
                     test: true
                 ))
@@ -227,6 +228,7 @@ class ResponseCalls extends Strategy
             $cookies,
             $fileParameters,
             $this->transformHeadersToServerVars($headers),
+            // @phpstan-ignore argument.type (json_encode() fails only on non-finite floats or invalid UTF-8, which parameters parsed from tags do not hold)
             json_encode($bodyParams)
         ));
 
