@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Ipsocode\Scribe\Tests\Feature\Matching;
 
+use Hypervel\Routing\Route;
+use Hypervel\Routing\RouteCollection;
 use Hypervel\Telescope\Telescope;
 use Ipsocode\Scribe\Matching\MatchedRoute;
 use Ipsocode\Scribe\Matching\RouteMatcher;
@@ -118,6 +120,28 @@ class RouteMatcherTest extends TestCase
 
         $this->assertNotEmpty($ids);
         $this->assertSame(array_unique($ids), $ids);
+    }
+
+    #[Test]
+    public function aRouteMatchingSeveralRulesIsMatchedOnceWithCompiledRoutes(): void
+    {
+        $routes = new RouteCollection;
+        $routes->add((new Route(['GET'], 'api/users', ['uses' => 'App\X@index']))->name('users'));
+        $routes->add((new Route(['GET'], 'api/posts', ['uses' => 'App\X@posts']))->name('posts'));
+        $this->app->get('router')->setCompiledRoutes($routes->compile());
+
+        $rules = [
+            ['match' => ['prefixes' => ['api/*'], 'domains' => ['*']]],
+            ['match' => ['prefixes' => ['api/users*'], 'domains' => ['*']]],
+        ];
+
+        $matched = array_map(
+            fn (MatchedRoute $route) => $route->getRoute()->methods()[0] . ' ' . $route->getRoute()->uri(),
+            (new RouteMatcher)->getRoutes($rules),
+        );
+
+        sort($matched);
+        $this->assertSame(['GET api/posts', 'GET api/users'], $matched);
     }
 
     #[Test]

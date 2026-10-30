@@ -7,6 +7,9 @@ namespace Ipsocode\Scribe\Matching;
 use ArrayAccess;
 use Hypervel\Routing\Route;
 
+/**
+ * @implements ArrayAccess<string, mixed>
+ */
 class MatchedRoute implements ArrayAccess
 {
     protected Route $route;
@@ -28,7 +31,7 @@ class MatchedRoute implements ArrayAccess
 
     public function offsetGet($offset): mixed
     {
-        return call_user_func([$this, 'get' . ucfirst($offset)]);
+        return $this->{'get' . ucfirst($offset)}();
     }
 
     public function offsetSet($offset, $value): void

@@ -154,6 +154,7 @@ class BaseGenerator extends OpenApiGenerator
             $operationId = preg_replace('/[^\w]/', '', Str::camel($endpoint->metadata->title));
         } else {
             $parts = preg_split('/[^\w]/', $endpoint->uri, -1, PREG_SPLIT_NO_EMPTY);
+            // @phpstan-ignore argument.type (preg_split() fails only on a PCRE error, and the pattern is a constant)
             $operationId = Str::lower($endpoint->httpMethods[0]) . implode('', array_map(fn ($part) => ucfirst($part), $parts));
         }
 
@@ -379,7 +380,7 @@ class BaseGenerator extends OpenApiGenerator
     }
 
     /**
-     * @param array<string, Parameter> $parameters
+     * @param array<int, array<string, mixed>> $parameters
      * @return array<int, array<string, mixed>>
      */
     protected function generateQueryParams(OutputEndpointData $endpoint, array $parameters): array

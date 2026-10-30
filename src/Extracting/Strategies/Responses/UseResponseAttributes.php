@@ -66,7 +66,6 @@ class UseResponseAttributes extends PhpAttributeStrategy
     ): ?array {
         $responses = [];
         foreach ([...$attributesOnController, ...$attributesOnFormRequest, ...$attributesOnMethod] as $attributeInstance) {
-            // @phpstan-ignore match.unhandled (static::$attributeNames fetches only these four response attributes)
             $responses[] = match (true) {
                 $attributeInstance instanceof Response => $attributeInstance->toArray(),
                 $attributeInstance instanceof ResponseFromFile => $attributeInstance->toArray(),
@@ -78,6 +77,9 @@ class UseResponseAttributes extends PhpAttributeStrategy
         return $responses;
     }
 
+    /**
+     * @return array{status: int, description: null|string, content: false|string}
+     */
     protected function getApiResourceResponse(ResponseFromApiResource $attributeInstance)
     {
         $modelToBeTransformed = $attributeInstance->modelToBeTransformed();
@@ -195,12 +197,16 @@ class UseResponseAttributes extends PhpAttributeStrategy
         return true;
     }
 
+    /**
+     * @return array{status: int, description: null|string, content: false|string}
+     */
     protected function getTransformerResponse(ResponseFromTransformer $attributeInstance)
     {
         $modelInstantiator = fn () => $this->instantiateExampleModel(
             $attributeInstance->model,
             $attributeInstance->factoryStates,
             $attributeInstance->with,
+            // @phpstan-ignore argument.type (an unknown transformer class throws ReflectionException, which is the intended failure)
             (new ReflectionClass($attributeInstance->name))->getMethod('transform')
         );
 

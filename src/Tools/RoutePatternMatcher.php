@@ -9,7 +9,10 @@ use Hypervel\Support\Str;
 
 class RoutePatternMatcher
 {
-    public static function matches(Route $route, $patterns): bool
+    /**
+     * @param iterable<string>|string $patterns
+     */
+    public static function matches(Route $route, string|iterable $patterns): bool
     {
         $routeName = $route->getName();
         $routePathWithoutInitialSlash = $route->uri();

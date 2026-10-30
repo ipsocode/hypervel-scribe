@@ -22,7 +22,11 @@ class MarkdownParser extends Parsedown
      */
     public array $headings = [];
 
-    protected function blockHeader($Line)
+    /**
+     * @param array{body: string, indent: int, text: string} $Line
+     * @return null|array<string, mixed>
+     */
+    protected function blockHeader($Line): ?array
     {
         $block = parent::blockHeader($Line);
         if (isset($block['element']['name'])) {

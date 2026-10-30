@@ -25,6 +25,10 @@ class UseTransformerTags extends Strategy
     use DatabaseTransactionHelpers;
     use InstantiatesExampleModels;
 
+    /**
+     * @param array<string, mixed> $routeRules
+     * @return null|array<int, array{status: int, content: false|string}>
+     */
     public function __invoke(ExtractedEndpointData $endpointData, array $routeRules = []): ?array
     {
         $methodDocBlock = RouteDocBlocker::getDocBlocksFromRoute($endpointData->route)['method'];
@@ -37,12 +41,14 @@ class UseTransformerTags extends Strategy
      * Get a response from the @transformer/@transformerCollection and @transformerModel tags.
      *
      * @param DocBlockTag[] $allTags
+     * @return null|array<int, array{status: int, content: false|string}>
      */
     public function getTransformerResponseFromTag(DocBlockTag $transformerTag, array $allTags): ?array
     {
         [$statusCode, $transformerClass, $isCollection] = $this->getStatusCodeAndTransformerClass($transformerTag);
         [$model, $factoryStates, $relations, $resourceKey] = $this->getClassToBeTransformed($allTags);
 
+        // @phpstan-ignore argument.type (an unknown transformer class throws ReflectionException, which is the intended failure)
         $modelInstantiator = fn () => $this->instantiateExampleModel($model, $factoryStates, $relations, (new ReflectionClass($transformerClass))->getMethod('transform'));
         $pagination = $this->getTransformerPaginatorData($allTags);
         $serializer = $this->config->get('fractal.serializer');
@@ -64,6 +70,10 @@ class UseTransformerTags extends Strategy
         ];
     }
 
+    /**
+     * @param DocBlockTag[] $tags
+     * @return null|array<int, array{status: int, content: false|string}>
+     */
     public function getTransformerResponseFromTags(array $tags): ?array
     {
         if (empty($transformerTag = $this->getTransformerTag($tags))) {
@@ -73,9 +83,13 @@ class UseTransformerTags extends Strategy
         return $this->getTransformerResponseFromTag($transformerTag, $tags);
     }
 
+    /**
+     * @return array{int, string, bool}
+     */
     private function getStatusCodeAndTransformerClass(DocBlockTag $tag): array
     {
         preg_match('/^(\d{3})?\s?([\s\S]*)$/', $tag->getContent(), $result);
+        // @phpstan-ignore offsetAccess.notFound (the pattern matches any string, so both groups are set)
         $status = (int) ($result[1] ?: 200);
         $transformerClass = $result[2];
         $isCollection = mb_strtolower($tag->getName()) === 'transformercollection';
@@ -84,6 +98,9 @@ class UseTransformerTags extends Strategy
     }
 
     /**
+     * @param DocBlockTag[] $tags
+     * @return array{null|string, string[], string[], null|string}
+     *
      * @throws Exception
      */
     private function getClassToBeTransformed(array $tags): array
@@ -104,6 +121,9 @@ class UseTransformerTags extends Strategy
         return [$type, $states, $relations, $resourceKey];
     }
 
+    /**
+     * @param DocBlockTag[] $tags
+     */
     private function getTransformerTag(array $tags): ?DocBlockTag
     {
         return Arr::first(Utils::filterDocBlockTags($tags, 'transformer', 'transformercollection'));
@@ -115,6 +135,7 @@ class UseTransformerTags extends Strategy
      * adapter wraps a Hypervel paginator, so Fractal's bundled one does not fit.
      *
      * @param DocBlockTag[] $tags
+     * @return array{adapter: null|string, perPage: null|string}
      */
     private function getTransformerPaginatorData(array $tags): array
     {
@@ -124,6 +145,7 @@ class UseTransformerTags extends Strategy
         }
 
         preg_match('/^\s*(.+?)(\s+\d+)?$/', $tag->getContent(), $result);
+        // @phpstan-ignore offsetAccess.notFound (the pattern matches any string, so group 1 is set)
         $paginatorAdapter = $result[1];
         $perPage = $result[2] ?? null;
         if ($perPage) {

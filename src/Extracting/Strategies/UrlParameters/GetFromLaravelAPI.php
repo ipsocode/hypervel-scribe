@@ -61,7 +61,7 @@ class GetFromLaravelAPI extends Strategy
         $strategies = collect(['id', 'slug'])->map(function ($name) {
             $friendlyName = $name === 'id' ? 'ID' : $name;
 
-            return function ($url, $paramName) use ($name, $friendlyName) {
+            return function (string $url, string $paramName) use ($name, $friendlyName) {
                 if ($paramName === $name) {
                     $thing = $this->getNameOfUrlThing($url, $paramName);
 
@@ -76,7 +76,7 @@ class GetFromLaravelAPI extends Strategy
         })->toArray();
 
         // /categories/{category} gives "The category."
-        $strategies[] = function ($url, $paramName) {
+        $strategies[] = function (string $url, string $paramName) {
             $thing = $this->getNameOfUrlThing($url, $paramName);
             if ($thing === $paramName) {
                 return "The {$thing}.";
@@ -92,6 +92,10 @@ class GetFromLaravelAPI extends Strategy
         return '';
     }
 
+    /**
+     * @param array<string, array<string, mixed>> $parameters
+     * @return array<string, array<string, mixed>>
+     */
     protected function inferBetterTypesAndExamplesForEloquentUrlParameters(array $parameters, ExtractedEndpointData $endpointData): array
     {
         // Eloquent models linked to a URL parameter, by parameter name.
@@ -178,6 +182,10 @@ class GetFromLaravelAPI extends Strategy
         return self::$exampleRouteKeys[$cacheKey];
     }
 
+    /**
+     * @param array<string, array<string, mixed>> $parameters
+     * @return array<string, array<string, mixed>>
+     */
     protected function inferBetterTypesAndExamplesForEnumUrlParameters(array $parameters, ExtractedEndpointData $endpointData): array
     {
         $typeHintedEnums = UrlParamsNormalizer::getTypeHintedEnums($endpointData->method);
@@ -188,6 +196,7 @@ class GetFromLaravelAPI extends Strategy
             $parameters[$argumentName]['type'] = static::normalizeTypeName((string) $enum->getBackingType());
 
             try {
+                // @phpstan-ignore method.notFound (a pure enum's cases have no value: the call throws and the catch records null)
                 $parameters[$argumentName]['example'] = $enum->getCases()[0]->getBackingValue();
             } catch (Throwable) {
                 $parameters[$argumentName]['example'] = null;
@@ -197,6 +206,10 @@ class GetFromLaravelAPI extends Strategy
         return $parameters;
     }
 
+    /**
+     * @param array<string, array<string, mixed>> $parameters
+     * @return array<string, array<string, mixed>>
+     */
     protected function setTypesAndExamplesForOthers(array $parameters, ExtractedEndpointData $endpointData): array
     {
         foreach ($parameters as $name => $parameter) {

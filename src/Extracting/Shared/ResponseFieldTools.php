@@ -13,6 +13,9 @@ class ResponseFieldTools
 {
     use ParamHelpers;
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public static function inferTypeOfResponseField(array $data, ExtractedEndpointData $endpointData): string
     {
         if (! empty($data['type'])) {

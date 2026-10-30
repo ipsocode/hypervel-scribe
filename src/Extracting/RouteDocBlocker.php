@@ -23,6 +23,9 @@ use ReflectionMethod;
  */
 class RouteDocBlocker
 {
+    /**
+     * @var array<string, array{method: ParsedDocBlock, class: ParsedDocBlock}> keyed by route, class and method
+     */
     protected static array $docBlocks = [];
 
     /**
@@ -128,14 +131,20 @@ class RouteDocBlocker
         return $classNameOrInstance;
     }
 
-    protected static function getCachedDocBlock(Route $route, string $className, string $methodName)
+    /**
+     * @return null|array{method: ParsedDocBlock, class: ParsedDocBlock}
+     */
+    protected static function getCachedDocBlock(Route $route, string $className, string $methodName): ?array
     {
         $routeId = self::getRouteCacheId($route, $className, $methodName);
 
         return self::$docBlocks[$routeId] ?? null;
     }
 
-    protected static function cacheDocBlocks(Route $route, string $className, string $methodName, array $docBlocks)
+    /**
+     * @param array{method: ParsedDocBlock, class: ParsedDocBlock} $docBlocks
+     */
+    protected static function cacheDocBlocks(Route $route, string $className, string $methodName, array $docBlocks): void
     {
         $routeId = self::getRouteCacheId($route, $className, $methodName);
         self::$docBlocks[$routeId] = $docBlocks;

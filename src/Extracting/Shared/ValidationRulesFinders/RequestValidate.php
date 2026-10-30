@@ -12,10 +12,10 @@ use PhpParser\Node;
  */
 class RequestValidate
 {
-    public static function find(Node $node)
+    public static function find(Node $node): ?Node\Expr
     {
         if (! $node instanceof Node\Stmt\Expression) {
-            return;
+            return null;
         }
 
         $expr = $node->expr;
@@ -28,17 +28,19 @@ class RequestValidate
             && $expr->var instanceof Node\Expr\Variable
             && in_array($expr->var->name, ['request', 'req'])
         ) {
-            if ($expr->name->name === 'validate') {
+            if ($expr->name instanceof Node\Identifier && $expr->name->name === 'validate') {
                 $argument = $expr->args[0] ?? null;
 
                 return $argument instanceof Node\Arg ? $argument->value : null;
             }
 
-            if ($expr->name->name === 'validateWithBag') {
+            if ($expr->name instanceof Node\Identifier && $expr->name->name === 'validateWithBag') {
                 $argument = $expr->args[1] ?? null;
 
                 return $argument instanceof Node\Arg ? $argument->value : null;
             }
         }
+
+        return null;
     }
 }

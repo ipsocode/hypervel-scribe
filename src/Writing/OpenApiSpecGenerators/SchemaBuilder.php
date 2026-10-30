@@ -178,7 +178,9 @@ final class SchemaBuilder
         }
 
         if ($schema['type'] === 'array' && ! empty($value)) {
-            $schema['example'] = json_decode(json_encode($schema['example']), true); // Convert stdClass to array
+            // Convert stdClass to array
+            // @phpstan-ignore argument.type (json_encode() fails only on invalid UTF-8 or non-finite floats, and the example came from json_decode())
+            $schema['example'] = json_decode(json_encode($schema['example']), true);
 
             $sample = $value[0];
             $typeOfEachItem = $this->openApiType(gettype($sample));

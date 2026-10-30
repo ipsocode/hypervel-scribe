@@ -9,6 +9,9 @@ use Attribute;
 #[Attribute(Attribute::IS_REPEATABLE | Attribute::TARGET_FUNCTION | Attribute::TARGET_METHOD | Attribute::TARGET_CLASS)]
 class Response
 {
+    /**
+     * @param null|array<array-key, mixed>|string $content
+     */
     public function __construct(
         public array|string|null $content = null,
         public int $status = 200,

@@ -9,7 +9,10 @@ use stdClass;
 
 class ResponseFileTools
 {
-    public static function getResponseContents($filePath, array|string|null $merge): string
+    /**
+     * @param null|array<string, mixed>|string $merge
+     */
+    public static function getResponseContents(string $filePath, array|string|null $merge): string
     {
         $content = self::getFileContents($filePath);
         if (empty($merge)) {
@@ -38,10 +41,11 @@ class ResponseFileTools
             $fileData->{$key} = $value;
         }
 
+        // @phpstan-ignore return.type (json_encode() fails only on invalid UTF-8 or non-finite floats, and both inputs came from json_decode())
         return json_encode($fileData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 
-    protected static function getFileContents($filePath): string
+    protected static function getFileContents(string $filePath): string
     {
         if (! file_exists($filePath)) {
             // Fall back to a path relative to the storage directory
@@ -52,6 +56,7 @@ class ResponseFileTools
             $filePath = storage_path($filePath);
         }
 
+        // @phpstan-ignore return.type (the file exists, so a read fails only on permissions)
         return file_get_contents($filePath, true);
     }
 }

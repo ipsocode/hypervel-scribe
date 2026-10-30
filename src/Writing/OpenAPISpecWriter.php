@@ -36,8 +36,10 @@ class OpenAPISpecWriter
             SecurityGenerator::class,
             OverridesGenerator::class,
         ];
+        /** @var array<int, class-string> $additionalGenerators */
+        $additionalGenerators = $this->config->get('openapi.generators', []);
         $this->generators = collect($generators)
-            ->merge($this->config->get('openapi.generators', []))
+            ->merge($additionalGenerators)
             ->map(fn ($generatorClass) => app()->makeWith($generatorClass, ['config' => $this->config]));
     }
 
@@ -54,6 +56,7 @@ class OpenAPISpecWriter
      * See https://swagger.io/specification/.
      *
      * @param array<int, array{description: string, name: string, endpoints: OutputEndpointData[]}> $groupedEndpoints
+     * @return array<string, mixed>
      */
     public function generateSpecContent(array $groupedEndpoints): array
     {
@@ -69,6 +72,7 @@ class OpenAPISpecWriter
 
     /**
      * @param array<int, array{description: string, name: string, endpoints: OutputEndpointData[]}> $groupedEndpoints
+     * @return array<string, mixed>
      */
     protected function generatePathsSpec(array $groupedEndpoints): array
     {
