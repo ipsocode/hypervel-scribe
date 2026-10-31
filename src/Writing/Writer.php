@@ -345,7 +345,7 @@ class Writer
     {
         $salt = 0;
         do {
-            $marker = 'SCRIBE_PAGE_' . strtoupper(substr(hash('sha256', $salt++ . $contents), 0, 24));
+            $marker = 'SCRIBE_PAGE_' . strtoupper(substr(hash('xxh128', $contents, false, ['seed' => $salt++]), 0, 24));
         } while (str_contains($contents, $marker));
 
         return $marker;
