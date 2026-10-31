@@ -12,6 +12,7 @@ declare(strict_types=1);
  *
  * - `title` is a top-level scalar the application overrides.
  * - `auth` names one key of a nested option array, and none of its siblings.
+ * - `mcp` names one key of a nested option array, and none of its siblings.
  * - `routes` is a *list*, whose entries are positional rather than named.
  */
 
@@ -20,6 +21,10 @@ return [
 
     'auth' => [
         'enabled' => true,
+    ],
+
+    'mcp' => [
+        'path' => '/consumer/mcp',
     ],
 
     'routes' => [

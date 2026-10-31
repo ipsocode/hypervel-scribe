@@ -4,16 +4,21 @@ declare(strict_types=1);
 
 namespace Ipsocode\Scribe;
 
+use Hypervel\Contracts\Config\Repository;
 use Hypervel\Contracts\View\Factory as ViewFactoryContract;
 use Hypervel\Foundation\Console\AboutCommand;
+use Hypervel\Mcp\Facades\Mcp;
 use Hypervel\Support\ServiceProvider;
 use Hypervel\Support\Str;
 use Hypervel\View\Compilers\BladeCompiler;
 use Ipsocode\Scribe\Commands\DiffConfig;
 use Ipsocode\Scribe\Commands\GenerateDocumentation;
 use Ipsocode\Scribe\Commands\MakeStrategy;
+use Ipsocode\Scribe\Exceptions\UnsafeMcpSandbox;
 use Ipsocode\Scribe\Matching\RouteMatcher;
 use Ipsocode\Scribe\Matching\RouteMatcherInterface;
+use Ipsocode\Scribe\Mcp\ScribeServer;
+use Ipsocode\Scribe\Mcp\Tools\CallSandboxTool;
 use Ipsocode\Scribe\Tools\BladeMarkdownEngine;
 
 class ScribeServiceProvider extends ServiceProvider
@@ -44,6 +49,7 @@ class ScribeServiceProvider extends ServiceProvider
             'fractal',
             'groups',
             'hypervel',
+            'mcp',
             'openapi',
             'postman',
             'static',
@@ -56,6 +62,8 @@ class ScribeServiceProvider extends ServiceProvider
         $this->registerViews();
 
         $this->bootRoutes();
+
+        $this->bootMcp();
 
         // Translations back the extractor's auth and validation rule descriptions.
         $this->loadTranslationsFrom(realpath(__DIR__ . '/../lang') ?: __DIR__ . '/../lang', 'scribe');
@@ -102,6 +110,64 @@ class ScribeServiceProvider extends ServiceProvider
         if (Str::endsWith($type, 'hypervel') && config('scribe.hypervel.add_routes', true)) {
             $this->loadRoutesFrom(__DIR__ . '/../routes/hypervel.php');
         }
+    }
+
+    /**
+     * Register the MCP servers for the generated docs, over HTTP and as a local
+     * server, when `scribe.mcp.enabled` is set. Neither exists otherwise.
+     */
+    protected function bootMcp(): void
+    {
+        $config = $this->app->get('config');
+
+        if (! $config->boolean('scribe.mcp.enabled')) {
+            return;
+        }
+
+        Mcp::web($config->string('scribe.mcp.path'), ScribeServer::class)
+            ->middleware($config->array('scribe.mcp.middleware'))
+            ->name('scribe.mcp');
+
+        Mcp::local($config->string('scribe.mcp.local_name'), ScribeServer::class);
+
+        $this->guardSandbox($config);
+    }
+
+    /**
+     * Refuse to boot a live MCP sandbox that has no URL of its own, or that would call the production application.
+     */
+    protected function guardSandbox(Repository $config): void
+    {
+        $sandbox = $this->app->make(CallSandboxTool::class);
+
+        if (! $sandbox->shouldRegister($config) || ! $sandbox->isLive()) {
+            return;
+        }
+
+        if (blank($config->get('scribe.mcp.sandbox.base_url'))) {
+            throw UnsafeMcpSandbox::missingBaseUrl();
+        }
+
+        $production = array_map($this->origin(...), array_filter([
+            $config->get('app.url'),
+            $config->get('scribe.base_url'),
+            $config->get('scribe.try_it_out.base_url'),
+        ]));
+
+        if ($this->app->isProduction() && in_array($this->origin($sandbox->baseUrl()), $production, true)) {
+            throw UnsafeMcpSandbox::productionUrl($sandbox->baseUrl());
+        }
+    }
+
+    /**
+     * Get the scheme, host and port of a URL, so that two spellings of one server compare equal.
+     */
+    protected function origin(string $url): string
+    {
+        $parts = parse_url($url) + ['scheme' => 'http', 'host' => $url];
+        $scheme = mb_strtolower($parts['scheme']);
+
+        return $scheme . '://' . mb_strtolower($parts['host']) . ':' . ($parts['port'] ?? ($scheme === 'https' ? 443 : 80));
     }
 
     /**

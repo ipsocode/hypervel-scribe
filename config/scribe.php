@@ -118,6 +118,47 @@ return [
         'csrf_url' => '/sanctum/csrf-cookie',
     ],
 
+    'mcp' => [
+        // Serve the generated docs to AI clients over MCP, so they can search the API and read an operation in full.
+        // It reads the generated OpenAPI spec, so run `scribe:generate` first. Off by default.
+        'enabled' => (bool) env('SCRIBE_MCP_ENABLED', false),
+
+        // The URL of the HTTP server (web servers accept POST requests only).
+        'path' => '/docs/mcp',
+
+        // The name of the local server, started with `php artisan mcp:start scribe`.
+        'local_name' => 'scribe',
+
+        // Middleware for the HTTP server, such as 'auth:sanctum' or 'throttle:scribe-mcp'.
+        'middleware' => [],
+
+        // Add a tool that lets an AI client try an endpoint: it checks the request against the endpoint's parameters
+        // and answers with the response by `mode`.
+        'sandbox' => [
+            'enabled' => (bool) env('SCRIBE_MCP_SANDBOX', false),
+
+            // `examples` answers with the example the documentation shows for the response and calls nothing.
+            // `http` sends the request to `base_url`, so point that at a sandbox, never at production data.
+            'mode' => env('SCRIBE_MCP_SANDBOX_MODE', 'examples'),
+
+            // [`http` mode] The only server the tool calls, which `http` mode needs: the application refuses to boot
+            // without it, and in production when it is the URL of the application itself (`app.url`, `base_url` or
+            // `try_it_out.base_url`).
+            'base_url' => env('SCRIBE_MCP_SANDBOX_URL'),
+
+            // [`http` mode] Seconds to wait for the sandbox, for its response and then for its body, before the tool
+            // returns an error. A read already waiting when the body's time runs out can take up to this much more.
+            // A float, such as 10.0.
+            'timeout' => (float) env('SCRIBE_MCP_SANDBOX_TIMEOUT', 10),
+
+            // [`http` mode] A response body past this many bytes is cut off, and the tool says so.
+            'max_response_bytes' => 65536,
+
+            // [`http` mode] The HTTP methods the tool may send.
+            'methods' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+        ],
+    ],
+
     // How is your API authenticated? This information will be used in the displayed docs, generated examples and response calls.
     'auth' => [
         // Set this to true if ANY endpoints in your API use authentication.

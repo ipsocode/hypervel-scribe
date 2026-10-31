@@ -126,7 +126,7 @@ Commit `.scribe/` if you edit it, so the edits survive a fresh checkout.
 ## The docs routes
 
 For the `hypervel` and `external_hypervel` types the package registers three
-routes, defined in [`routes/hypervel.php`](../../routes/hypervel.php):
+routes (a fourth, the [MCP server](mcp.md), when `mcp.enabled` is on), defined in [`routes/hypervel.php`](../../routes/hypervel.php):
 
 | Name | URL | Serves |
 |---|---|---|
@@ -147,8 +147,8 @@ is compiled as Blade. For
 `external_hypervel` without the routes, `scribe:generate` warns that the viewer
 has no spec to load.
 
-The `static` types register no routes: the web server serves `public/docs/`
-directly.
+The `static` types register no docs routes: the web server serves `public/docs/`
+directly. Only the [MCP server](mcp.md), when `mcp.enabled` is on, is routed through the application, for every type.
 
 ## Next
 

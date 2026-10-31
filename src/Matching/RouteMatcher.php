@@ -69,6 +69,11 @@ class RouteMatcher implements RouteMatcherInterface
         $excludes[] = 'scribe';
         $excludes[] = 'scribe.*';
 
+        // Exclude the MCP server's path too, since its GET and DELETE routes have no name.
+        if (config('scribe.mcp.enabled')) {
+            $excludes[] = ltrim(config('scribe.mcp.path'), '/');
+        }
+
         // Exclude Telescope's routes when Telescope is installed.
         if (class_exists(Telescope::class)) {
             $excludes[] = 'telescope/*';
