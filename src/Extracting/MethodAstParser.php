@@ -19,13 +19,20 @@ use Throwable;
  */
 class MethodAstParser
 {
+    /**
+     * @var array<string, Stmt\ClassMethod>
+     */
     protected static array $methodAsts = [];
 
+    /**
+     * @var array<string, null|array<int, Stmt>>
+     */
     protected static array $classAsts = [];
 
-    public static function getMethodAst(ReflectionFunctionAbstract $method)
+    public static function getMethodAst(ReflectionFunctionAbstract $method): ?Stmt\ClassMethod
     {
         $methodName = $method->name;
+        /** @var string $fileName */
         $fileName = $method->getFileName();
 
         $methodAst = self::getCachedMethodAst($fileName, $methodName);
@@ -73,12 +80,12 @@ class MethodAstParser
 
     /**
      * @param Stmt[] $ast
-     * @return null|Node
      */
-    protected static function findMethodInClassAst(array $ast, string $methodName)
+    protected static function findMethodInClassAst(array $ast, string $methodName): ?Stmt\ClassMethod
     {
         $nodeFinder = new NodeFinder;
 
+        /** @var null|Stmt\ClassMethod */
         return $nodeFinder->findFirst($ast, function (Node $node) use ($methodName) {
             // Only named class methods are found; closures are not handled.
             return $node instanceof Stmt\ClassMethod
@@ -86,14 +93,14 @@ class MethodAstParser
         });
     }
 
-    protected static function getCachedMethodAst(string $fileName, string $methodName)
+    protected static function getCachedMethodAst(string $fileName, string $methodName): ?Stmt\ClassMethod
     {
         $key = self::getAstCacheId($fileName, $methodName);
 
         return self::$methodAsts[$key] ?? null;
     }
 
-    protected static function cacheMethodAst(string $fileName, string $methodName, Node $methodAst)
+    protected static function cacheMethodAst(string $fileName, string $methodName, Stmt\ClassMethod $methodAst): void
     {
         $key = self::getAstCacheId($fileName, $methodName);
         self::$methodAsts[$key] = $methodAst;
@@ -104,10 +111,13 @@ class MethodAstParser
         return $fileName . '///' . $methodName;
     }
 
-    private static function getClassAst(string $fileName)
+    /**
+     * @return null|array<int, Stmt>
+     */
+    private static function getClassAst(string $fileName): ?array
     {
         $classAst = self::$classAsts[$fileName]
-            ?? self::parseClassSourceCode(file_get_contents($fileName));
+            ?? self::parseClassSourceCode(file_get_contents($fileName)); // @phpstan-ignore argument.type (the file was reflected from, so it exists)
 
         return self::$classAsts[$fileName] = $classAst;
     }

@@ -12,7 +12,7 @@ use ReflectionClass;
 use ReflectionFunctionAbstract;
 
 /**
- * @template T
+ * @template T of object
  */
 abstract class PhpAttributeStrategy extends Strategy
 {
@@ -24,6 +24,10 @@ abstract class PhpAttributeStrategy extends Strategy
      */
     protected static array $attributeNames = [];
 
+    /**
+     * @param array<string, mixed> $routeRules
+     * @return array<int|string, mixed>
+     */
     public function __invoke(ExtractedEndpointData $endpointData, array $routeRules = []): array
     {
         $this->endpointData = $endpointData;
@@ -34,22 +38,26 @@ abstract class PhpAttributeStrategy extends Strategy
     }
 
     /**
+     * @param null|ReflectionClass<object> $class
      * @return array{array<T>, array<T>, array<T>}
      */
     protected function getAttributes(ReflectionFunctionAbstract $method, ?ReflectionClass $class = null): array
     {
+        /** @var array<int, T> $attributesOnMethod */
         $attributesOnMethod = collect(static::$attributeNames)
             ->flatMap(fn (string $name) => $method->getAttributes($name, ReflectionAttribute::IS_INSTANCEOF))
             ->map(fn (ReflectionAttribute $a) => $a->newInstance())->all();
 
         // Attributes on the method's FormRequest count too.
         if ($formRequestClass = $this->getFormRequestReflectionClass($method)) {
+            /** @var array<int, T> $attributesOnFormRequest */
             $attributesOnFormRequest = collect(static::$attributeNames)
                 ->flatMap(fn (string $name) => $formRequestClass->getAttributes($name, ReflectionAttribute::IS_INSTANCEOF))
                 ->map(fn (ReflectionAttribute $a) => $a->newInstance())->all();
         }
 
         if ($class) {
+            /** @var array<int, T> $attributesOnController */
             $attributesOnController = collect(static::$attributeNames)
                 ->flatMap(fn (string $name) => $class->getAttributes($name, ReflectionAttribute::IS_INSTANCEOF))
                 ->map(fn (ReflectionAttribute $a) => $a->newInstance())->all();
@@ -60,7 +68,9 @@ abstract class PhpAttributeStrategy extends Strategy
 
     /**
      * @param array<T> $attributesOnMethod
+     * @param array<T> $attributesOnFormRequest
      * @param array<T> $attributesOnController
+     * @return null|array<int|string, mixed>
      */
     abstract protected function extractFromAttributes(
         ExtractedEndpointData $endpointData,

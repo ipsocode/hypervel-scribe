@@ -14,6 +14,7 @@ use ReflectionMethod;
 use ReflectionNamedType;
 use ReflectionParameter;
 use Throwable;
+use UnitEnum;
 
 class UrlParamsNormalizer
 {
@@ -101,6 +102,8 @@ class UrlParamsNormalizer
     /**
      * The action's type-hinted arguments that are Eloquent models, as
      * [<variable_name> => $instance].
+     *
+     * @return array<string, Model>
      */
     public static function getTypeHintedEloquentModels(ReflectionFunctionAbstract $method): array
     {
@@ -132,6 +135,8 @@ class UrlParamsNormalizer
     /**
      * The action's type-hinted arguments that are enums, as
      * [<variable_name> => ReflectionEnum].
+     *
+     * @return array<string, ReflectionEnum<UnitEnum>>
      */
     public static function getTypeHintedEnums(ReflectionFunctionAbstract $method): array
     {
@@ -143,7 +148,9 @@ class UrlParamsNormalizer
             }
 
             try {
-                $reflectionEnum = new ReflectionEnum($argumentType->getName());
+                /** @var class-string<UnitEnum> $enumClass a ReflectionException below rejects any other type */
+                $enumClass = $argumentType->getName();
+                $reflectionEnum = new ReflectionEnum($enumClass);
                 $arguments[$argument->getName()] = $reflectionEnum;
             } catch (ReflectionException) {
                 continue;

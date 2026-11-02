@@ -10,7 +10,7 @@ class AnnotationParser
      * Parse an annotation like 'status=400 when="things go wrong" {"message": "failed"}'.
      * Fields are always optional and may appear at the start or the end of the string.
      *
-     * @param array $allowedFields list of fields to look for
+     * @param string[] $allowedFields list of fields to look for
      * @return array{content: string, fields: string[]}
      */
     public static function parseIntoContentAndFields(string $annotationContent, array $allowedFields): array
@@ -48,6 +48,8 @@ class AnnotationParser
      * Parse an annotation like 'title=This message="everything good"' into a key-value array.
      * All non key-value fields will be ignored. Useful for `@apiResourceAdditional`,
      * where users may specify arbitrary fields.
+     *
+     * @return array<string, string>
      */
     public static function parseIntoFields(string $annotationContent): array
     {

@@ -10,6 +10,9 @@ class GetFromBodyParamTag extends GetFieldsFromTagStrategy
 {
     protected string $tagName = 'bodyParam';
 
+    /**
+     * @return array<string, mixed>
+     */
     public function parseTag(string $tagContent): array
     {
         // Format:
@@ -22,6 +25,7 @@ class GetFromBodyParamTag extends GetFieldsFromTagStrategy
 
         if (empty($parsedContent)) {
             // Just a name and type.
+            // @phpstan-ignore offsetAccess.nonArray (preg_split() fails only on a PCRE error, and the pattern is a constant)
             [$name, $type] = preg_split('/\s+/', $tagContent);
             $required = false;
             $deprecated = false;

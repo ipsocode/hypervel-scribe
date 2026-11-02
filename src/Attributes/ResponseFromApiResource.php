@@ -11,6 +11,13 @@ use Ipsocode\Scribe\Extracting\Shared\ApiResourceResponseTools;
 #[Attribute(Attribute::IS_REPEATABLE | Attribute::TARGET_FUNCTION | Attribute::TARGET_METHOD | Attribute::TARGET_CLASS)]
 class ResponseFromApiResource
 {
+    /**
+     * @param array<int, string> $factoryStates
+     * @param array<int, string> $with
+     * @param array<int, string> $additional
+     * @param array<int, string> $withCount
+     * @param array<int, string> $call
+     */
     public function __construct(
         public string $name,
         public ?string $model = null,

@@ -31,6 +31,9 @@ class GetFromResponseFieldAttribute extends PhpAttributeStrategy
         ];
     }
 
+    /**
+     * @return array<string, array<string, mixed>>
+     */
     protected function getApiResourceFields(ExtractedEndpointData $endpointData): array
     {
         $apiResourceAttributes = $endpointData->method->getAttributes(ResponseFromApiResource::class);
@@ -40,6 +43,10 @@ class GetFromResponseFieldAttribute extends PhpAttributeStrategy
             ->toArray();
     }
 
+    /**
+     * @param ReflectionAttribute<ResponseFromApiResource> $attribute
+     * @return array<string, array<string, mixed>>
+     */
     protected function extractFieldsFromApiResource(ReflectionAttribute $attribute, ExtractedEndpointData $endpointData): array
     {
         $className = $attribute->newInstance()->name;
@@ -59,6 +66,12 @@ class GetFromResponseFieldAttribute extends PhpAttributeStrategy
             })->toArray();
     }
 
+    /**
+     * @param array<ResponseField> $attributesOnMethod
+     * @param array<ResponseField> $attributesOnFormRequest
+     * @param array<ResponseField> $attributesOnController
+     * @return array<string, array<string, mixed>>
+     */
     protected function getNonApiResourceFields(
         ExtractedEndpointData $endpointData,
         array $attributesOnMethod,

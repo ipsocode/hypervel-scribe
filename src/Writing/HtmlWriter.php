@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ipsocode\Scribe\Writing;
 
+use Hypervel\Support\Collection;
 use Hypervel\Support\Facades\Blade;
 use Hypervel\Support\Facades\View;
 use Hypervel\Support\Str;
@@ -45,6 +46,9 @@ class HtmlWriter
         }
     }
 
+    /**
+     * @param array<int, array{description: string, name: string, endpoints: array<int, OutputEndpointData>}> $groupedEndpoints
+     */
     public function generate(array $groupedEndpoints, string $sourceFolder, string $destinationFolder): void
     {
         $intro = $this->transformMarkdownFileToHTML($sourceFolder . '/intro.md');
@@ -116,6 +120,9 @@ class HtmlWriter
         );
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getMetadata(): array
     {
         // These relative paths suit the static types; for the hypervel types Writer
@@ -239,6 +246,12 @@ class HtmlWriter
         return str_starts_with($path, '/') ? $path : "{$relativeTo}/{$path}";
     }
 
+    /**
+     * @param array<int, array{slug: string, text: string, level: int}> $headingsBeforeEndpoints
+     * @param array<int, array{name: string, subgroups: array<string, Collection<int, OutputEndpointData>>}> $endpointsByGroupAndSubgroup
+     * @param array<int, array{slug: string, text: string, level: int}> $headingsAfterEndpoints
+     * @return array<int, array<string, mixed>>
+     */
     protected function getHeadings(array $headingsBeforeEndpoints, array $endpointsByGroupAndSubgroup, array $headingsAfterEndpoints): array
     {
         $headings = [];
