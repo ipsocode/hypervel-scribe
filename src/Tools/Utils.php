@@ -7,6 +7,7 @@ namespace Ipsocode\Scribe\Tools;
 use Closure;
 use Exception;
 use Hypervel\Database\Eloquent\Factories\Factory;
+use Hypervel\Database\Eloquent\Model;
 use Hypervel\Database\Eloquent\Relations\BelongsTo;
 use Hypervel\Database\Eloquent\Relations\BelongsToMany;
 use Hypervel\Routing\Route;
@@ -35,6 +36,9 @@ class Utils
     /**
      * The top-level items of a config list whose entries are either a name or a
      * name => options pair: ['a', 'b' => [...]] gives ['a', 'b'].
+     *
+     * @param array<int|string, mixed> $mixedList
+     * @return array<int, mixed>
      */
     public static function getTopLevelItemsFromMixedConfigList(array $mixedList): array
     {
@@ -46,6 +50,9 @@ class Utils
         return $topLevels;
     }
 
+    /**
+     * @param array<string, int|string> $urlParameters
+     */
     public static function getUrlWithBoundParameters(string $uri, array $urlParameters = []): string
     {
         return self::replaceUrlParameterPlaceholdersWithValues($uri, $urlParameters);
@@ -55,7 +62,7 @@ class Utils
      * Transform parameters in URLs into real values (/users/{user} -> /users/2).
      * Uses the given examples; an unbound parameter becomes '1', or nothing when optional.
      *
-     * @param array $urlParameters Dictionary of url params and example values
+     * @param array<string, int|string> $urlParameters Dictionary of url params and example values
      */
     public static function replaceUrlParameterPlaceholdersWithValues(string $uri, array $urlParameters): string
     {
@@ -76,6 +83,9 @@ class Utils
         return preg_replace('#{([^/]+)}#', '1', $uri);
     }
 
+    /**
+     * @return array<int, mixed>
+     */
     public static function getRouteClassAndMethodNames(Route $route): array
     {
         $action = $route->getAction();
@@ -187,13 +197,15 @@ class Utils
         }
     }
 
-    public static function isInvokableObject($value): bool
+    public static function isInvokableObject(mixed $value): bool
     {
         return is_object($value) && method_exists($value, '__invoke');
     }
 
     /**
      * Returns the route method or closure as an instance of ReflectionMethod or ReflectionFunction.
+     *
+     * @param array<int, mixed> $routeControllerAndMethod
      *
      * @throws ReflectionException
      */
@@ -211,12 +223,12 @@ class Utils
         return (new ReflectionClass($class))->getMethod($method);
     }
 
-    public static function isArrayType(string $typeName)
+    public static function isArrayType(string $typeName): bool
     {
         return Str::endsWith($typeName, '[]');
     }
 
-    public static function getBaseTypeFromArrayType(string $typeName)
+    public static function getBaseTypeFromArrayType(string $typeName): string
     {
         return mb_substr($typeName, 0, -2);
     }
@@ -227,7 +239,7 @@ class Utils
      *
      * @param string[] $states
      * @param string[] $relations
-     * @return Factory
+     * @return Factory<Model>
      *
      * @throws Throwable
      */
@@ -241,10 +253,10 @@ class Utils
             throw CouldntFindFactory::forModel($modelName);
         }
 
-        /** @var Factory $factory */
-        $factory = call_user_func_array([$modelName, 'factory'], []);
+        /** @var Factory<Model> $factory */
+        $factory = $modelName::factory();
         foreach ($states as $state) {
-            if (method_exists(get_class($factory), $state)) {
+            if (method_exists($factory::class, $state)) {
                 $factory = $factory->{$state}();
             }
         }
@@ -270,7 +282,7 @@ class Utils
         foreach ($groupedRelations as $relationVector => $childRelations) {
             $relationInstance = (new $modelName)->{$relationVector}();
             $relationType = get_class($relationInstance);
-            $relationModel = get_class($relationInstance->getModel());
+            $relationModel = $relationInstance->getModel()::class;
 
             $factoryChain = self::getModelFactory($relationModel, $states, $childRelations);
 
@@ -308,16 +320,19 @@ class Utils
      * Like Hypervel's trans/__ function, but falls back to the English translation if translation fails.
      * For instance, if the user's locale is DE but they have no DE strings defined,
      * Hypervel renders the translation key; this renders the EN version instead.
+     *
+     * @param array<string, mixed> $replace
      */
-    public static function trans(string $key, array $replace = [])
+    public static function trans(string $key, array $replace = []): string
     {
         // The service provider registers the `scribe` namespace with
         // loadTranslationsFrom(), and the framework's FileLoader merges an
         // application's `lang/vendor/scribe` overrides over it.
+        /** @var string $translation */
         $translation = trans($key, $replace);
 
-        // @phpstan-ignore identical.alwaysFalse (trans() is typed never to return null; the guard covers a translator that does)
-        if ($translation === $key || $translation === null) {
+        if ($translation === $key) {
+            /** @var string $translation */
             $translation = trans($key, $replace, 'en');
         }
 

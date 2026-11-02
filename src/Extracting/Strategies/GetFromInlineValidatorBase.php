@@ -220,7 +220,7 @@ class GetFromInlineValidatorBase extends Strategy
 
     /**
      * @param array<int, Node> $statements
-     * @return array{null|int|string, null|Node, mixed}
+     * @return array{null|int, null|Node, mixed}
      */
     protected function findValidationExpression(array $statements): ?array
     {

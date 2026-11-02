@@ -61,6 +61,9 @@ class GroupedEndpointsFromApp implements GroupedEndpointsContract
         $this->cacheDir = Camel::cacheDir($this->paths);
     }
 
+    /**
+     * @return array<string, array<string, mixed>>
+     */
     public function get(): array
     {
         $groupedEndpoints = $this->extractEndpointsInfoAndWriteToDisk($this->routeMatcher, $this->preserveUserChanges);
@@ -75,6 +78,9 @@ class GroupedEndpointsFromApp implements GroupedEndpointsContract
         return $this->encounteredErrors;
     }
 
+    /**
+     * @return array<string, array<string, mixed>>
+     */
     protected function extractEndpointsInfoAndWriteToDisk(RouteMatcherInterface $routeMatcher, bool $preserveUserChanges): array
     {
         $latestEndpointsData = [];
@@ -193,6 +199,9 @@ class GroupedEndpointsFromApp implements GroupedEndpointsContract
 
     /**
      * @param MatchedRoute[] $matches
+     * @param array<int, array<string, mixed>> $cachedEndpoints
+     * @param array<int, array<string, mixed>> $latestEndpointsData
+     * @return list<ExtractedEndpointData>
      *
      * @throws Exception
      */
@@ -275,8 +284,8 @@ class GroupedEndpointsFromApp implements GroupedEndpointsContract
     }
 
     /**
-     * @param array<string, array> $cachedEndpoints indexed by {@see self::indexByUriAndMethods()}
-     * @param array<string, array> $latestEndpointsData indexed by {@see self::indexByUriAndMethods()}
+     * @param array<string, array<string, mixed>> $cachedEndpoints indexed by {@see self::indexByUriAndMethods()}
+     * @param array<string, array<string, mixed>> $latestEndpointsData indexed by {@see self::indexByUriAndMethods()}
      */
     private function mergeAnyEndpointDataUpdates(ExtractedEndpointData $endpointData, array $cachedEndpoints, array $latestEndpointsData): ExtractedEndpointData
     {
@@ -323,8 +332,8 @@ class GroupedEndpointsFromApp implements GroupedEndpointsContract
      * Keys a flat list of endpoint arrays by URI and HTTP methods. The first
      * endpoint with a given pair wins.
      *
-     * @param array[] $endpoints
-     * @return array<string, array>
+     * @param array<int, array<string, mixed>> $endpoints
+     * @return array<string, array<string, mixed>>
      */
     private static function indexByUriAndMethods(array $endpoints): array
     {
@@ -346,6 +355,9 @@ class GroupedEndpointsFromApp implements GroupedEndpointsContract
         return serialize([$uri, $httpMethods]);
     }
 
+    /**
+     * @param null|array<int, mixed> $routeControllerAndMethod
+     */
     private function isValidRoute(?array $routeControllerAndMethod): bool
     {
         if (is_array($routeControllerAndMethod)) {
@@ -362,6 +374,9 @@ class GroupedEndpointsFromApp implements GroupedEndpointsContract
         return ! is_callable($routeControllerAndMethod) && ! is_null($routeControllerAndMethod);
     }
 
+    /**
+     * @param array<int, mixed> $routeControllerAndMethod
+     */
     private function doesControllerMethodExist(array $routeControllerAndMethod): bool
     {
         // @codeCoverageIgnoreStart
@@ -384,6 +399,9 @@ class GroupedEndpointsFromApp implements GroupedEndpointsContract
         return false;
     }
 
+    /**
+     * @param array<int, mixed> $routeControllerAndMethod
+     */
     private function isRouteHiddenFromDocumentation(array $routeControllerAndMethod): bool
     {
         if (! ($class = $routeControllerAndMethod[0]) instanceof Closure) {

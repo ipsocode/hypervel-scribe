@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ipsocode\Scribe\Extracting\Strategies;
 
+use Ipsocode\Scribe\Extracting\DocBlocks\DocBlockTag;
 use Ipsocode\Scribe\Extracting\ParamHelpers;
 
 abstract class GetFieldsFromTagStrategy extends TagStrategyWithFormRequestFallback
@@ -12,6 +13,11 @@ abstract class GetFieldsFromTagStrategy extends TagStrategyWithFormRequestFallba
 
     protected string $tagName = '';
 
+    /**
+     * @param DocBlockTag[] $tagsOnMethod
+     * @param DocBlockTag[] $tagsOnClass
+     * @return array<string, array<string, mixed>>
+     */
     public function getFromTags(array $tagsOnMethod, array $tagsOnClass = []): array
     {
         $fields = [];
@@ -37,8 +43,14 @@ abstract class GetFieldsFromTagStrategy extends TagStrategyWithFormRequestFallba
         return $fields;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     abstract protected function parseTag(string $tagContent): array;
 
+    /**
+     * @return array{string, mixed, array<int, mixed>, bool}
+     */
     protected function getDescriptionAndExample(
         string $description,
         string $type,
@@ -56,6 +68,9 @@ abstract class GetFieldsFromTagStrategy extends TagStrategyWithFormRequestFallba
         return [$description, $example, $enumValues, $exampleWasSpecified];
     }
 
+    /**
+     * @param null|array<int, mixed> $enumValues
+     */
     protected function setExampleIfNeeded(
         mixed $currentExample,
         string $type,

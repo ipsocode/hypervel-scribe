@@ -11,6 +11,9 @@ class GetFromQueryParamTag extends GetFieldsFromTagStrategy
 {
     protected string $tagName = 'queryParam';
 
+    /**
+     * @return array<string, mixed>
+     */
     public function parseTag(string $tagContent): array
     {
         // Format:

@@ -29,6 +29,9 @@ class BladeMarkdownEngine extends CompilerEngine
         $this->markdown = Parsedown::instance();
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public function get(string $path, array $data = []): string
     {
         return $this->markdown->text(parent::get($path, $data));

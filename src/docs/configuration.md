@@ -97,7 +97,7 @@ The server reads the generated `openapi.yaml`, so run `scribe:generate` first. S
 
 | Key | Default | What it does |
 |---|---|---|
-| `example_languages` | `['bash', 'javascript']` | Languages for the example requests: `bash`, `javascript`, `php`, `python`, or one you add. Not used by the `external_*` types. See [example languages](output.md#example-languages). |
+| `example_languages` | `['bash', 'javascript', 'php', 'python']` | Languages for the example requests: `bash`, `javascript`, `php`, `python`, or one you add. Not used by the `external_*` types. See [example languages](output.md#example-languages). |
 | `postman.enabled` | `true` | Write a Postman v2.1.0 collection. |
 | `postman.overrides` | `[]` | Values set on the collection by dotted key, e.g. `'info.version' => '2.0.0'`. |
 | `openapi.enabled` | `true` | Write an OpenAPI spec. The `external_*` types write it regardless. |

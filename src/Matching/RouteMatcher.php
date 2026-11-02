@@ -12,11 +12,19 @@ use Ipsocode\Scribe\Tools\RoutePatternMatcher;
 
 class RouteMatcher implements RouteMatcherInterface
 {
+    /**
+     * @param array<int, array<string, mixed>> $routeRules
+     * @return array<int, MatchedRoute>
+     */
     public function getRoutes(array $routeRules = []): array
     {
         return $this->getRoutesToBeDocumented($routeRules);
     }
 
+    /**
+     * @param array<int, array<string, mixed>> $routeRules
+     * @return array<int, MatchedRoute>
+     */
     private function getRoutesToBeDocumented(array $routeRules): array
     {
         $allRoutes = $this->getAllRoutes();
@@ -41,11 +49,18 @@ class RouteMatcher implements RouteMatcherInterface
         return array_values($matchedRoutes);
     }
 
-    private function getAllRoutes()
+    /**
+     * @return array<int, Route>
+     */
+    private function getAllRoutes(): array
     {
-        return RouteFacade::getRoutes();
+        return RouteFacade::getRoutes()->getRoutes();
     }
 
+    /**
+     * @param array<string, mixed> $routeRule
+     * @param array<int, string> $mustIncludes
+     */
     private function shouldIncludeRoute(Route $route, array $routeRule, array $mustIncludes): bool
     {
         if (RoutePatternMatcher::matches($route, $mustIncludes)) {
@@ -61,6 +76,9 @@ class RouteMatcher implements RouteMatcherInterface
         return Str::is($domainsToMatch, $route->getDomain()) && Str::is($pathsToMatch, $route->uri());
     }
 
+    /**
+     * @param array<string, mixed> $routeRule
+     */
     private function shouldExcludeRoute(Route $route, array $routeRule): bool
     {
         $excludes = $routeRule['exclude'] ?? [];

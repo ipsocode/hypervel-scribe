@@ -16,6 +16,12 @@ class StaticData extends Strategy
         return $settings['data'];
     }
 
+    /**
+     * @param array<int, string> $only
+     * @param array<int, string> $except
+     * @param array<string, mixed> $data
+     * @return array{string, array<string, mixed>}
+     */
     public static function withSettings(
         array $only = [],
         array $except = [],

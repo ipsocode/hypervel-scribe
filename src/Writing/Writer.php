@@ -7,6 +7,7 @@ namespace Ipsocode\Scribe\Writing;
 use Hypervel\Support\Facades\Route;
 use Hypervel\Support\Facades\Storage;
 use InvalidArgumentException;
+use Ipsocode\Camel\Output\OutputEndpointData;
 use Ipsocode\Scribe\Tools\ConsoleOutputUtils as c;
 use Ipsocode\Scribe\Tools\DocumentationConfig;
 use Ipsocode\Scribe\Tools\Globals;
@@ -24,6 +25,9 @@ class Writer
 
     protected ?string $hypervelTypeOutputPath;
 
+    /**
+     * @var array{postman: null|false|string, openapi: null|false|string, html: null|false|string, blade: null|false|string, assets: array{js: null|false|string, css: null|false|string, images: null|false|string}}
+     */
     protected array $generatedFiles = [
         'postman' => null,
         'openapi' => null,
@@ -65,7 +69,7 @@ class Writer
     }
 
     /**
-     * @param array<string,array> $groupedEndpoints
+     * @param array<int, array{description: string, name: string, endpoints: array<int, OutputEndpointData>}> $groupedEndpoints
      */
     public function writeDocs(array $groupedEndpoints): void
     {
@@ -90,6 +94,9 @@ class Writer
         $this->runAfterGeneratingHook();
     }
 
+    /**
+     * @param array<int, array{description: string, name: string, endpoints: array<int, OutputEndpointData>}> $groupedEndpoints
+     */
     public function generatePostmanCollection(array $groupedEndpoints): string
     {
         /** @var PostmanCollectionWriter $writer */
@@ -103,9 +110,13 @@ class Writer
             }
         }
 
+        // @phpstan-ignore return.type (invalid UTF-8 is substituted, so json_encode() fails only on non-finite floats, which a collection built from strings and config does not hold)
         return json_encode($collection, JSON_PRETTY_PRINT | JSON_INVALID_UTF8_SUBSTITUTE);
     }
 
+    /**
+     * @param array<int, array{description: string, name: string, endpoints: array<int, OutputEndpointData>}> $groupedEndpoints
+     */
     public function generateOpenAPISpec(array $groupedEndpoints): string
     {
         /** @var OpenAPISpecWriter $writer */
@@ -115,6 +126,9 @@ class Writer
         return Yaml::dump($spec, 20, 2, Yaml::DUMP_EMPTY_ARRAY_AS_SEQUENCE | Yaml::DUMP_OBJECT_AS_MAP);
     }
 
+    /**
+     * @param array<int, array{description: string, name: string, endpoints: array<int, OutputEndpointData>}> $groupedEndpoints
+     */
     public function writeHtmlDocs(array $groupedEndpoints): void
     {
         if ($this->isStatic) {
@@ -196,6 +210,9 @@ class Writer
         }
     }
 
+    /**
+     * @param array<int, array{description: string, name: string, endpoints: array<int, OutputEndpointData>}> $groups
+     */
     protected function writePostmanCollection(array $groups): void
     {
         if ($this->config->get('postman.enabled', true)) {
@@ -221,6 +238,9 @@ class Writer
         }
     }
 
+    /**
+     * @param array<int, array{description: string, name: string, endpoints: array<int, OutputEndpointData>}> $parsedRoutes
+     */
     protected function writeOpenAPISpec(array $parsedRoutes): void
     {
         if ($this->config->get('openapi.enabled', false) || $this->isExternal) {
@@ -279,6 +299,7 @@ class Writer
         Utils::copyDirectory($this->hypervelBuildPath, $assetsDirectory);
         Utils::deleteDirectoryAndContents($this->hypervelBuildPath);
 
+        /** @var string $contents the file was just moved there, so it can be read */
         $contents = file_get_contents("{$this->hypervelTypeOutputPath}/index.blade.php");
 
         $marker = $this->nowdocMarkerFor($contents);
@@ -389,7 +410,7 @@ class Writer
         return "<?php echo strtr(<<<'{$marker}'\n{$contents}\n{$marker}, [\n{$replacements}]); ?>\n";
     }
 
-    protected function runAfterGeneratingHook()
+    protected function runAfterGeneratingHook(): void
     {
         if (Globals::$__afterGenerating !== null) {
             c::info('Running `afterGenerating()` hook...');
