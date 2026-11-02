@@ -207,12 +207,12 @@ trait ParsesValidationRules
             // in a key as "__asterisk__" followed by a random placeholder hash (eg
             // "__asterisk__dkjiu78gujjhb"); the pattern also matches a bare "__asterisk__".
             if (Str::contains($paramName, '__asterisk__')) {
-                $paramName = preg_replace('/__asterisk__[^.]*\b/', '*', $paramName);
+                $paramName = (string) preg_replace('/__asterisk__[^.]*\b/', '*', $paramName);
             }
 
             // Turn 'ids.0' (or a top-level '0.name') back into 'ids.*' ('*.name')
             if (preg_match(self::SEEDED_SEGMENT, (string) $paramName)) {
-                $genericArrayKeyName = preg_replace(self::SEEDED_SEGMENT, '${1}*', (string) $paramName);
+                $genericArrayKeyName = (string) preg_replace(self::SEEDED_SEGMENT, '${1}*', (string) $paramName);
 
                 // But only if the original rules used that key
                 if (isset($rules[$genericArrayKeyName])) {

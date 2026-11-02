@@ -151,7 +151,7 @@ class BaseGenerator extends OpenApiGenerator
     protected function operationId(OutputEndpointData $endpoint): string
     {
         if ($endpoint->metadata->title) {
-            $operationId = preg_replace('/[^\w]/', '', Str::camel($endpoint->metadata->title));
+            $operationId = (string) preg_replace('/[^\w]/', '', Str::camel($endpoint->metadata->title));
         } else {
             $parts = preg_split('/[^\w]/', $endpoint->uri, -1, PREG_SPLIT_NO_EMPTY);
             // @phpstan-ignore argument.type (preg_split() fails only on a PCRE error, and the pattern is a constant)

@@ -403,12 +403,6 @@ parameters:
 			path: src/Tools/Utils.php
 
 		-
-			message: '#^Method Ipsocode\\Scribe\\Writing\\OpenApiSpecGenerators\\BaseGenerator\:\:operationId\(\) should return string but returns string\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Writing/OpenApiSpecGenerators/BaseGenerator.php
-
-		-
 			message: '#^Parameter \#3 \$subject of function str_replace expects array\<string\>\|string, string\|null given\.$#'
 			identifier: argument.type
 			count: 1
