@@ -16,6 +16,7 @@ class ConsoleOutputUtils
 
     private static ?GenerateDocumentation $command = null;
 
+    /** @var string[] */
     private static array $warningBuffer = [];
 
     private static bool $isBufferingWarnings = false;

@@ -29,6 +29,10 @@ class PostmanCollectionWriter
         $this->baseUrl = $this->config->get('base_url') ?: config('app.url');
     }
 
+    /**
+     * @param array<int, array{description: string, name: string, endpoints: array<int, OutputEndpointData>}> $groupedEndpoints
+     * @return array<string, mixed>
+     */
     public function generatePostmanCollection(array $groupedEndpoints): array
     {
         $collection = [
@@ -60,6 +64,9 @@ class PostmanCollectionWriter
         return $collection;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function generateAuthObject(): array
     {
         if (! $this->config->get('auth.enabled')) {
@@ -104,6 +111,10 @@ class PostmanCollectionWriter
         };
     }
 
+    /**
+     * @param array{name: string, description: string, endpoints: array<int, OutputEndpointData>} $group
+     * @return array<int, array<string, mixed>>
+     */
     protected function generateSubItem(array $group): array
     {
         $seenSubgroups = [];
@@ -132,6 +143,9 @@ class PostmanCollectionWriter
         return $items;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function generateEndpointItem(OutputEndpointData $endpoint): array
     {
         $method = $endpoint->httpMethods[0];
@@ -168,6 +182,9 @@ class PostmanCollectionWriter
         return $endpointItem;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function getBodyData(OutputEndpointData $endpoint): array
     {
         $body = [];
@@ -219,8 +236,12 @@ class PostmanCollectionWriter
 
     /**
      * Format form-data parameters correctly for arrays, e.g. data[item][index] = value.
+     *
+     * @param array<int|string, mixed> $paramsKeyValue
+     * @param array<string, Parameter> $paramsFullDetails
+     * @return array<int, array<string, int|string>>
      */
-    protected function getFormDataParams(array $paramsKeyValue, ?string $key = null, array $paramsFullDetails = []): array
+    protected function getFormDataParams(array $paramsKeyValue, int|string|null $key = null, array $paramsFullDetails = []): array
     {
         $body = [];
 
@@ -244,6 +265,9 @@ class PostmanCollectionWriter
         return $body;
     }
 
+    /**
+     * @return array<int, array{key: string, value: string}>
+     */
     protected function resolveHeadersForEndpoint(OutputEndpointData $endpointData): array
     {
         [$where, $authParam] = $this->getAuthParamToExclude();
@@ -294,6 +318,9 @@ class PostmanCollectionWriter
         return $flat;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function generateUrlObject(OutputEndpointData $endpointData): array
     {
         $base = [
@@ -389,6 +416,9 @@ class PostmanCollectionWriter
         return $description;
     }
 
+    /**
+     * @return array{0: null|string, 1: null|string}
+     */
     private function getAuthParamToExclude(): array
     {
         if (! $this->config->get('auth.enabled')) {
@@ -402,6 +432,9 @@ class PostmanCollectionWriter
         return [$this->config->get('auth.in'), $this->config->get('auth.name')];
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     private function getResponses(OutputEndpointData $endpoint): array
     {
         return collect($endpoint->responses)->map(function (Response $response) {

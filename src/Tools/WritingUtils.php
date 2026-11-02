@@ -10,6 +10,7 @@ use Symfony\Component\VarExporter\VarExporter;
 
 class WritingUtils
 {
+    /** @var array<string, string> */
     public static array $httpMethodToCssColour = [
         'GET' => 'green',
         'HEAD' => 'darkgreen',
@@ -41,6 +42,9 @@ class WritingUtils
         return $result;
     }
 
+    /**
+     * @param array<string, mixed> $cleanQueryParams
+     */
     public static function printQueryParamsAsString(array $cleanQueryParams): string
     {
         $qs = '';
@@ -87,6 +91,8 @@ class WritingUtils
      * indentation and line endings. Arrays are flattened: {key: [1, 2]} becomes
      * {"key[0]": "1", "key[1]": "2"}, and {key: {a: 1, c: {e: 3}}} becomes
      * {"key[a]": "1", "key[c][e]": "3"}.
+     *
+     * @param array<string, mixed> $cleanQueryParams
      */
     public static function printQueryParamsAsKeyValue(
         array $cleanQueryParams,
@@ -125,6 +131,7 @@ class WritingUtils
      *
      * @param string $parameter The name of the parameter
      * @param mixed $value Value of the parameter
+     * @return array<string, mixed>
      */
     public static function getParameterNamesAndValuesForFormData(string $parameter, $value): array
     {
@@ -167,6 +174,10 @@ class WritingUtils
         return $params;
     }
 
+    /**
+     * @param array<string, mixed> $nestedBodyParameters
+     * @return array<int|string, mixed>
+     */
     public static function getSampleBody(array $nestedBodyParameters)
     {
         if (! empty($nestedBodyParameters['[]'])) {
@@ -189,6 +200,8 @@ class WritingUtils
     /**
      * Convert a list of possible values to a friendly string, each value wrapped
      * in <code> tags: [1, 2, 3] -> "1, 2, or 3", [1, 2] -> "1 or 2", [1] -> "1".
+     *
+     * @param array<int, int|string> $list
      */
     public static function getListOfValuesAsFriendlyHtmlString(array $list = [], string $conjunction = 'or'): string
     {
@@ -208,6 +221,7 @@ class WritingUtils
     {
         $index = mb_strrpos($assetPath, '.');
 
+        // @phpstan-ignore argument.type (every caller passes a bundled asset path, which has an extension)
         return substr_replace($assetPath, '-' . Scribe::version(), $index, 0);
     }
 

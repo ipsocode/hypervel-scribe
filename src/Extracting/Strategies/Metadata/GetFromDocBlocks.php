@@ -20,6 +20,9 @@ class GetFromDocBlocks extends Strategy
         return $this->getMetadataFromDocBlock($methodDocBlock, $classDocBlock);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getMetadataFromDocBlock(ParsedDocBlock $methodDocBlock, ParsedDocBlock $classDocBlock): array
     {
         [$groupName, $groupDescription, $title] = $this->getEndpointGroupAndTitleDetails($methodDocBlock, $classDocBlock);
@@ -73,7 +76,7 @@ class GetFromDocBlocks extends Strategy
     }
 
     /**
-     * @return array The endpoint's group name, the group description, and the endpoint title
+     * @return array{null|string, string, string} The endpoint's group name, the group description, and the endpoint title
      */
     protected function getEndpointGroupAndTitleDetails(ParsedDocBlock $methodDocBlock, ParsedDocBlock $controllerDocBlock)
     {

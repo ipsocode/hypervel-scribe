@@ -9,8 +9,8 @@ interface RouteMatcherInterface
     /**
      * Resolve matched routes that should be documented.
      *
-     * @param array $routeRules Route rules defined under the "routes" section in config
-     * @return MatchedRoute[]
+     * @param array<int, array<string, mixed>> $routeRules Route rules defined under the "routes" section in config
+     * @return array<int, MatchedRoute>
      */
     public function getRoutes(array $routeRules = []): array;
 }

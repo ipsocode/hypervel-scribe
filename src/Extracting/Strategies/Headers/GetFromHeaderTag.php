@@ -16,6 +16,7 @@ class GetFromHeaderTag extends TagStrategyWithFormRequestFallback
     /**
      * @param DocBlockTag[] $tagsOnMethod
      * @param DocBlockTag[] $tagsOnClass
+     * @return array<string, mixed>
      */
     public function getFromTags(array $tagsOnMethod, array $tagsOnClass = []): array
     {
@@ -27,6 +28,8 @@ class GetFromHeaderTag extends TagStrategyWithFormRequestFallback
             // @header X-Custom An API header
             preg_match('/([\S]+)(.*)?/', $tag->getContent(), $content);
 
+            // A @header tag names the header, so the pattern matches and sets all three groups.
+            /** @var array{string, string, string} $content */
             [$_, $name, $example] = $content;
             $example = mb_trim($example);
             if (empty($example)) {
