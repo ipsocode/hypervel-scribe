@@ -25,6 +25,9 @@ class ApiDetails
 
     private string $fileHashesTrackingFile;
 
+    /**
+     * @var array<string, string> file path => md5 hash
+     */
     private array $lastKnownFileContentHashes = [];
 
     public function __construct(
@@ -123,7 +126,7 @@ class ApiDetails
     protected function writeMarkdownFileAndRecordHash(string $filePath, string $markdown): void
     {
         file_put_contents($filePath, $markdown);
-        $this->lastKnownFileContentHashes[$filePath] = hash_file('md5', $filePath);
+        $this->lastKnownFileContentHashes[$filePath] = hash_file('md5', $filePath); // @phpstan-ignore assign.propertyType (the file was just written, so it can be hashed)
     }
 
     protected function writeContentsTrackingFile(): void
@@ -153,10 +156,12 @@ class ApiDetails
         return false;
     }
 
-    protected function fetchFileHashesFromTrackingFile()
+    protected function fetchFileHashesFromTrackingFile(): void
     {
         if (file_exists($this->fileHashesTrackingFile)) {
-            $lastKnownFileHashes = explode("\n", mb_trim(file_get_contents($this->fileHashesTrackingFile)));
+            /** @var string $trackingFile */
+            $trackingFile = file_get_contents($this->fileHashesTrackingFile);
+            $lastKnownFileHashes = explode("\n", mb_trim($trackingFile));
             // First two lines are comments
             array_shift($lastKnownFileHashes);
             array_shift($lastKnownFileHashes);

@@ -25,6 +25,10 @@ class UseApiResourceTags extends Strategy
     use DatabaseTransactionHelpers;
     use InstantiatesExampleModels;
 
+    /**
+     * @param array<string, mixed> $routeRules
+     * @return null|array<int, array{status: int, description: string, content: false|string}>
+     */
     public function __invoke(ExtractedEndpointData $endpointData, array $routeRules = []): ?array
     {
         $methodDocBlock = RouteDocBlocker::getDocBlocksFromRoute($endpointData->route)['method'];
@@ -41,7 +45,7 @@ class UseApiResourceTags extends Strategy
      * Get a response from the @apiResource/@apiResourceCollection, @apiResourceModel and @apiResourceAdditional tags.
      *
      * @param DocBlockTag[] $allTags
-     * @return null|array[]
+     * @return null|array<int, array{status: int, description: string, content: false|string}>
      *
      * @throws Exception
      */
@@ -73,26 +77,43 @@ class UseApiResourceTags extends Strategy
 
     // The @apiResourceModel fields @apiResource accepts too; the model tag's
     // value wins when both set one.
+    /**
+     * @return array<int, string>
+     */
     public static function apiResourceExtraFields()
     {
         return ['states', 'with', 'paginate'];
     }
 
+    /**
+     * @return array<int, string>
+     */
     public static function apiResourceAllowedFields()
     {
         return ['status', 'scenario', ...static::apiResourceExtraFields()];
     }
 
+    /**
+     * @return array<int, string>
+     */
     public static function apiResourceModelAllowedFields()
     {
         return ['states', 'with', 'paginate'];
     }
 
+    /**
+     * @param DocBlockTag[] $tags
+     */
     public function getApiResourceTag(array $tags): ?DocBlockTag
     {
         return Arr::first(Utils::filterDocBlockTags($tags, 'apiresource', 'apiresourcecollection'));
     }
 
+    /**
+     * @param DocBlockTag[] $tags
+     * @param array<string, string> $extra
+     * @return array{null|string, string[], string[], string[]}
+     */
     protected function getClassToBeTransformedAndAttributes(array $tags, string $apiResourceClass, array $extra): array
     {
         $modelTag = Arr::first(Utils::filterDocBlockTags($tags, 'apiresourcemodel'));
@@ -124,10 +145,14 @@ class UseApiResourceTags extends Strategy
         return [$modelClass, $states, $relations, $pagination];
     }
 
+    /**
+     * @return array{int, string, string, bool, array<string, string>}
+     */
     private function getStatusCodeAndApiResourceClass(DocBlockTag $tag): array
     {
         preg_match('/^(\d{3})?\s?([\s\S]*)$/', $tag->getContent(), $result);
 
+        // @phpstan-ignore offsetAccess.notFound (the pattern matches any string, so both groups are set)
         $status = $result[1] ?: 0;
         $content = $result[2];
 
@@ -155,6 +180,7 @@ class UseApiResourceTags extends Strategy
      * The @apiResourceAdditional fields, passed to the resource's additional().
      *
      * @param DocBlockTag[] $tags
+     * @return array<string, string>
      */
     private function getAdditionalData(array $tags): array
     {

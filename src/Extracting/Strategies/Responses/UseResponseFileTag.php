@@ -17,6 +17,10 @@ use Ipsocode\Scribe\Tools\Utils;
  */
 class UseResponseFileTag extends Strategy
 {
+    /**
+     * @param array<string, mixed> $routeRules
+     * @return null|array<int, array{content: string, status: int, description: string}>
+     */
     public function __invoke(ExtractedEndpointData $endpointData, array $routeRules = []): ?array
     {
         $docBlocks = RouteDocBlocker::getDocBlocksFromRoute($endpointData->route);
@@ -26,6 +30,7 @@ class UseResponseFileTag extends Strategy
 
     /**
      * @param DocBlockTag[] $tags
+     * @return null|array<int, array{content: string, status: int, description: string}>
      */
     public function getFileResponses(array $tags): ?array
     {
@@ -37,7 +42,8 @@ class UseResponseFileTag extends Strategy
 
         return array_map(function (DocBlockTag $responseFileTag) {
             preg_match('/^(\d{3})?\s*(.*?)({.*})?$/', $responseFileTag->getContent(), $result);
-            [$_, $status, $mainContent] = $result;
+            $status = $result[1]; // @phpstan-ignore offsetAccess.notFound (the pattern matches any string, so the group is set)
+            $mainContent = $result[2]; // @phpstan-ignore offsetAccess.notFound (the pattern matches any string, so the group is set)
             $json = $result[3] ?? null;
 
             ['fields' => $fields, 'content' => $filePath] = a::parseIntoContentAndFields($mainContent, ['status', 'scenario']);

@@ -97,6 +97,7 @@ class GetFromFormRequestBase extends Strategy
     protected function getCustomParameterData(FormRequest $formRequest): array
     {
         if (method_exists($formRequest, $this->customParameterDataMethodName)) {
+            // @phpstan-ignore argument.type (method_exists() has just confirmed the form request declares the method)
             return call_user_func_array([$formRequest, $this->customParameterDataMethodName], []);
         }
 

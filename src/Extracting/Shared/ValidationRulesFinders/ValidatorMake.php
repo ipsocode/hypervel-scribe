@@ -15,17 +15,18 @@ use PhpParser\NodeFinder;
  */
 class ValidatorMake
 {
-    public static function find(Node $node)
+    public static function find(Node $node): ?Node\Expr
     {
         // Only expression statements are searched
         if (! $node instanceof Node\Stmt\Expression) {
-            return;
+            return null;
         }
 
         $validatorNode = (new NodeFinder)->findFirst($node, function ($node): bool {
             return $node instanceof Node\Expr\StaticCall
                 && ! empty($node->class->name)
                 && str_ends_with($node->class->name, 'Validator')
+                && $node->name instanceof Node\Identifier
                 && $node->name->name === 'make';
         });
 
@@ -34,5 +35,7 @@ class ValidatorMake
 
             return $argument instanceof Node\Arg ? $argument->value : null;
         }
+
+        return null;
     }
 }

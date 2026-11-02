@@ -11,6 +11,9 @@ class GetFromUrlParamTag extends GetFieldsFromTagStrategy
 {
     protected string $tagName = 'urlParam';
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function parseTag(string $tagContent): array
     {
         // Format:

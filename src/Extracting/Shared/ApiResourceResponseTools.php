@@ -22,6 +22,11 @@ use Ipsocode\Scribe\Tools\Utils;
 
 class ApiResourceResponseTools
 {
+    /**
+     * @param array<int, int|string> $pagination
+     * @param array<int|string, mixed> $additionalData
+     * @param array<int, string> $calls
+     */
     public static function fetch(
         string $apiResourceClass,
         bool $isCollection,
@@ -30,7 +35,7 @@ class ApiResourceResponseTools
         array $pagination,
         array $additionalData,
         array $calls = [],
-    ) {
+    ): string|false {
         $resource = static::getApiResourceOrCollectionInstance(
             $apiResourceClass,
             $isCollection,
@@ -70,6 +75,11 @@ class ApiResourceResponseTools
         }
     }
 
+    /**
+     * @param array<int, int|string> $paginationStrategy
+     * @param array<int|string, mixed> $additionalData
+     * @param array<int, string> $calls
+     */
     public static function getApiResourceOrCollectionInstance(
         string $apiResourceClass,
         bool $isCollection,
@@ -139,6 +149,7 @@ class ApiResourceResponseTools
      */
     public static function tryToInferApiResourceModel(string $apiResourceClass): ?string
     {
+        // @phpstan-ignore argument.type (the class is the one the endpoint's @apiResource tag or attribute names)
         $docBlock = RouteDocBlocker::forClass($apiResourceClass);
 
         /** @var null|DocBlockTag $mixinTag */
