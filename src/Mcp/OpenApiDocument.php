@@ -55,7 +55,7 @@ class OpenApiDocument
 
         foreach ($this->load()['paths'] ?? [] as $path => $pathItem) {
             foreach (self::METHODS as $method) {
-                if (isset($pathItem[$method])) {
+                if (is_array($pathItem) && isset($pathItem[$method])) {
                     $operations[] = $this->summarize($path, $method, $pathItem[$method]);
                 }
             }
@@ -76,7 +76,7 @@ class OpenApiDocument
     {
         foreach ($this->load()['paths'] ?? [] as $candidatePath => $pathItem) {
             foreach (self::METHODS as $method) {
-                $operation = $pathItem[$method] ?? null;
+                $operation = is_array($pathItem) ? ($pathItem[$method] ?? null) : null;
 
                 if ($operation === null) {
                     continue;
@@ -253,7 +253,7 @@ class OpenApiDocument
             throw $missing($path);
         }
 
-        return (string) file_get_contents($path);
+        return File::get($path, lock: true);
     }
 
     /**

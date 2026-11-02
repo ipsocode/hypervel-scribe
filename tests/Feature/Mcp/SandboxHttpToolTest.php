@@ -188,6 +188,12 @@ class SandboxHttpToolTest extends TestCase
                 'X-HTTP-Method' => 'DELETE',
                 'Forwarded' => 'host=evil.test',
                 'X-Forwarded-Host' => 'evil.test',
+                'Cookie' => 'session=stolen',
+                'Transfer-Encoding' => 'chunked',
+                'Connection' => 'keep-alive',
+                'X-Real-IP' => '10.0.0.1',
+                'X-Original-URL' => '/admin',
+                'X-Rewrite-URL' => '/admin',
                 'X-Tenant' => 'acme',
             ],
         ])->assertOk();
@@ -197,7 +203,13 @@ class SandboxHttpToolTest extends TestCase
             && ! $request->hasHeader('X-Method-Override')
             && ! $request->hasHeader('X-HTTP-Method')
             && ! $request->hasHeader('Forwarded')
-            && ! $request->hasHeader('X-Forwarded-Host'));
+            && ! $request->hasHeader('X-Forwarded-Host')
+            && ! $request->hasHeader('Cookie')
+            && ! $request->hasHeader('Transfer-Encoding')
+            && ! $request->hasHeader('Connection')
+            && ! $request->hasHeader('X-Real-IP')
+            && ! $request->hasHeader('X-Original-URL')
+            && ! $request->hasHeader('X-Rewrite-URL'));
     }
 
     #[Test]
@@ -533,6 +545,15 @@ class SandboxHttpToolTest extends TestCase
         $this->expectException(UnsafeMcpSandbox::class);
 
         $this->bootInProduction('https://app.test', ['base_url' => 'http://try.test:8080']);
+    }
+
+    #[Test]
+    #[WithConfig('scribe.base_url', 'http:///x')]
+    public function comparesAUrlThatCannotBeParsedAsItsOwnHost(): void
+    {
+        $this->bootInProduction('https://app.test', []);
+
+        $this->assertSame('https://sandbox.test', $this->app->make(CallSandboxTool::class)->baseUrl());
     }
 
     #[Test]

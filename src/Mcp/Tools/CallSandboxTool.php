@@ -42,13 +42,19 @@ class CallSandboxTool extends Tool
      */
     protected const array RESERVED_HEADERS = [
         'authorization',
+        'connection',
         'content-length',
+        'cookie',
         'forwarded',
         'host',
         'proxy-authorization',
+        'transfer-encoding',
         'x-http-method',
         'x-http-method-override',
         'x-method-override',
+        'x-original-url',
+        'x-real-ip',
+        'x-rewrite-url',
     ];
 
     /**

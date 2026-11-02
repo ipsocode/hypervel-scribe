@@ -164,7 +164,7 @@ class ScribeServiceProvider extends ServiceProvider
      */
     protected function origin(string $url): string
     {
-        $parts = parse_url($url) + ['scheme' => 'http', 'host' => $url];
+        $parts = (parse_url($url) ?: []) + ['scheme' => 'http', 'host' => $url];
         $scheme = mb_strtolower($parts['scheme']);
 
         return $scheme . '://' . mb_strtolower($parts['host']) . ':' . ($parts['port'] ?? ($scheme === 'https' ? 443 : 80));

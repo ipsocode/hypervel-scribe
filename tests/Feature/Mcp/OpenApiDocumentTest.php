@@ -160,6 +160,15 @@ class OpenApiDocumentTest extends TestCase
     }
 
     #[Test]
+    public function skipsAPathWithNoOperations(): void
+    {
+        Storage::disk('local')->put('scribe/openapi.yaml', "paths:\n  /empty: {}\n  /only:\n    get:\n      operationId: only\n");
+
+        $this->assertSame(['only'], array_column($this->document()->operations(), 'id'));
+        $this->assertSame('only', $this->document()->operation('only')['operationId']);
+    }
+
+    #[Test]
     public function failsWhenTheFileIsNotAYamlMapping(): void
     {
         Storage::disk('local')->put('scribe/openapi.yaml', 'just text');
