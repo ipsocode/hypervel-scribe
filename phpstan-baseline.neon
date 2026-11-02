@@ -61,6 +61,24 @@ parameters:
 			path: src/Attributes/ResponseFromTransformer.php
 
 		-
+			message: '#^Cannot call method info\(\) on Hypervel\\Console\\View\\Components\\Factory\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Commands/GenerateDocumentation.php
+
+		-
+			message: '#^Cannot call method twoColumnDetail\(\) on Hypervel\\Console\\View\\Components\\Factory\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Commands/GenerateDocumentation.php
+
+		-
+			message: '#^Cannot call method warn\(\) on Hypervel\\Console\\View\\Components\\Factory\|null\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: src/Commands/GenerateDocumentation.php
+
+		-
 			message: '#^Method Ipsocode\\Scribe\\Commands\\GenerateDocumentation\:\:mergeUserDefinedEndpoints\(\) has parameter \$groupedEndpoints with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -85,7 +103,7 @@ parameters:
 			path: src/Commands/GenerateDocumentation.php
 
 		-
-			message: '#^Parameter \#2 \$second of method Hypervel\\Console\\View\\Components\\Factory\:\:twoColumnDetail\(\) expects float\|int\|string\|Stringable\|null, Hypervel\\Contracts\\Routing\\UrlGenerator\|string given\.$#'
+			message: '#^Parameter \#1 \$outputInterface of static method Ipsocode\\Scribe\\Tools\\ConsoleOutputUtils\:\:bootstrapOutput\(\) expects Symfony\\Component\\Console\\Output\\OutputInterface, Hypervel\\Console\\OutputStyle\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Commands/GenerateDocumentation.php
@@ -167,6 +185,24 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/Extracting/ApiDetails.php
+
+		-
+			message: '#^Cannot call method getName\(\) on ReflectionClass\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Extracting/Extractor.php
+
+		-
+			message: '#^Cannot call method getName\(\) on ReflectionFunctionAbstract\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Extracting/Extractor.php
+
+		-
+			message: '#^Cannot call method hasMethod\(\) on ReflectionClass\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Extracting/Extractor.php
 
 		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Extractor\:\:cleanParams\(\) return type has no value type specified in iterable type array\.$#'
@@ -313,6 +349,12 @@ parameters:
 			path: src/Extracting/MethodAstParser.php
 
 		-
+			message: '#^Parameter \#1 \$nodes of method PhpParser\\NodeTraverser\:\:traverse\(\) expects array\<PhpParser\\Node\>, array\<PhpParser\\Node\\Stmt\>\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/MethodAstParser.php
+
+		-
 			message: '#^Parameter \#1 \$sourceCode of static method Ipsocode\\Scribe\\Extracting\\MethodAstParser\:\:parseClassSourceCode\(\) expects string, string\|false given\.$#'
 			identifier: argument.type
 			count: 1
@@ -353,6 +395,18 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/Extracting/RouteDocBlocker.php
+
+		-
+			message: '#^Cannot call method methods\(\) on Hypervel\\Routing\\Route\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Extracting/Shared/ApiResourceResponseTools.php
+
+		-
+			message: '#^Cannot call method uri\(\) on Hypervel\\Routing\\Route\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Extracting/Shared/ApiResourceResponseTools.php
 
 		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Shared\\ApiResourceResponseTools\:\:fetch\(\) has no return type specified\.$#'
@@ -589,6 +643,12 @@ parameters:
 			path: src/Extracting/Strategies/GetFromFormRequestBase.php
 
 		-
+			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:parseStringRuleIntoRuleAndArguments\(\) should return array\{string, array\<int, string\>\} but returns array\{string, list\<string\|null\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Extracting/Strategies/GetFromFormRequestBase.php
+
+		-
 			message: '#^Parameter \#1 \$callback of function call_user_func_array expects callable\(\)\: mixed, array\{Hypervel\\Foundation\\Http\\FormRequest, string\} given\.$#'
 			identifier: argument.type
 			count: 1
@@ -607,7 +667,31 @@ parameters:
 			path: src/Extracting/Strategies/GetFromFormRequestBase.php
 
 		-
+			message: '#^Parameter \#1 \$haystack of static method Hypervel\\Support\\Str\:\:contains\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/GetFromFormRequestBase.php
+
+		-
+			message: '#^Parameter \#1 \$method of method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:getParametersFromFormRequest\(\) expects ReflectionFunctionAbstract, ReflectionFunctionAbstract\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/GetFromFormRequestBase.php
+
+		-
+			message: '#^Parameter \#1 \$string of function mb_substr expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/GetFromFormRequestBase.php
+
+		-
 			message: '#^Parameter \#1 \$string of function mb_trim expects string, Hypervel\\Contracts\\Validation\\Rule\|string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/GetFromFormRequestBase.php
+
+		-
+			message: '#^Parameter \#2 \$route of method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromFormRequestBase\:\:getParametersFromFormRequest\(\) expects Hypervel\\Routing\\Route, Hypervel\\Routing\\Route\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Extracting/Strategies/GetFromFormRequestBase.php
@@ -625,6 +709,30 @@ parameters:
 			path: src/Extracting/Strategies/GetFromFormRequestBase.php
 
 		-
+			message: '#^Parameter \#3 \$subject of function preg_replace expects array\<float\|int\|string\>\|string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/GetFromFormRequestBase.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function str_replace expects array\<string\>\|string, array\<string\>\|string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/GetFromFormRequestBase.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function str_replace expects array\<string\>\|string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/GetFromFormRequestBase.php
+
+		-
+			message: '#^Cannot use array destructuring on list\<mixed\>\|null\.$#'
+			identifier: offsetAccess.nonArray
+			count: 1
+			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
+
+		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:getDescription\(\) should return string but returns array\<string\>\|string\.$#'
 			identifier: return.type
 			count: 1
@@ -633,6 +741,18 @@ parameters:
 		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:normaliseRules\(\) should return array\<string, array\<mixed\>\> but returns array\<int\|string, mixed\>\.$#'
 			identifier: return.type
+			count: 1
+			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
+
+		-
+			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\GetFromInlineValidatorBase\:\:parseStringRuleIntoRuleAndArguments\(\) should return array\{string, array\<int, string\>\} but returns array\{string, list\<string\|null\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
+
+		-
+			message: '#^Parameter \#1 \$array of function array_slice expects array, array\<PhpParser\\Node\\Stmt\>\|null given\.$#'
+			identifier: argument.type
 			count: 1
 			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
 
@@ -649,7 +769,25 @@ parameters:
 			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
 
 		-
+			message: '#^Parameter \#1 \$haystack of static method Hypervel\\Support\\Str\:\:contains\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
+
+		-
+			message: '#^Parameter \#1 \$string of function mb_substr expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
+
+		-
 			message: '#^Parameter \#1 \$string of function mb_trim expects string, Hypervel\\Contracts\\Validation\\Rule\|string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
+
+		-
+			message: '#^Parameter \#1 \$string of function mb_trim expects string, string\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
@@ -668,6 +806,24 @@ parameters:
 
 		-
 			message: '#^Parameter \#3 \$length of function mb_substr expects int\|null, int\<0, max\>\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function preg_replace expects array\<float\|int\|string\>\|string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function str_replace expects array\<string\>\|string, array\<string\>\|string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function str_replace expects array\<string\>\|string, string\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Extracting/Strategies/GetFromInlineValidatorBase.php
@@ -757,6 +913,18 @@ parameters:
 			path: src/Extracting/Strategies/Metadata/GetFromDocBlocks.php
 
 		-
+			message: '#^Parameter \#1 \$route of static method Ipsocode\\Scribe\\Extracting\\RouteDocBlocker\:\:getDocBlocksFromRoute\(\) expects Hypervel\\Routing\\Route, Hypervel\\Routing\\Route\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/Metadata/GetFromDocBlocks.php
+
+		-
+			message: '#^Parameter \#2 \$classDocBlock of method Ipsocode\\Scribe\\Extracting\\Strategies\\Metadata\\GetFromDocBlocks\:\:getMetadataFromDocBlock\(\) expects Ipsocode\\Scribe\\Extracting\\DocBlocks\\ParsedDocBlock, Ipsocode\\Scribe\\Extracting\\DocBlocks\\ParsedDocBlock\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/Metadata/GetFromDocBlocks.php
+
+		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Metadata\\GetFromMetadataAttributes\:\:extractFromAttributes\(\) has parameter \$attributesOnFormRequest with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -769,6 +937,12 @@ parameters:
 			path: src/Extracting/Strategies/Metadata/GetFromMetadataAttributes.php
 
 		-
+			message: '#^Parameter \#1 \$route of static method Ipsocode\\Scribe\\Extracting\\RouteDocBlocker\:\:getDocBlocksFromRoute\(\) expects Hypervel\\Routing\\Route, Hypervel\\Routing\\Route\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/Metadata/GetFromMetadataAttributes.php
+
+		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\PhpAttributeStrategy\:\:__invoke\(\) has parameter \$routeRules with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -777,6 +951,12 @@ parameters:
 		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\PhpAttributeStrategy\:\:__invoke\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
+			count: 1
+			path: src/Extracting/Strategies/PhpAttributeStrategy.php
+
+		-
+			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\PhpAttributeStrategy\:\:__invoke\(\) should return array but returns array\|null\.$#'
+			identifier: return.type
 			count: 1
 			path: src/Extracting/Strategies/PhpAttributeStrategy.php
 
@@ -805,6 +985,12 @@ parameters:
 			path: src/Extracting/Strategies/PhpAttributeStrategy.php
 
 		-
+			message: '#^Parameter \#1 \$method of method Ipsocode\\Scribe\\Extracting\\Strategies\\PhpAttributeStrategy\<T\>\:\:getAttributes\(\) expects ReflectionFunctionAbstract, ReflectionFunctionAbstract\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/PhpAttributeStrategy.php
+
+		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\QueryParameters\\GetFromQueryParamTag\:\:parseTag\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -813,6 +999,12 @@ parameters:
 		-
 			message: '#^Access to an undefined property object\:\:\$name\.$#'
 			identifier: property.notFound
+			count: 1
+			path: src/Extracting/Strategies/ResponseFields/GetFromResponseFieldAttribute.php
+
+		-
+			message: '#^Cannot call method getAttributes\(\) on ReflectionFunctionAbstract\|null\.$#'
+			identifier: method.nonObject
 			count: 1
 			path: src/Extracting/Strategies/ResponseFields/GetFromResponseFieldAttribute.php
 
@@ -925,6 +1117,30 @@ parameters:
 			path: src/Extracting/Strategies/ResponseFields/GetFromResponseFieldTag.php
 
 		-
+			message: '#^Parameter \#2 \$endpointData of static method Ipsocode\\Scribe\\Extracting\\Shared\\ResponseFieldTools\:\:inferTypeOfResponseField\(\) expects Ipsocode\\Camel\\Extraction\\ExtractedEndpointData, Ipsocode\\Camel\\Extraction\\ExtractedEndpointData\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Extracting/Strategies/ResponseFields/GetFromResponseFieldTag.php
+
+		-
+			message: '#^Parameter \#1 \$route of method Ipsocode\\Scribe\\Extracting\\Strategies\\Responses\\ResponseCalls\:\:prepareRequest\(\) expects Hypervel\\Routing\\Route, Hypervel\\Routing\\Route\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/Responses/ResponseCalls.php
+
+		-
+			message: '#^Parameter \#2 \$method of static method Symfony\\Component\\HttpFoundation\\Request\:\:create\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/Responses/ResponseCalls.php
+
+		-
+			message: '#^Parameter \#2 \$route of method Ipsocode\\Scribe\\Extracting\\Strategies\\Responses\\ResponseCalls\:\:makeApiCall\(\) expects Hypervel\\Routing\\Route, Hypervel\\Routing\\Route\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/Responses/ResponseCalls.php
+
+		-
 			message: '#^Parameter \#3 \$mimeType of class Hypervel\\Http\\UploadedFile constructor expects string\|null, string\|false given\.$#'
 			identifier: argument.type
 			count: 1
@@ -937,8 +1153,26 @@ parameters:
 			path: src/Extracting/Strategies/Responses/ResponseCalls.php
 
 		-
+			message: '#^Trying to invoke Closure\|null but it might not be a callable\.$#'
+			identifier: callable.nonCallable
+			count: 1
+			path: src/Extracting/Strategies/Responses/ResponseCalls.php
+
+		-
 			message: '#^Call to an undefined method Hypervel\\Database\\Eloquent\\Collection\<int, Hypervel\\Database\\Eloquent\\Model\>\|Hypervel\\Database\\Eloquent\\Model\:\:refresh\(\)\.$#'
 			identifier: method.notFound
+			count: 1
+			path: src/Extracting/Strategies/Responses/UseApiResourceTags.php
+
+		-
+			message: '#^Cannot call method getType\(\) on ReflectionParameter\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Extracting/Strategies/Responses/UseApiResourceTags.php
+
+		-
+			message: '#^Cannot call method hasType\(\) on ReflectionParameter\|null\.$#'
+			identifier: method.nonObject
 			count: 1
 			path: src/Extracting/Strategies/Responses/UseApiResourceTags.php
 
@@ -1039,6 +1273,12 @@ parameters:
 			path: src/Extracting/Strategies/Responses/UseApiResourceTags.php
 
 		-
+			message: '#^Parameter \#1 \$route of static method Ipsocode\\Scribe\\Extracting\\RouteDocBlocker\:\:getDocBlocksFromRoute\(\) expects Hypervel\\Routing\\Route, Hypervel\\Routing\\Route\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/Responses/UseApiResourceTags.php
+
+		-
 			message: '#^Parameter \#1 \$type of method Ipsocode\\Scribe\\Extracting\\Strategies\\Responses\\UseApiResourceTags\:\:getExampleModelFromDatabaseFirst\(\) expects class\-string, string given\.$#'
 			identifier: argument.type
 			count: 1
@@ -1059,6 +1299,30 @@ parameters:
 		-
 			message: '#^Call to an undefined method Hypervel\\Database\\Eloquent\\Collection\<int, Hypervel\\Database\\Eloquent\\Model\>\|Hypervel\\Database\\Eloquent\\Model\:\:refresh\(\)\.$#'
 			identifier: method.notFound
+			count: 1
+			path: src/Extracting/Strategies/Responses/UseResponseAttributes.php
+
+		-
+			message: '#^Cannot access property \$method on Ipsocode\\Camel\\Extraction\\ExtractedEndpointData\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: src/Extracting/Strategies/Responses/UseResponseAttributes.php
+
+		-
+			message: '#^Cannot access property \$uri on Ipsocode\\Camel\\Extraction\\ExtractedEndpointData\|null\.$#'
+			identifier: property.nonObject
+			count: 2
+			path: src/Extracting/Strategies/Responses/UseResponseAttributes.php
+
+		-
+			message: '#^Cannot call method getType\(\) on ReflectionParameter\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Extracting/Strategies/Responses/UseResponseAttributes.php
+
+		-
+			message: '#^Cannot call method hasType\(\) on ReflectionParameter\|null\.$#'
+			identifier: method.nonObject
 			count: 1
 			path: src/Extracting/Strategies/Responses/UseResponseAttributes.php
 
@@ -1105,6 +1369,12 @@ parameters:
 			path: src/Extracting/Strategies/Responses/UseResponseAttributes.php
 
 		-
+			message: '#^Parameter \#1 \$method of static method Ipsocode\\Scribe\\Extracting\\Shared\\UrlParamsNormalizer\:\:getTypeHintedEloquentModels\(\) expects ReflectionFunctionAbstract, ReflectionFunctionAbstract\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/Responses/UseResponseAttributes.php
+
+		-
 			message: '#^Parameter \#1 \$objectOrClass of class ReflectionClass constructor expects class\-string\<T of object\>\|T of object, string given\.$#'
 			identifier: argument.type
 			count: 1
@@ -1124,6 +1394,12 @@ parameters:
 
 		-
 			message: '#^Parameter \#1 \$type of method Ipsocode\\Scribe\\Extracting\\Strategies\\Responses\\UseResponseAttributes\:\:getExampleModelFromFactoryMake\(\) expects class\-string, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/Responses/UseResponseAttributes.php
+
+		-
+			message: '#^Parameter \#4 \$endpointData of static method Ipsocode\\Scribe\\Extracting\\Shared\\ApiResourceResponseTools\:\:fetch\(\) expects Ipsocode\\Camel\\Extraction\\ExtractedEndpointData, Ipsocode\\Camel\\Extraction\\ExtractedEndpointData\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Extracting/Strategies/Responses/UseResponseAttributes.php
@@ -1165,6 +1441,12 @@ parameters:
 			path: src/Extracting/Strategies/Responses/UseResponseFileTag.php
 
 		-
+			message: '#^Parameter \#1 \$route of static method Ipsocode\\Scribe\\Extracting\\RouteDocBlocker\:\:getDocBlocksFromRoute\(\) expects Hypervel\\Routing\\Route, Hypervel\\Routing\\Route\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/Responses/UseResponseFileTag.php
+
+		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\Responses\\UseResponseTag\:\:__invoke\(\) has parameter \$routeRules with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -1189,8 +1471,26 @@ parameters:
 			path: src/Extracting/Strategies/Responses/UseResponseTag.php
 
 		-
+			message: '#^Parameter \#1 \$route of static method Ipsocode\\Scribe\\Extracting\\RouteDocBlocker\:\:getDocBlocksFromRoute\(\) expects Hypervel\\Routing\\Route, Hypervel\\Routing\\Route\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/Responses/UseResponseTag.php
+
+		-
 			message: '#^Call to an undefined method Hypervel\\Database\\Eloquent\\Collection\<int, Hypervel\\Database\\Eloquent\\Model\>\|Hypervel\\Database\\Eloquent\\Model\:\:refresh\(\)\.$#'
 			identifier: method.notFound
+			count: 1
+			path: src/Extracting/Strategies/Responses/UseTransformerTags.php
+
+		-
+			message: '#^Cannot call method getType\(\) on ReflectionParameter\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Extracting/Strategies/Responses/UseTransformerTags.php
+
+		-
+			message: '#^Cannot call method hasType\(\) on ReflectionParameter\|null\.$#'
+			identifier: method.nonObject
 			count: 1
 			path: src/Extracting/Strategies/Responses/UseTransformerTags.php
 
@@ -1281,6 +1581,12 @@ parameters:
 		-
 			message: '#^Offset 1 might not exist on array\{\}\|array\{string, ''''\|\(non\-falsy\-string&numeric\-string\), string\}\.$#'
 			identifier: offsetAccess.notFound
+			count: 1
+			path: src/Extracting/Strategies/Responses/UseTransformerTags.php
+
+		-
+			message: '#^Parameter \#1 \$route of static method Ipsocode\\Scribe\\Extracting\\RouteDocBlocker\:\:getDocBlocksFromRoute\(\) expects Hypervel\\Routing\\Route, Hypervel\\Routing\\Route\|null given\.$#'
+			identifier: argument.type
 			count: 1
 			path: src/Extracting/Strategies/Responses/UseTransformerTags.php
 
@@ -1399,6 +1705,24 @@ parameters:
 			path: src/Extracting/Strategies/TagStrategyWithFormRequestFallback.php
 
 		-
+			message: '#^Parameter \#1 \$route of method Ipsocode\\Scribe\\Extracting\\Strategies\\TagStrategyWithFormRequestFallback\:\:getParametersFromDocBlockInFormRequestOrMethod\(\) expects Hypervel\\Routing\\Route, Hypervel\\Routing\\Route\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/TagStrategyWithFormRequestFallback.php
+
+		-
+			message: '#^Parameter \#2 \$method of method Ipsocode\\Scribe\\Extracting\\Strategies\\TagStrategyWithFormRequestFallback\:\:getParametersFromDocBlockInFormRequestOrMethod\(\) expects ReflectionFunctionAbstract, ReflectionFunctionAbstract\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/TagStrategyWithFormRequestFallback.php
+
+		-
+			message: '#^Cannot call method bindingFieldFor\(\) on Hypervel\\Routing\\Route\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Extracting/Strategies/UrlParameters/GetFromLaravelAPI.php
+
+		-
 			message: '#^Method Ipsocode\\Scribe\\Extracting\\Strategies\\UrlParameters\\GetFromLaravelAPI\:\:__invoke\(\) has parameter \$routeRules with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -1447,6 +1771,18 @@ parameters:
 			path: src/Extracting/Strategies/UrlParameters/GetFromLaravelAPI.php
 
 		-
+			message: '#^Parameter \#1 \$method of static method Ipsocode\\Scribe\\Extracting\\Shared\\UrlParamsNormalizer\:\:getTypeHintedEloquentModels\(\) expects ReflectionFunctionAbstract, ReflectionFunctionAbstract\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/UrlParameters/GetFromLaravelAPI.php
+
+		-
+			message: '#^Parameter \#1 \$method of static method Ipsocode\\Scribe\\Extracting\\Shared\\UrlParamsNormalizer\:\:getTypeHintedEnums\(\) expects ReflectionFunctionAbstract, ReflectionFunctionAbstract\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Extracting/Strategies/UrlParameters/GetFromLaravelAPI.php
+
+		-
 			message: '#^Part \$thing \(array\<string\>\|string\) of encapsed string cannot be cast to string\.$#'
 			identifier: encapsedStringPart.nonString
 			count: 1
@@ -1463,6 +1799,12 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/GroupedEndpoints/GroupedEndpointsContract.php
+
+		-
+			message: '#^Cannot call method task\(\) on Hypervel\\Console\\View\\Components\\Factory\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/GroupedEndpoints/GroupedEndpointsFromApp.php
 
 		-
 			message: '#^Method Ipsocode\\Scribe\\GroupedEndpoints\\GroupedEndpointsFromApp\:\:doesControllerMethodExist\(\) has parameter \$routeControllerAndMethod with no value type specified in iterable type array\.$#'
@@ -1609,6 +1951,12 @@ parameters:
 			path: src/Tools/AnnotationParser.php
 
 		-
+			message: '#^Method Ipsocode\\Scribe\\Tools\\AnnotationParser\:\:parseIntoContentAndFields\(\) should return array\{content\: string, fields\: array\<string\>\} but returns array\{content\: string, fields\: array\<string\|null\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Tools/AnnotationParser.php
+
+		-
 			message: '#^Method Ipsocode\\Scribe\\Tools\\AnnotationParser\:\:parseIntoFields\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -1675,6 +2023,36 @@ parameters:
 			path: src/Tools/ConfigDiffer.php
 
 		-
+			message: '#^Cannot call method error\(\) on Hypervel\\Console\\View\\Components\\Factory\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Tools/ConsoleOutputUtils.php
+
+		-
+			message: '#^Cannot call method info\(\) on Hypervel\\Console\\View\\Components\\Factory\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Tools/ConsoleOutputUtils.php
+
+		-
+			message: '#^Cannot call method task\(\) on Hypervel\\Console\\View\\Components\\Factory\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Tools/ConsoleOutputUtils.php
+
+		-
+			message: '#^Cannot call method warn\(\) on Hypervel\\Console\\View\\Components\\Factory\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Tools/ConsoleOutputUtils.php
+
+		-
+			message: '#^Cannot call method writeln\(\) on Symfony\\Component\\Console\\Output\\OutputInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 5
+			path: src/Tools/ConsoleOutputUtils.php
+
+		-
 			message: '#^Property Ipsocode\\Scribe\\Tools\\ConsoleOutputUtils\:\:\$warningBuffer type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -1703,6 +2081,12 @@ parameters:
 			identifier: missingType.parameter
 			count: 1
 			path: src/Tools/MarkdownParser.php
+
+		-
+			message: '#^Method Ipsocode\\Scribe\\Tools\\PathConfig\:\:intermediateOutputPath\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Tools/PathConfig.php
 
 		-
 			message: '#^Method Ipsocode\\Scribe\\Tools\\RoutePatternMatcher\:\:matches\(\) has parameter \$patterns with no type specified\.$#'
@@ -1771,6 +2155,12 @@ parameters:
 			path: src/Tools/Utils.php
 
 		-
+			message: '#^Method Ipsocode\\Scribe\\Tools\\Utils\:\:replaceUrlParameterPlaceholdersWithValues\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Tools/Utils.php
+
+		-
 			message: '#^Method Ipsocode\\Scribe\\Tools\\Utils\:\:trans\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
@@ -1804,6 +2194,12 @@ parameters:
 			message: '#^Parameter \#1 \$object_or_class of function method_exists expects object\|string, class\-string\|false given\.$#'
 			identifier: argument.type
 			count: 1
+			path: src/Tools/Utils.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function preg_replace expects array\<float\|int\|string\>\|string, string\|null given\.$#'
+			identifier: argument.type
+			count: 3
 			path: src/Tools/Utils.php
 
 		-
@@ -1951,7 +2347,19 @@ parameters:
 			path: src/Writing/OpenApiSpecGenerators/BaseGenerator.php
 
 		-
+			message: '#^Method Ipsocode\\Scribe\\Writing\\OpenApiSpecGenerators\\BaseGenerator\:\:operationId\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Writing/OpenApiSpecGenerators/BaseGenerator.php
+
+		-
 			message: '#^Parameter \#2 \$array of function array_map expects array, list\<string\>\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Writing/OpenApiSpecGenerators/BaseGenerator.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function str_replace expects array\<string\>\|string, string\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Writing/OpenApiSpecGenerators/BaseGenerator.php
@@ -2047,6 +2455,18 @@ parameters:
 			path: src/Writing/PostmanCollectionWriter.php
 
 		-
+			message: '#^Parameter \#1 \$string of function strip_tags expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 3
+			path: src/Writing/PostmanCollectionWriter.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function str_replace expects array\<string\>\|string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Writing/PostmanCollectionWriter.php
+
+		-
 			message: '#^Method Ipsocode\\Scribe\\Writing\\Writer\:\:generateOpenAPISpec\(\) has parameter \$groupedEndpoints with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -2060,6 +2480,12 @@ parameters:
 
 		-
 			message: '#^Method Ipsocode\\Scribe\\Writing\\Writer\:\:generatePostmanCollection\(\) should return string but returns string\|false\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Writing/Writer.php
+
+		-
+			message: '#^Method Ipsocode\\Scribe\\Writing\\Writer\:\:renderPath\(\) should return string but returns string\|null\.$#'
 			identifier: return.type
 			count: 1
 			path: src/Writing/Writer.php
@@ -2101,7 +2527,55 @@ parameters:
 			path: src/Writing/Writer.php
 
 		-
+			message: '#^Parameter \#1 \$contents of method Ipsocode\\Scribe\\Writing\\Writer\:\:wrapInNowdoc\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Writing/Writer.php
+
+		-
+			message: '#^Parameter \#1 \$dir of static method Ipsocode\\Scribe\\Tools\\Utils\:\:makeDirectoryRecursive\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Writing/Writer.php
+
+		-
+			message: '#^Parameter \#1 \$directory of function mkdir expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Writing/Writer.php
+
+		-
+			message: '#^Parameter \#1 \$filename of function is_dir expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Writing/Writer.php
+
+		-
+			message: '#^Parameter \#1 \$path of method Ipsocode\\Scribe\\Writing\\Writer\:\:makePathFriendly\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Writing/Writer.php
+
+		-
+			message: '#^Parameter \#1 \$string of function mb_rtrim expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 3
+			path: src/Writing/Writer.php
+
+		-
 			message: '#^Parameter \#3 \$subject of function preg_replace_callback expects array\<float\|int\|string\>\|string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Writing/Writer.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function preg_replace_callback expects array\<float\|int\|string\>\|string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Writing/Writer.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function str_replace expects array\<string\>\|string, string\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Writing/Writer.php
