@@ -41,7 +41,8 @@ Your application's `composer.json` must allow Hypervel's dev branch:
 ## Documentation
 
 Start with [getting started](src/docs/getting-started.md); the
-[documentation index](src/docs/index.md) lists every page.
+[documentation index](src/docs/index.md) lists every page. To serve the
+generated docs to AI clients, see the [MCP server](src/docs/mcp.md).
 
 ## Contributing
 
@@ -53,6 +54,9 @@ described in [SECURITY.md](.github/SECURITY.md), rather than in a public issue.
 A port of [`knuckleswtf/scribe`](https://github.com/knuckleswtf/scribe) by
 Shalvah and its contributors, to [Hypervel](https://github.com/hypervel/components).
 LICENSE carries its copyright notice alongside this package's.
+
+Its lasting differences from upstream are listed in
+[Differences from upstream](src/docs/differences-from-upstream.md).
 
 ## License
 

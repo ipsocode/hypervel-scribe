@@ -7,6 +7,7 @@ namespace Ipsocode\Scribe\Tests\Feature\Matching;
 use Hypervel\Routing\Route;
 use Hypervel\Routing\RouteCollection;
 use Hypervel\Telescope\Telescope;
+use Hypervel\Testbench\Attributes\WithConfig;
 use Ipsocode\Scribe\Matching\MatchedRoute;
 use Ipsocode\Scribe\Matching\RouteMatcher;
 use Ipsocode\Scribe\Matching\RouteMatcherInterface;
@@ -207,5 +208,16 @@ class RouteMatcherTest extends TestCase
         $this->assertSame([], $this->match([
             ['match' => ['prefixes' => ['telescope/*'], 'domains' => ['*']]],
         ]));
+    }
+
+    #[Test]
+    #[WithConfig('scribe.mcp.enabled', true)]
+    #[WithConfig('scribe.mcp.path', '/api/users')]
+    public function leavesOutThePathOfTheMcpServer(): void
+    {
+        $matched = $this->match([['match' => ['prefixes' => ['api/*'], 'domains' => ['*']]]]);
+
+        $this->assertNotContains('api/users', $matched);
+        $this->assertContains('api/posts', $matched);
     }
 }

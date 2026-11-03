@@ -22,6 +22,7 @@ hypervel-porting MCP server is set up, its `read_doc` reads a page, or one secti
 | `Jobs/` | queues.md › Class Structure; queues.md › Preventing Job Overlaps; artisan.md › Programmatically Executing Commands |
 | `Config/`, `Tools/DocumentationConfig.php`, `Tools/ConfigDiffer.php` | configuration.md › Accessing Configuration Values; packages.md › Default Package Configuration |
 | `Scribe.php`, `Tools/Globals.php`, `Tools/RunState.php`: state kept for the life of a worker | lifecycle.md › Per-Worker vs. Per-Request; packages.md › Test State Cleanup |
+| `Mcp/`: the MCP server, and `Mcp/Tools/CallSandboxTool.php`'s calls to the sandbox | mcp.md › Web Servers; mcp.md › Tool Input Schemas; mcp.md › Tool Output Schemas; mcp.md › Validating Tool Arguments; mcp.md › Tool Responses; mcp.md › Resources; mcp.md › Prompts; http-client.md › Streaming Responses; http-client.md › Headers; http-client.md › Authentication; http-client.md › Timeout; http-client.md › Restricting Destinations |
 | `Testing/` | packages.md › Test State Cleanup |
 
 ## Default References
