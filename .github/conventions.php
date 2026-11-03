@@ -39,9 +39,5 @@ return [
         'eval-unserialize' => [
             'src/Tools/Utils.php' => [1, "reads a closure route back from route:cache the way Route::runCallable() does, with allowed_classes limited to the serializable-closure classes"],
         ],
-        'coverage-ignore' => [
-            'src/ScribeServiceProvider.php' => [2, 'the Str alias fallback, which fires only in an application that dropped the alias from config/app.php'],
-            'src/Tools/ErrorHandlingUtils.php' => [2, 'the fallback for an application without Whoops, which the suite always has as a dev dependency'],
-        ],
     ],
 ];

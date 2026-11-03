@@ -8,9 +8,12 @@ use Ipsocode\Scribe\Tests\TestCase;
 use Ipsocode\Scribe\Tools\ConsoleOutputUtils;
 use Ipsocode\Scribe\Tools\ErrorHandlingUtils;
 use Ipsocode\Scribe\Tools\Globals;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\ConsoleOutput;
 
 /**
  * What a user sees when a strategy blows up mid-generation. Generation catches
@@ -89,6 +92,42 @@ class ErrorHandlingUtilsTest extends TestCase
         ErrorHandlingUtils::dumpException($this->throwFrom());
 
         $this->assertStringContainsString('something broke', $this->output->fetch());
+    }
+
+    /**
+     * Collision and Whoops are dev dependencies, so a production install
+     * (including one running the regeneration job) has neither. The process is
+     * separate because the autoloader has to stop finding them.
+     */
+    #[Test]
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function withoutCollisionTheTraceIsPrintedAsPlainText(): void
+    {
+        $e = $this->throwFrom();
+        $other = new BufferedOutput;
+
+        // Everything the call and the assertions need is loaded first; only the
+        // optional packages are left to the autoloader.
+        class_exists(ErrorHandlingUtils::class);
+        class_exists(ConsoleOutputUtils::class);
+        class_exists(ConsoleOutput::class);
+        $this->assertSame('', $other->fetch());
+        $loaders = array_filter(spl_autoload_functions(), is_array(...));
+
+        foreach ($loaders as $loader) {
+            spl_autoload_unregister($loader);
+        }
+
+        try {
+            ErrorHandlingUtils::dumpException($e, $other);
+        } finally {
+            foreach ($loaders as $loader) {
+                spl_autoload_register($loader);
+            }
+        }
+
+        $this->assertSame((string) $e . PHP_EOL, $other->fetch());
     }
 
     /**
