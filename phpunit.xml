@@ -10,6 +10,7 @@
     processIsolation="false"
     failOnWarning="true"
     failOnRisky="true"
+    failOnDeprecation="true"
 >
     <testsuites>
         <!-- The package's pure logic, run without booting an application. Every
