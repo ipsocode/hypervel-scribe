@@ -228,12 +228,17 @@ class CallSandboxTool extends Tool
 
         foreach ($operation['parameters'] ?? [] as $parameter) {
             $input = $inputs[$parameter['in']] ?? null;
+
+            if ($input === null) {
+                continue;
+            }
+
             $required = $parameter['in'] === 'path' || ($parameter['required'] ?? false);
             $given = $parameter['in'] === 'header'
                 ? isset($headers[mb_strtolower($parameter['name'])])
                 : isset($arguments[$input][$parameter['name']]);
 
-            if ($input !== null && $required && ! $given) {
+            if ($required && ! $given) {
                 $missing[] = "{$parameter['in']} parameter {$parameter['name']}";
             }
         }
