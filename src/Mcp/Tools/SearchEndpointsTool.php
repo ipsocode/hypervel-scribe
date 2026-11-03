@@ -41,6 +41,7 @@ class SearchEndpointsTool extends Tool
         ]);
 
         return $this->answerFromSpec(function () use ($arguments): ResponseFactory {
+            /** @var list<string> $words preg_split() fails only on an invalid pattern or PCRE limit, neither reachable here */
             $words = preg_split('/\s+/', mb_strtolower($arguments['query']), -1, PREG_SPLIT_NO_EMPTY);
             $endpoints = [];
 

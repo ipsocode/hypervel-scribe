@@ -124,9 +124,9 @@ class ScribeServiceProvider extends ServiceProvider
             return;
         }
 
-        Mcp::web($config->string('scribe.mcp.path'), ScribeServer::class)
-            ->middleware($config->array('scribe.mcp.middleware'))
-            ->name('scribe.mcp');
+        $route = Mcp::web($config->string('scribe.mcp.path'), ScribeServer::class);
+        $route->middleware($config->array('scribe.mcp.middleware'));
+        $route->name('scribe.mcp');
 
         Mcp::local($config->string('scribe.mcp.local_name'), ScribeServer::class);
 

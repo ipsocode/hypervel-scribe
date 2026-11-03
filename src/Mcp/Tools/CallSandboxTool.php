@@ -10,6 +10,7 @@ use Hypervel\Context\RequestContext;
 use Hypervel\Contracts\Config\Repository;
 use Hypervel\Contracts\JsonSchema\JsonSchema;
 use Hypervel\Http\Client\ConnectionException;
+use Hypervel\Http\Client\Response as HttpResponse;
 use Hypervel\JsonSchema\Types\Type;
 use Hypervel\Mcp\Request;
 use Hypervel\Mcp\Response;
@@ -334,6 +335,7 @@ class CallSandboxTool extends Tool
         $limit = $this->config->integer('scribe.mcp.sandbox.max_response_bytes');
 
         try {
+            /** @var HttpResponse $response send() returns a promise only for an async request */
             $response = Http::withHeaders($headers)
                 ->withQueryParameters($query)
                 ->withUrlParameters($arguments['pathParams'] ?? [])
