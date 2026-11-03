@@ -6,7 +6,6 @@ namespace Ipsocode\Scribe\Extracting;
 
 use Hypervel\Foundation\Http\FormRequest;
 use ReflectionClass;
-use ReflectionException;
 use ReflectionFunctionAbstract;
 use ReflectionNamedType;
 
@@ -29,15 +28,7 @@ trait FindsFormRequestForMethod
                 continue;
             }
 
-            try {
-                $argumentClass = new ReflectionClass($argumentClassName);
-                // @codeCoverageIgnoreStart
-                // class_exists() has already loaded the class, so reflecting it
-                // cannot fail.
-            } catch (ReflectionException $e) { // @phpstan-ignore catch.neverThrown (class_exists() has loaded the class; kept in case that call site changes)
-                continue;
-            }
-            // @codeCoverageIgnoreEnd
+            $argumentClass = new ReflectionClass($argumentClassName);
 
             if ($argumentClass->isSubclassOf(FormRequest::class)) {
                 return $argumentClass;

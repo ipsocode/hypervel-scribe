@@ -339,7 +339,7 @@ final class SchemaBuilder
                     ],
                 ];
 
-            case 'object':
+            default: // 'object': json_decode() yields no other type, and null has returned above
                 $properties = collect((array) $decoded)->mapWithKeys(function ($value, $key) use ($endpoint) {
                     return [$key => ($this->generateSchemaForResponseValue)($value, $endpoint, $key)];
                 })->toArray();
@@ -359,12 +359,6 @@ final class SchemaBuilder
                 }
 
                 return $data;
-                // @codeCoverageIgnoreStart
-                // json_decode() returns one of the types above or null, and a
-                // null decode has already returned further up.
-            default:
-                return [];
-                // @codeCoverageIgnoreEnd
         }
     }
 

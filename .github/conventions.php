@@ -40,11 +40,8 @@ return [
             'src/Tools/Utils.php' => [1, "reads a closure route back from route:cache the way Route::runCallable() does, with allowed_classes limited to the serializable-closure classes"],
         ],
         'coverage-ignore' => [
-            'src/Extracting/FindsFormRequestForMethod.php' => [2, 'class_exists() has already loaded the class, so reflecting it cannot fail'],
-            'src/GroupedEndpoints/GroupedEndpointsFromApp.php' => [4, 'two guards the route helpers leave nothing to catch: getRouteClassAndMethodNames() returns a usable pair or throws, and isValidRoute() has already thrown on a short one'],
             'src/ScribeServiceProvider.php' => [2, 'the Str alias fallback, which fires only in an application that dropped the alias from config/app.php'],
             'src/Tools/ErrorHandlingUtils.php' => [2, 'the fallback for an application without Whoops, which the suite always has as a dev dependency'],
-            'src/Writing/OpenApiSpecGenerators/SchemaBuilder.php' => [2, "json_decode()'s default arm: every type it returns is handled above it, and a null decode has already returned"],
         ],
     ],
 ];
