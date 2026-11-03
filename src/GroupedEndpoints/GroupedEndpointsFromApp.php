@@ -236,6 +236,7 @@ class GroupedEndpointsFromApp implements GroupedEndpointsContract
                 // Buffer warnings so they don't break the task output.
                 c::startWarningBuffer();
 
+                // @phpstan-ignore method.nonObject (the console components exist once the command is running)
                 $this->command->outputComponents()->task(
                     c::getRouteRepresentation($route),
                     function () use ($extractor, $route, $cachedEndpoints, $latestEndpointsData, &$parsedEndpoints) {

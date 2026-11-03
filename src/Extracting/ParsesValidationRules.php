@@ -295,7 +295,7 @@ trait ParsesValidationRules
      * Splits a string rule of the form {rule}:{arguments} into its lowercased name
      * and comma-separated arguments, eg "in:1,2" becomes ["in", ["1", "2"]].
      *
-     * @return array{string, array<int, string>}
+     * @return array{string, array<int, null|string>}
      */
     protected function parseStringRuleIntoRuleAndArguments(string $rule): array
     {
@@ -354,6 +354,7 @@ trait ParsesValidationRules
         // The validator's messages read "The :attribute field must ..."; describe the value instead.
         $description = str_replace('The :attribute field ', 'The value ', $description);
 
+        /** @var string $description preg_replace() returns null only on a PCRE error, which this fixed pattern cannot raise */
         $description = preg_replace('/(?!<\W):attribute\b/', 'value', $description);
 
         return str_replace(

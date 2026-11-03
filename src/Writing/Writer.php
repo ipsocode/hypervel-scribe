@@ -21,7 +21,7 @@ class Writer
 
     protected bool $isExternal;
 
-    protected ?string $staticTypeOutputPath;
+    protected string $staticTypeOutputPath;
 
     protected ?string $hypervelTypeOutputPath;
 
@@ -135,6 +135,7 @@ class Writer
             $outputPath = mb_rtrim($this->staticTypeOutputPath, '/') . '/';
             $assetsOutputPath = $outputPath;
         } else {
+            // @phpstan-ignore argument.type (the hypervel path is set whenever the output is not static)
             $outputPath = mb_rtrim($this->hypervelTypeOutputPath, '/') . '/';
             $assetsOutputPath = public_path() . $this->hypervelAssetsPath . '/';
         }
@@ -171,6 +172,7 @@ class Writer
      */
     public function writeExternalHtmlDocs(): void
     {
+        // @phpstan-ignore argument.type (the hypervel path is set whenever the output is not static)
         $outputPath = mb_rtrim($this->isStatic ? $this->staticTypeOutputPath : $this->hypervelTypeOutputPath, '/') . '/';
 
         c::task(
@@ -278,8 +280,8 @@ class Writer
      */
     protected function performFinalTasksForHypervelType(): void
     {
-        if (! is_dir($this->hypervelTypeOutputPath)) {
-            mkdir($this->hypervelTypeOutputPath, 0o777, true);
+        if (! is_dir($this->hypervelTypeOutputPath)) { // @phpstan-ignore argument.type (the hypervel path is set whenever the output is not static)
+            mkdir($this->hypervelTypeOutputPath, 0o777, true); // @phpstan-ignore argument.type (the hypervel path is set whenever the output is not static)
         }
         $publicDirectory = public_path();
         if (! is_dir($publicDirectory . $this->hypervelAssetsPath)) {
@@ -307,6 +309,7 @@ class Writer
 
         // Rewrite asset links to go through the app. Closures rather than arrow
         // functions, which would collect the placeholders into a copy of $urls.
+        /** @var string $contents preg_replace_callback() returns null only on a PCRE error, which these fixed patterns cannot raise */
         $contents = preg_replace_callback(
             '#href="\.\./docs/css/(.+?)"#',
             function (array $m) use (&$urls, $marker): string {
@@ -314,6 +317,7 @@ class Writer
             },
             $contents
         );
+        /** @var string $contents preg_replace_callback() returns null only on a PCRE error, which these fixed patterns cannot raise */
         $contents = preg_replace_callback(
             '#src="\.\./docs/(js|images)/(.+?)"#',
             function (array $m) use (&$urls, $marker): string {

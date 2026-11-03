@@ -78,11 +78,11 @@ class ExtractedEndpointData extends BaseDTO
      */
     public array $auth = [];
 
-    public ?ReflectionClass $controller;
+    public ReflectionClass $controller;
 
-    public ?ReflectionFunctionAbstract $method;
+    public ReflectionFunctionAbstract $method;
 
-    public ?Route $route;
+    public Route $route;
 
     public function __construct(array $parameters = [])
     {

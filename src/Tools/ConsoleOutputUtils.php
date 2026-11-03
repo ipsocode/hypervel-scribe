@@ -80,6 +80,7 @@ class ConsoleOutputUtils
         if (self::$command) {
             // The framework's task() doesn't return the callback's result, so it is captured here.
             $result = null;
+            // @phpstan-ignore method.nonObject (the console components exist once the command is running)
             self::$command->outputComponents()->task($description, function () use (&$result, $task) {
                 $result = $task();
             });
@@ -104,29 +105,25 @@ class ConsoleOutputUtils
         }
 
         if (self::$command) {
+            // @phpstan-ignore method.nonObject (the console components exist once the command is running)
             self::$command->outputComponents()->warn($message);
 
             return;
         }
 
-        if (! self::$output) {
-            self::bootstrapOutput(self::newFallbackOutput());
-        }
-        self::$output->writeln("<fg=yellow>  ⚠ {$message}</>");
+        self::output()->writeln("<fg=yellow>  ⚠ {$message}</>");
     }
 
     public static function info(string $message): void
     {
         if (self::$command) {
+            // @phpstan-ignore method.nonObject (the console components exist once the command is running)
             self::$command->outputComponents()->info($message);
 
             return;
         }
 
-        if (! self::$output) {
-            self::bootstrapOutput(self::newFallbackOutput());
-        }
-        self::$output->writeln("<fg=gray>  ℹ {$message}</>");
+        self::output()->writeln("<fg=gray>  ℹ {$message}</>");
     }
 
     public static function debug(string $message): void
@@ -135,32 +132,24 @@ class ConsoleOutputUtils
             return;
         }
 
-        if (! self::$output) {
-            self::bootstrapOutput(self::newFallbackOutput());
-        }
-        self::$output->writeln("<fg=gray>  🐛 {$message}</>");
+        self::output()->writeln("<fg=gray>  🐛 {$message}</>");
     }
 
     public static function success(string $message): void
     {
-        if (! self::$output) {
-            self::bootstrapOutput(self::newFallbackOutput());
-        }
-        self::$output->writeln("<fg=green>  ✔ {$message}</>");
+        self::output()->writeln("<fg=green>  ✔ {$message}</>");
     }
 
     public static function error(string $message): void
     {
         if (self::$command) {
+            // @phpstan-ignore method.nonObject (the console components exist once the command is running)
             self::$command->outputComponents()->error($message);
 
             return;
         }
 
-        if (! self::$output) {
-            self::bootstrapOutput(self::newFallbackOutput());
-        }
-        self::$output->writeln("<fg=red>  ✖ {$message}</>");
+        self::output()->writeln("<fg=red>  ✖ {$message}</>");
     }
 
     /**
@@ -177,6 +166,11 @@ class ConsoleOutputUtils
         $routePath = $route->uri();
 
         return "[<fg=cyan>{$routeMethods}</>] {$routePath}";
+    }
+
+    private static function output(): OutputInterface
+    {
+        return self::$output ??= self::newFallbackOutput();
     }
 
     private static function newFallbackOutput(): OutputInterface

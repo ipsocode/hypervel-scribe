@@ -224,6 +224,7 @@ trait NormalisesValidationParameters
 
             $parentPath = $name;
             while (Str::contains($parentPath, '.')) {
+                /** @var string $parentPath preg_replace() returns null only on a PCRE error, which this fixed pattern cannot raise */
                 $parentPath = preg_replace('/\.[^.]+$/', '', $parentPath);
                 $normalisedParentPath = str_replace('.*.', '[].', $parentPath);
 

@@ -39,7 +39,7 @@ class RouteDocBlocker
     protected static array $methodDocBlocks = [];
 
     /**
-     * @return array{method: ParsedDocBlock, class: ?ParsedDocBlock} Method and class docblocks
+     * @return array{method: ParsedDocBlock, class: ParsedDocBlock} Method and class docblocks
      */
     public static function getDocBlocksFromRoute(Route $route): array
     {

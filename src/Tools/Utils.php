@@ -73,13 +73,16 @@ class Utils
         foreach ($urlParameters as $parameterName => $example) {
             // Url parameter examples are typically ints (`@urlParam id integer
             // ... Example: 3`), and preg_replace()'s $replacement is string-only.
+            /** @var string $uri preg_replace() returns null only on a PCRE error, which these patterns cannot raise */
             $uri = preg_replace('#\{' . $parameterName . '\??}#', (string) $example, $uri);
         }
 
         // Remove unbound optional parameters
+        /** @var string $uri */
         $uri = preg_replace('#{([^/]+\?)}#', '', $uri);
 
         // Replace any unbound non-optional parameters with '1'
+        /** @var string */
         return preg_replace('#{([^/]+)}#', '1', $uri);
     }
 

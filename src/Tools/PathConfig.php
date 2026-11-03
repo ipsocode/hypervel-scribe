@@ -9,14 +9,16 @@ namespace Ipsocode\Scribe\Tools;
  */
 class PathConfig
 {
+    /**
+     * Where Scribe keeps its intermediate output, a sort of cache directory.
+     */
+    protected string $scribeDir;
+
     public function __construct(
         public string $configName = 'scribe',
-        // Where Scribe keeps its intermediate output, a sort of cache directory.
-        protected ?string $scribeDir = null,
+        ?string $scribeDir = null,
     ) {
-        if (is_null($this->scribeDir)) {
-            $this->scribeDir = ".{$this->configName}";
-        }
+        $this->scribeDir = $scribeDir ?? ".{$this->configName}";
     }
 
     public function outputPath(?string $resolvePath = null, string $separator = '/'): string
