@@ -1,5 +1,5 @@
 @foreach($groupedEndpoints as $group)
-    <h1 id="{!! Str::slug($group['name']) !!}"
+    <h1 id="{!! \Hypervel\Support\Str::slug($group['name']) !!}"
         class="sl-text-5xl sl-leading-tight sl-font-prose sl-text-heading"
     >
         {{ $group['name'] }}
@@ -9,7 +9,7 @@
 
     @foreach($group['subgroups'] as $subgroupName => $subgroup)
         @if($subgroupName !== "")
-            <h2 id="{!! Str::slug($group['name']) !!}-{!! Str::slug($subgroupName) !!}"
+            <h2 id="{!! \Hypervel\Support\Str::slug($group['name']) !!}-{!! \Hypervel\Support\Str::slug($subgroupName) !!}"
                 class="sl-text-3xl sl-leading-tight sl-font-prose sl-text-heading sl-mt-5 sl-mb-3"
             >
                 {{ $subgroupName }}
