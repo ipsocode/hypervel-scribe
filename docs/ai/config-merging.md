@@ -40,6 +40,7 @@ protected function mergeableOptions(string $name): array
         'fractal',
         'groups',
         'hypervel',
+        'mcp',
         'openapi',
         'postman',
         'static',

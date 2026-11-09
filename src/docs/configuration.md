@@ -69,6 +69,18 @@ wildcards. The package's own `scribe` routes are always excluded, and so is
 | `try_it_out.use_csrf` | `false` | Fetch `csrf_url` before each request and send the `XSRF-TOKEN` cookie's value as an `X-XSRF-TOKEN` header. |
 | `try_it_out.csrf_url` | `'/sanctum/csrf-cookie'` | The URL fetched when `use_csrf` is on. |
 
+## MCP server
+
+| Key | Default | What it does |
+|---|---|---|
+| `mcp.enabled` | `false` (`SCRIBE_MCP_ENABLED`) | Register the MCP server for the generated docs. When it is off, neither server below exists. |
+| `mcp.path` | `'/docs/mcp'` | The URL of the HTTP server, which accepts `POST` requests only. |
+| `mcp.local_name` | `'scribe'` | The name of the local server, started with `php artisan mcp:start scribe`. |
+| `mcp.middleware` | `[]` | Middleware applied to the HTTP server, such as `auth:sanctum`. |
+| `mcp.sandbox.*` | Off | The opt-in `call-sandbox` tool: `enabled`, `mode`, `base_url`, `timeout`, `max_response_bytes` and `methods`. An application config that names `mcp.sandbox` replaces the package's block whole, so name every key in it. See [the sandbox](mcp.md#the-sandbox). |
+
+The server reads the generated `openapi.yaml`, so run `scribe:generate` first. See [MCP server](mcp.md).
+
 ## Authentication
 
 | Key | Default | What it does |
@@ -85,7 +97,7 @@ wildcards. The package's own `scribe` routes are always excluded, and so is
 
 | Key | Default | What it does |
 |---|---|---|
-| `example_languages` | `['bash', 'javascript']` | Languages for the example requests: `bash`, `javascript`, `php`, `python`, or one you add. Not used by the `external_*` types. See [example languages](output.md#example-languages). |
+| `example_languages` | `['bash', 'javascript', 'php', 'python']` | Languages for the example requests: `bash`, `javascript`, `php`, `python`, or one you add. Not used by the `external_*` types. See [example languages](output.md#example-languages). |
 | `postman.enabled` | `true` | Write a Postman v2.1.0 collection. |
 | `postman.overrides` | `[]` | Values set on the collection by dotted key, e.g. `'info.version' => '2.0.0'`. |
 | `openapi.enabled` | `true` | Write an OpenAPI spec. The `external_*` types write it regardless. |
@@ -170,7 +182,7 @@ the package's defaults underneath it:
 
 - A top-level key you leave out takes the package's value.
 - The option arrays `auth`, `examples`, `external`, `fractal`, `groups`,
-  `hypervel`, `openapi`, `postman`, `static` and `try_it_out` merge one level
+  `hypervel`, `mcp`, `openapi`, `postman`, `static` and `try_it_out` merge one level
   deep. Naming `auth.enabled` alone keeps `auth.in` and the rest of `auth`. A key
   you do name replaces the package's value for that key whole, so naming
   `openapi.overrides` replaces that array.
