@@ -5,7 +5,6 @@
 # Components also sets parallelism and scans stub files, for a monorepo whose source uses
 # BASE_PATH and Swoole's IDE helpers. src/ here uses neither, so neither is copied.
 includes:
-    - phpstan-baseline.neon
     # PHPStan support for Eloquent's forwarded builder and model methods, named scopes and
     # the framework's helper functions. The split hypervel/database and hypervel/foundation
     # packages register these through `extra.phpstan`, but development here installs the

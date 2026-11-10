@@ -25,7 +25,7 @@ class MethodAstParser
     protected static array $methodAsts = [];
 
     /**
-     * @var array<string, null|array<int, Stmt>>
+     * @var array<string, array<int, Stmt>>
      */
     protected static array $classAsts = [];
 
@@ -55,13 +55,14 @@ class MethodAstParser
     }
 
     /**
-     * @return null|Stmt[]
+     * @return array<int, Stmt>
      */
-    protected static function parseClassSourceCode(string $sourceCode): ?array
+    protected static function parseClassSourceCode(string $sourceCode): array
     {
         $parser = (new ParserFactory)->createForHostVersion();
 
         try {
+            /** @var array<int, Stmt> $ast parse() returns null only for a collecting error handler, and this parser throws */
             $ast = $parser->parse($sourceCode);
         } catch (Throwable $error) {
             throw new Exception("Parse error: {$error->getMessage()}");
@@ -112,9 +113,9 @@ class MethodAstParser
     }
 
     /**
-     * @return null|array<int, Stmt>
+     * @return array<int, Stmt>
      */
-    private static function getClassAst(string $fileName): ?array
+    private static function getClassAst(string $fileName): array
     {
         $classAst = self::$classAsts[$fileName]
             ?? self::parseClassSourceCode(file_get_contents($fileName)); // @phpstan-ignore argument.type (the file was reflected from, so it exists)

@@ -136,6 +136,7 @@ class GenerateDocumentation extends Command
         // --verbose is built into every console command.
         Globals::$shouldBeVerbose = $this->option('verbose');
 
+        // @phpstan-ignore argument.type (the output is set before handle() runs)
         c::bootstrapOutput($this->output);
         c::setCommand($this);
 
@@ -231,13 +232,17 @@ class GenerateDocumentation extends Command
 
         $this->newLine();
         if ($url) {
+            // @phpstan-ignore method.nonObject (the console components exist once the command is running)
             $this->components->twoColumnDetail($message, $url);
         } else {
+            // @phpstan-ignore method.nonObject (the console components exist once the command is running)
             $this->components->info($message);
         }
 
         if ($errored) {
+            // @phpstan-ignore method.nonObject (the console components exist once the command is running)
             $this->components->warn('Generated docs, but encountered some errors while processing routes.');
+            // @phpstan-ignore method.nonObject (the console components exist once the command is running)
             $this->components->warn('Check the output above for details.');
         }
     }

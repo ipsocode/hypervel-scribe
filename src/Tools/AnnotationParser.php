@@ -11,7 +11,7 @@ class AnnotationParser
      * Fields are always optional and may appear at the start or the end of the string.
      *
      * @param string[] $allowedFields list of fields to look for
-     * @return array{content: string, fields: string[]}
+     * @return array{content: string, fields: array<string, null|string>}
      */
     public static function parseIntoContentAndFields(string $annotationContent, array $allowedFields): array
     {

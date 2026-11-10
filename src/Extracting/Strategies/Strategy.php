@@ -9,7 +9,7 @@ use Ipsocode\Scribe\Tools\DocumentationConfig;
 
 abstract class Strategy
 {
-    public ?ExtractedEndpointData $endpointData;
+    public ExtractedEndpointData $endpointData;
 
     public function __construct(protected DocumentationConfig $config)
     {

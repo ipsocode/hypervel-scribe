@@ -211,6 +211,7 @@ class ResponseCalls extends Strategy
     ): Request {
         $uri = Utils::getUrlWithBoundParameters($url, $urlParams);
         $routeMethods = $this->getMethods($route);
+        /** @var string $method a route always has at least one method */
         $method = array_shift($routeMethods);
         $cookies = $settings['cookies'] ?? [];
 
@@ -385,6 +386,7 @@ class ResponseCalls extends Strategy
             });
 
             try {
+                // @phpstan-ignore callable.nonCallable (a streamed response always has a callback)
                 $originalCallback();
             } finally {
                 ob_end_flush();

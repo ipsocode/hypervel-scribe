@@ -34,6 +34,8 @@ class TransformerResponsesTest extends DatabaseTestCase
             ->name('transformed.inferred');
         $router->get('api/transformed-undetectable', [TransformerController::class, 'undetectableModel'])
             ->name('transformed.undetectable');
+        $router->get('api/transformed-parameterless', [TransformerController::class, 'parameterlessTransformer'])
+            ->name('transformed.parameterless');
         $router->get('api/transformed-attributed-single', [TransformerController::class, 'attributedSingle'])
             ->name('transformed.attributedSingle');
     }
@@ -143,6 +145,15 @@ class TransformerResponsesTest extends DatabaseTestCase
         $this->expectExceptionMessage("Couldn't detect a transformer model from your doc block");
 
         $this->extract('transformed.undetectable');
+    }
+
+    #[Test]
+    public function aTransformerWithoutParametersIsReported(): void
+    {
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage("Couldn't detect a transformer model from your doc block");
+
+        $this->extract('transformed.parameterless');
     }
 
     #[Test]

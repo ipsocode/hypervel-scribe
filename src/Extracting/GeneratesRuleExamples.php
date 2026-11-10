@@ -6,7 +6,6 @@ namespace Ipsocode\Scribe\Extracting;
 
 use Closure;
 use Hypervel\Validation\Rules\Enum;
-use ReflectionClass;
 use ReflectionProperty;
 use UnitEnum;
 
@@ -168,9 +167,7 @@ trait GeneratesRuleExamples
      */
     protected function processEnumValidationRule(Enum $rule, array &$parameterData, array $allParameters = []): void
     {
-        $property = (new ReflectionClass($rule))->getProperty('type');
-        $property->setAccessible(true);
-        $enumClass = $property->getValue($rule);
+        $enumClass = (new ReflectionProperty(Enum::class, 'type'))->getValue($rule);
 
         if (enum_exists($enumClass) && method_exists($enumClass, 'tryFrom')) {
             // Only a BackedEnum has ->value, and only a BackedEnum has tryFrom().

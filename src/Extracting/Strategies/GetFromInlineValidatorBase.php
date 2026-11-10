@@ -47,6 +47,7 @@ class GetFromInlineValidatorBase extends Strategy
     public function lookForInlineValidationRules(ClassMethod $methodAst): array
     {
         // Validation usually comes early, so only the first 10 statements are searched.
+        // @phpstan-ignore argument.type (a method that handles a route has a body, so its statements are not null)
         $statements = array_slice($methodAst->stmts, 0, 10);
 
         [$index, $validationStatement, $validationRules] = $this->findValidationExpression($statements);
@@ -144,6 +145,7 @@ class GetFromInlineValidatorBase extends Strategy
     {
         $lines = [];
         foreach (explode("\n", $comment) as $line) {
+            // @phpstan-ignore argument.type (preg_replace() returns null only on a PCRE error, which these fixed patterns cannot raise)
             $cleaned = mb_trim(preg_replace(['/\*+\/$/', '/^\/\*+\s*/', '/^\/+\s*/', '/^\*+\s*/', '/^#+\s*/'], '', mb_trim($line)));
             if ($cleaned !== '') {
                 $lines[] = $cleaned;
@@ -222,7 +224,7 @@ class GetFromInlineValidatorBase extends Strategy
      * @param array<int, Node> $statements
      * @return array{null|int, null|Node, mixed}
      */
-    protected function findValidationExpression(array $statements): ?array
+    protected function findValidationExpression(array $statements): array
     {
         $strategies = [
             RequestValidate::class, // $request->validate(...);

@@ -68,14 +68,6 @@ class ScribeServiceProvider extends ServiceProvider
         // Translations back the extractor's auth and validation rule descriptions.
         $this->loadTranslationsFrom(realpath(__DIR__ . '/../lang') ?: __DIR__ . '/../lang', 'scribe');
 
-        // @codeCoverageIgnoreStart
-        // The Blade views use the short `Str` alias. A Hypervel application's alias
-        // loader already resolves it, so this only fires for one that dropped it.
-        if (! class_exists('Str')) {
-            class_alias(Str::class, 'Str');
-        }
-        // @codeCoverageIgnoreEnd
-
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__ . '/../config/scribe.php' => config_path('scribe.php'),

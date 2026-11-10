@@ -37,8 +37,7 @@ trait InstantiatesExampleModels
         }
 
         if ($type === null) {
-            $parameter = Arr::first($transformationMethod->getParameters());
-            $parameterType = $parameter->hasType() ? $parameter->getType() : null;
+            $parameterType = Arr::first($transformationMethod->getParameters())?->getType();
             if ($parameterType instanceof ReflectionNamedType
                 && ! $parameterType->isBuiltin() && class_exists($parameterType->getName())) {
                 $type = $parameterType->getName();

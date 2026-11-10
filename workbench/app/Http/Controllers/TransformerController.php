@@ -81,6 +81,16 @@ class TransformerController extends Controller
     }
 
     /**
+     * A transformer whose `transform()` takes no parameter at all.
+     *
+     * @transformer \Workbench\App\Transformers\ParameterlessTransformer
+     */
+    public function parameterlessTransformer(): array
+    {
+        return [];
+    }
+
+    /**
      * List transformed posts, documented with an attribute.
      *
      * The attribute is the second spelling of the same strategy: everything the

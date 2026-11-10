@@ -219,15 +219,6 @@ class GroupedEndpointsFromApp implements GroupedEndpointsContract
             $route = $routeItem->getRoute();
 
             $routeControllerAndMethod = u::getRouteClassAndMethodNames($route);
-            // @codeCoverageIgnoreStart
-            // getRouteClassAndMethodNames() either returns a usable pair or
-            // throws, so isValidRoute() has nothing left to reject here.
-            if (! $this->isValidRoute($routeControllerAndMethod)) {
-                c::warn('Skipping invalid route: ' . c::getRouteRepresentation($route));
-
-                continue;
-            }
-            // @codeCoverageIgnoreEnd
 
             if (! $this->doesControllerMethodExist($routeControllerAndMethod)) {
                 c::warn('Skipping route: ' . c::getRouteRepresentation($route) . ' - Controller method does not exist.');
@@ -245,6 +236,7 @@ class GroupedEndpointsFromApp implements GroupedEndpointsContract
                 // Buffer warnings so they don't break the task output.
                 c::startWarningBuffer();
 
+                // @phpstan-ignore method.nonObject (the console components exist once the command is running)
                 $this->command->outputComponents()->task(
                     c::getRouteRepresentation($route),
                     function () use ($extractor, $route, $cachedEndpoints, $latestEndpointsData, &$parsedEndpoints) {
@@ -356,35 +348,14 @@ class GroupedEndpointsFromApp implements GroupedEndpointsContract
     }
 
     /**
-     * @param null|array<int, mixed> $routeControllerAndMethod
-     */
-    private function isValidRoute(?array $routeControllerAndMethod): bool
-    {
-        if (is_array($routeControllerAndMethod)) {
-            if (count($routeControllerAndMethod) < 2) {
-                throw CouldntGetRouteDetails::new();
-            }
-            [$classOrObject, $method] = $routeControllerAndMethod;
-            if (u::isInvokableObject($classOrObject)) {
-                return true;
-            }
-            $routeControllerAndMethod = $classOrObject . '@' . $method;
-        }
-
-        return ! is_callable($routeControllerAndMethod) && ! is_null($routeControllerAndMethod);
-    }
-
-    /**
      * @param array<int, mixed> $routeControllerAndMethod
      */
     private function doesControllerMethodExist(array $routeControllerAndMethod): bool
     {
-        // @codeCoverageIgnoreStart
-        // isValidRoute() has already thrown on a pair this short.
         if (count($routeControllerAndMethod) < 2) {
             throw CouldntGetRouteDetails::new();
         }
-        // @codeCoverageIgnoreEnd
+
         [$class, $method] = $routeControllerAndMethod;
         if (is_string($class) && ! class_exists($class)) {
             return false;

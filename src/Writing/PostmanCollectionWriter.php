@@ -348,7 +348,7 @@ class PostmanCollectionWriter
                     $query[] = [
                         'key' => $key,
                         'value' => $value,
-                        'description' => strip_tags($parameterData->description),
+                        'description' => strip_tags($parameterData->description ?? ''),
                         // Optional parameters without an example start disabled.
                         'disabled' => ! $parameterData->required && empty($parameterData->example),
                     ];
@@ -358,7 +358,7 @@ class PostmanCollectionWriter
                     $query[] = [
                         'key' => "{$name}[]",
                         'value' => '',
-                        'description' => strip_tags($parameterData->description),
+                        'description' => strip_tags($parameterData->description ?? ''),
                         'disabled' => true,
                     ];
                 }
@@ -366,7 +366,7 @@ class PostmanCollectionWriter
                 $query[] = [
                     'key' => $name,
                     'value' => $parameterData->example !== null ? (string) $parameterData->example : '',
-                    'description' => strip_tags($parameterData->description),
+                    'description' => strip_tags($parameterData->description ?? ''),
                     'disabled' => ! $parameterData->required && empty($parameterData->example),
                 ];
             }
@@ -402,7 +402,7 @@ class PostmanCollectionWriter
     protected function getResponseDescription(Response $response): string
     {
         if ($response->isBinary()) {
-            return mb_trim(str_replace('<<binary>>', '', $response->content));
+            return mb_trim(str_replace('<<binary>>', '', $response->content ?? ''));
         }
 
         $description = (string) $response->description;

@@ -312,7 +312,7 @@ class BaseGenerator extends OpenApiGenerator
     protected function getResponseDescription(Response $response): string
     {
         if ($response->isBinary()) {
-            return mb_trim(str_replace('<<binary>>', '', $response->content));
+            return mb_trim(str_replace('<<binary>>', '', $response->content ?? ''));
         }
 
         $description = (string) $response->description;

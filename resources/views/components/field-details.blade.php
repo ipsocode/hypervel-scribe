@@ -7,11 +7,11 @@
 @if($isInput && $deprecated)<i>deprecated</i>@endif &nbsp;
 @if($isInput && empty($hasChildren))
     @php
-        $isList = Str::endsWith($type, '[]');
+        $isList = \Hypervel\Support\Str::endsWith($type, '[]');
         $fullName = str_replace('[]', '.0', $fullName ?? $name);
         $baseType = $isList ? substr($type, 0, -2) : $type;
         // The outermost '[]' is left to the frontend.
-        while (\Str::endsWith($baseType, '[]')) {
+        while (\Hypervel\Support\Str::endsWith($baseType, '[]')) {
             $fullName .= '.0';
             $baseType = substr($baseType, 0, -2);
         }

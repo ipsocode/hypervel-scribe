@@ -42,15 +42,12 @@ class ErrorHandlingUtils
         // it still sees the trace.
         $output ??= ConsoleOutputUtils::getOutput() ?? new ConsoleOutput(OutputInterface::VERBOSITY_VERBOSE);
 
-        // @codeCoverageIgnoreStart
-        // Collision and Whoops are dev dependencies, so the suite always has
-        // them; the guard is for applications that do not.
+        // Collision and Whoops are dev dependencies, so a production install lacks them.
         if (! class_exists(Handler::class) || ! class_exists(Inspector::class)) {
             $output->writeln((string) $e);
 
             return;
         }
-        // @codeCoverageIgnoreEnd
 
         $handler = new Handler(new Writer(null, $output));
         $handler->setInspector(new Inspector($e));
